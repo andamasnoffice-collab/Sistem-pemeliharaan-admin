@@ -511,7 +511,7 @@
                                 </thead>
                                 <tbody v-if="filteredServiceLogs.length > 0" class="divide-y divide-slate-800 font-medium">
                                     <tr v-for="log in filteredServiceLogs" :key="log.id" class="hover:bg-slate-800/40">
-                                        <td class="p-3 font-mono text-slate-400">{{ formatDateDisplay(log.date) }}</td>
+                                        <td class="p-3 font-mono text-slate-400">{{ log.date }}</td>
                                         <td class="p-3 font-mono font-bold text-amber-400">{{ log.vehicleId }}</td>
                                         <td class="p-3 text-white font-semibold">{{ log.workshop }}</td>
                                         <td class="p-3 font-mono text-slate-300">{{ log.invoiceNo || '-' }}</td>
@@ -694,7 +694,7 @@
                                 <tbody v-if="spjPkpLogs.length > 0" class="divide-y divide-slate-800 font-medium">
                                     <tr v-for="(log, idx) in spjPkpLogs" :key="log.id" class="hover:bg-slate-800/40">
                                         <td class="p-2.5 font-mono text-slate-500">{{ idx + 1 }}</td>
-                                        <td class="p-2.5 font-mono text-slate-400">{{ formatDateDisplay(log.date) }}</td>
+                                        <td class="p-2.5 font-mono text-slate-400">{{ log.date }}</td>
                                         <td class="p-2.5 font-mono font-bold text-amber-400">{{ log.vehicleId }}</td>
                                         <td class="p-2.5 text-white font-semibold">{{ log.workshop }}</td>
                                         <td class="p-2.5 font-mono text-sky-400 font-bold">{{ log.invoiceNo || '-' }}</td>
@@ -752,7 +752,7 @@
                                 <tbody v-if="spjNonPkpLogs.length > 0" class="divide-y divide-slate-800 font-medium">
                                     <tr v-for="(log, idx) in spjNonPkpLogs" :key="log.id" class="hover:bg-slate-800/40">
                                         <td class="p-2.5 font-mono text-slate-500">{{ idx + 1 }}</td>
-                                        <td class="p-2.5 font-mono text-slate-400">{{ formatDateDisplay(log.date) }}</td>
+                                        <td class="p-2.5 font-mono text-slate-400">{{ log.date }}</td>
                                         <td class="p-2.5 font-mono font-bold text-amber-400">{{ log.vehicleId }}</td>
                                         <td class="p-2.5 text-white font-semibold">{{ log.workshop }}</td>
                                         <td class="p-2.5 font-mono text-slate-300 font-bold">{{ log.invoiceNo || '-' }}</td>
@@ -1124,7 +1124,7 @@
                     <div class="flex justify-between"><span class="text-slate-400">No. Invoice:</span><span class="text-white font-bold">{{ selectedLog.invoiceNo || '-' }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Armada Plat:</span><span class="text-amber-400 font-bold">{{ selectedLog.vehicleId }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Bengkel:</span><span class="text-white">{{ selectedLog.workshop }}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Tanggal:</span><span class="text-white">{{ formatDateDisplay(selectedLog.date) }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Tanggal:</span><span class="text-white">{{ selectedLog.date }}</span></div>
                 </div>
                 <div class="space-y-1">
                     <p class="text-xs font-bold text-slate-300">Rincian Pekerjaan & Part:</p>
@@ -1138,6 +1138,27 @@
                 <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800 font-bold text-xs">
                     <span class="text-slate-300">Total Pembayaran:</span>
                     <span class="text-emerald-400 font-mono text-sm">Rp {{ (selectedLog.totalCost || 0).toLocaleString('id-ID') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOM CONFIRMATION DIALOG MODAL -->
+        <div v-if="confirmModal.show" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 space-y-4 text-center">
+                <div class="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-white text-base">{{ confirmModal.title }}</h3>
+                    <p class="text-xs text-slate-400">{{ confirmModal.message }}</p>
+                </div>
+                <div class="flex justify-center gap-2 pt-2">
+                    <button @click="closeConfirmModal(false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition">
+                        Batal
+                    </button>
+                    <button @click="closeConfirmModal(true)" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition shadow">
+                        Lanjutkan
+                    </button>
                 </div>
             </div>
         </div>
@@ -1221,6 +1242,12 @@
                         autoSyncSheets: false
                     },
                     toast: { show: false, message: '' },
+                    confirmModal: {
+                        show: false,
+                        title: '',
+                        message: '',
+                        onConfirm: null
+                    },
                     modals: {
                         vehicle: false,
                         updateKm: false,
@@ -1457,6 +1484,15 @@
                     this.toast = { show: true, message: msg };
                     setTimeout(() => { this.toast.show = false; }, 3000);
                 },
+                askConfirmation(title, message, onConfirm) {
+                    this.confirmModal = { show: true, title, message, onConfirm };
+                },
+                closeConfirmModal(isConfirmed) {
+                    if (isConfirmed && typeof this.confirmModal.onConfirm === 'function') {
+                        this.confirmModal.onConfirm();
+                    }
+                    this.confirmModal = { show: false, title: '', message: '', onConfirm: null };
+                },
                 formatDateDisplay(dateStr) {
                     const d = this.parseLocalDate(dateStr);
                     if (!d) return dateStr || '-';
@@ -1470,19 +1506,13 @@
                     if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
                     let s = String(dateStr).trim();
                     if (!s) return null;
-
-                    // YYYY-MM-DD or YYYY/MM/DD
-                    let m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-                    if (m) {
-                        return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+                    if (s.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                        const parts = s.split('-');
+                        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+                    } else if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const parts = s.split('-');
+                        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
                     }
-                    
-                    // DD-MM-YYYY or DD/MM/YYYY
-                    m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-                    if (m) {
-                        return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-                    }
-
                     const d = new Date(s);
                     return isNaN(d.getTime()) ? null : d;
                 },
@@ -1491,7 +1521,7 @@
                         this.isAuthenticated = true;
                         this.showToast('Selamat Datang di Portal Admin Master!');
                     } else {
-                        alert('Password Admin Salah!');
+                        this.showToast('Password Admin Master Salah!');
                     }
                 },
                 logout() {
@@ -1548,10 +1578,14 @@
                     this.showToast(`Armada ${plateUpper} berhasil disimpan!`);
                 },
                 confirmDeleteVehicleModal(car) {
-                    if (confirm(`Hapus armada ${car.plate} beserta seluruh log servicenya?`)) {
-                        remove(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`));
-                        this.showToast('Armada berhasil dihapus');
-                    }
+                    this.askConfirmation(
+                        'Hapus Armada',
+                        `Apakah Anda yakin ingin menghapus armada ${car.plate}? Data tidak dapat dikembalikan.`,
+                        () => {
+                            remove(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`));
+                            this.showToast('Armada berhasil dihapus');
+                        }
+                    );
                 },
                 openUpdateKmModal(car) {
                     const targetCar = car || (this.vehicles[0] || null);
@@ -1648,7 +1682,7 @@
 
                     const apiKey = this.settings.geminiApiKey;
                     if (!apiKey) {
-                        alert('Silakan isi Gemini API Key di menu Pengaturan & Integrasi terlebih dahulu!');
+                        this.showToast('Isi Gemini API Key di menu Pengaturan dahulu!');
                         return;
                     }
 
@@ -1660,15 +1694,15 @@
                             reader.readAsDataURL(file);
                         });
 
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-                        const mime = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
-
+                        const mimeType = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+                        
                         const payload = {
                             contents: [{
                                 role: "user",
                                 parts: [
                                     { text: "Ekstrak invoiceNo, workshop, date (YYYY-MM-DD), km, isRoutine (boolean), replacedComponents (pilih dari: filterOli, aki, oliMatic, ban, oliGardan, ac), dan items [{name, cost}] dari foto / dokumen PDF nota bengkel ini." },
-                                    { inlineData: { mimeType: mime, data: base64Data } }
+                                    { inlineData: { mimeType, data: base64Data } }
                                 ]
                             }],
                             generationConfig: {
@@ -1699,11 +1733,6 @@
 
                         const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                         const result = await res.json();
-                        
-                        if (!res.ok) {
-                            throw new Error(result.error?.message || 'Gagal memproses permintaan API');
-                        }
-
                         const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (jsonText) {
                             const parsed = JSON.parse(jsonText);
@@ -1722,9 +1751,11 @@
                             }
                             if (parsed.items && parsed.items.length) this.logForm.items = parsed.items;
                             this.showToast('✨ AI Scan Nota Berhasil!');
+                        } else {
+                            this.showToast('Gagal membaca data dari dokumen.');
                         }
                     } catch (e) {
-                        alert('Gagal scan nota: ' + e.message);
+                        this.showToast('Gagal scan nota: ' + e.message);
                     } finally {
                         this.isScanningInvoice = false;
                     }
@@ -1785,10 +1816,14 @@
                     this.showToast(`Pengajuan servis ${car.plate} dibatalkan.`);
                 },
                 confirmDeleteLogModal(logId) {
-                    if (confirm('Hapus transaksi servis ini?')) {
-                        remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
-                        this.showToast('Transaksi dihapus');
-                    }
+                    this.askConfirmation(
+                        'Hapus Log Transaksi',
+                        'Apakah Anda yakin ingin menghapus catatan transaksi servis ini?',
+                        () => {
+                            remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
+                            this.showToast('Transaksi berhasil dihapus.');
+                        }
+                    );
                 },
                 getMonthName(m) {
                     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -1823,7 +1858,7 @@
                     const monthName = this.getMonthName(this.spjMonth);
                     const pkpRows = this.spjPkpLogs.map((l, i) => ({
                         'No': i + 1,
-                        'Tanggal': this.formatDateDisplay(l.date),
+                        'Tanggal': l.date,
                         'Plat Nomor': l.vehicleId,
                         'Bengkel PKP': l.workshop,
                         'No Invoice / Faktur': l.invoiceNo || '-',
@@ -1833,7 +1868,7 @@
 
                     const nonPkpRows = this.spjNonPkpLogs.map((l, i) => ({
                         'No': i + 1,
-                        'Tanggal': this.formatDateDisplay(l.date),
+                        'Tanggal': l.date,
                         'Plat Nomor': l.vehicleId,
                         'Bengkel NON-PKP': l.workshop,
                         'No Invoice / Kwitansi': l.invoiceNo || '-',
@@ -1868,7 +1903,7 @@
                 },
                 async syncToGoogleSheets() {
                     if (!this.settings.sheetsWebhookUrl) {
-                        alert('Isi Google Apps Script Web App URL terlebih dahulu!');
+                        this.showToast('Isi Google Apps Script Web App URL terlebih dahulu!');
                         return;
                     }
                     this.isSheetsSyncing = true;
@@ -1890,32 +1925,34 @@
                         });
                         this.showToast('Data laporan berhasil dikirim ke Google Sheets!');
                     } catch (e) {
-                        alert('Gagal Auto-Write Google Sheets: ' + e.message);
+                        this.showToast('Gagal Auto-Write Google Sheets: ' + e.message);
                     } finally {
                         this.isSheetsSyncing = false;
                     }
                 },
                 async readFromGoogleSheets() {
                     if (!this.settings.sheetsWebhookUrl) {
-                        alert('Isi Google Apps Script Web App URL terlebih dahulu!');
+                        this.showToast('Isi Google Apps Script Web App URL terlebih dahulu!');
                         return;
                     }
                     this.isSheetsSyncing = true;
                     try {
-                        const sep = this.settings.sheetsWebhookUrl.includes('?') ? '&' : '?';
-                        const res = await fetch(this.settings.sheetsWebhookUrl + sep + 'action=read');
+                        const url = this.settings.sheetsWebhookUrl.includes('?') 
+                            ? `${this.settings.sheetsWebhookUrl}&action=read` 
+                            : `${this.settings.sheetsWebhookUrl}?action=read`;
+                        const res = await fetch(url);
                         const data = await res.json();
                         this.sheetsReadResult = data;
                         this.showToast('Berhasil Auto-Read dari Google Sheets!');
                     } catch (e) {
-                        alert('Gagal Auto-Read Google Sheets (Pastikan doGet di Apps Script mengembalikan JSON): ' + e.message);
+                        this.showToast('Gagal Auto-Read Google Sheets: ' + e.message);
                     } finally {
                         this.isSheetsSyncing = false;
                     }
                 },
                 async testTelegram() {
                     if (!this.settings.telegramBotToken || !this.settings.telegramChatId) {
-                        alert('Isi Token Bot dan Chat ID Telegram terlebih dahulu!');
+                        this.showToast('Isi Token Bot dan Chat ID Telegram terlebih dahulu!');
                         return;
                     }
                     try {
@@ -1929,11 +1966,13 @@
                                 parse_mode: 'Markdown'
                             })
                         });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.description || 'Gagal mengirim pesan');
-                        this.showToast('Pesan tes terkirim ke Telegram!');
+                        if (res.ok) {
+                            this.showToast('Pesan tes terkirim ke Telegram!');
+                        } else {
+                            this.showToast('Gagal kirim pesan ke Telegram.');
+                        }
                     } catch (e) {
-                        alert('Gagal tes Telegram: ' + e.message);
+                        this.showToast('Gagal kirim pesan Telegram: ' + e.message);
                     }
                 },
                 triggerVehicleExcelImport() {
@@ -1982,15 +2021,11 @@
                             if (plate) {
                                 const logId = 'LOG-' + Date.now() + '-' + idx;
                                 const cost = Number(r['Total Biaya']) || 0;
-                                let rawDate = r['Tanggal'] || new Date().toISOString().substring(0, 10);
-                                if (rawDate instanceof Date) {
-                                    rawDate = rawDate.toISOString().substring(0, 10);
-                                }
                                 const log = {
                                     id: logId,
                                     vehicleId: plate,
                                     workshop: r['Bengkel'] || 'Nasmoco',
-                                    date: String(rawDate),
+                                    date: r['Tanggal'] || new Date().toISOString().substring(0, 10),
                                     km: Number(r['Odometer']) || 0,
                                     invoiceNo: r['No Invoice'] || '',
                                     items: [{ name: r['Rincian'] || 'Servis Maintenance', cost }],
@@ -2025,11 +2060,15 @@
                     this.showToast('Data sampel berhasil dimuat!');
                 },
                 confirmPurgeDatabase() {
-                    if (confirm('APAKAH ANDA YAKIN KOSONGKAN SELURUH DATABASE MASTER?')) {
-                        remove(ref(db, `artifacts/${appId}/public/data/vehicles`));
-                        remove(ref(db, `artifacts/${appId}/public/data/logs`));
-                        this.showToast('Database berhasil dikosongkan.');
-                    }
+                    this.askConfirmation(
+                        'Kosongkan Database Master',
+                        'APAKAH ANDA YAKIN INGIN MENGOSONGKAN SELURUH DATABASE MASTER? Tindakan ini menghapus semua armada & catatan transaksi.',
+                        () => {
+                            remove(ref(db, `artifacts/${appId}/public/data/vehicles`));
+                            remove(ref(db, `artifacts/${appId}/public/data/logs`));
+                            this.showToast('Database berhasil dikosongkan.');
+                        }
+                    );
                 }
             }
         }).mount('#app');
