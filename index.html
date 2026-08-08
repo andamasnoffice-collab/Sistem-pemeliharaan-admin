@@ -243,8 +243,9 @@
                         </div>
                     </div>
 
-                    <!-- Workshop Breakdown -->
+                    <!-- Workshop Breakdown & Top Spend Vehicles -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <!-- Workshop Breakdown -->
                         <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl space-y-4">
                             <h3 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-2">
                                 <i class="fa-solid fa-wrench text-amber-400"></i>
@@ -255,15 +256,19 @@
                                 <div v-for="ws in workshopDistribution" :key="ws.name" class="space-y-1">
                                     <div class="flex justify-between text-xs font-semibold">
                                         <span class="text-slate-300 truncate max-w-[180px] sm:max-w-none">{{ ws.name }} ({{ ws.count }}x)</span>
-                                        <span class="text-emerald-400 font-mono">Rp {{ ws.total.toLocaleString('id-ID') }}</span>
+                                        <span class="text-emerald-400 font-mono">Rp {{ (ws?.total || 0).toLocaleString('id-ID') }}</span>
                                     </div>
                                     <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800 overflow-hidden">
-                                        <div class="bg-amber-500 h-full rounded-full transition-all duration-500" :style="{ width: (ws.total / (totalSpending || 1) * 100) + '%' }"></div>
+                                        <div class="bg-amber-500 h-full rounded-full transition-all duration-500" :style="{ width: (((ws?.total || 0) / (totalSpending || 1)) * 100) + '%' }"></div>
                                     </div>
+                                </div>
+                                <div v-if="!workshopDistribution || workshopDistribution.length === 0" class="text-xs text-slate-500 italic py-2">
+                                    Belum ada transaksi servis.
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Top Spend Vehicles -->
                         <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl space-y-4">
                             <h3 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-2">
                                 <i class="fa-solid fa-trophy text-amber-400"></i>
@@ -572,6 +577,107 @@
                     </div>
                 </section>
 
+                <section v-if="currentTab === 'recap'" class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-2">
+                        <div>
+                            <h2 class="font-extrabold text-sm sm:text-base text-white">Rekapitulasi Laporan Perawatan Bulanan</h2>
+                            <p class="text-xs text-slate-400 hidden sm:block">Rincian akumulasi pengeluaran biaya per bulan dan per bengkel mitra</p>
+                        </div>
+                        <select v-model="recapYear" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold">
+                            <option :value="2024">Tahun 2024</option>
+                            <option :value="2025">Tahun 2025</option>
+                            <option :value="2026">Tahun 2026</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        <div v-for="m in 12" :key="m" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <span class="font-bold text-sm text-white">{{ getMonthName(m) }} {{ recapYear }}</span>
+                                <span class="text-[10px] font-mono bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded-full font-bold">
+                                    {{ getServicedVehiclesForMonth(m, recapYear).logs.length }} Transaksi
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400">Total Pengeluaran:</p>
+                                <p class="text-lg font-black text-emerald-400 font-mono">Rp {{ getServicedVehiclesForMonth(m, recapYear).totalCost.toLocaleString('id-ID') }}</p>
+                            </div>
+
+                            <div v-if="getMonthlyWorkshopBreakdown(m, recapYear).length > 0" class="pt-2 border-t border-slate-800/80 space-y-1.5">
+                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Breakdown Bengkel Rekanan:</p>
+                                <div class="space-y-1 max-h-36 overflow-y-auto pr-1 touch-scroll">
+                                    <div v-for="ws in getMonthlyWorkshopBreakdown(m, recapYear)" :key="ws.name" class="flex justify-between items-center text-xs bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                                        <div class="flex items-center gap-1.5 truncate max-w-[150px]">
+                                            <span class="font-semibold text-amber-400 truncate">{{ ws.name }}</span>
+                                            <span class="text-[10px] text-slate-500 font-mono">({{ ws.count }}x)</span>
+                                        </div>
+                                        <span class="font-mono font-bold text-emerald-400 shrink-0">Rp {{ ws.total.toLocaleString('id-ID') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="pt-2 border-t border-slate-800/80 text-[11px] text-slate-500 italic">
+                                Belum ada transaksi servis.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section v-if="currentTab === 'spj'" class="space-y-4 sm:space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-amber-400"></i>
+                                <span>Laporan Surat Pertanggungjawaban (SPJ)</span>
+                            </h2>
+                            <p class="text-xs text-slate-400 hidden sm:block">Pengelompokan berkas tagihan transaksi berdasarkan kategori pajak penyedia jasa bengkel</p>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                            <select v-model="spjMonth" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-2 text-xs text-white font-bold flex-1 sm:flex-none">
+                                <option v-for="m in 12" :key="m" :value="m">{{ getMonthName(m) }}</option>
+                            </select>
+
+                            <select v-model="spjYear" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-2 text-xs text-white font-bold flex-1 sm:flex-none">
+                                <option :value="2024">Thn 2024</option>
+                                <option :value="2025">Thn 2025</option>
+                                <option :value="2026">Thn 2026</option>
+                            </select>
+
+                            <button @click="exportSpjExcel" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow active:scale-95">
+                                <i class="fa-solid fa-file-excel"></i>
+                                <span class="hidden sm:inline">Export SPJ Excel</span>
+                                <span class="sm:hidden">Excel</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-1">
+                            <span class="text-xs text-slate-400 font-medium">Total Akumulasi SPJ Bulan Ini</span>
+                            <p class="text-lg sm:text-2xl font-black text-emerald-400 font-mono">Rp {{ totalSpjAll.toLocaleString('id-ID') }}</p>
+                            <span class="text-[10px] text-slate-500 font-mono">{{ spjFilteredLogs.length }} transaksi di {{ getMonthName(spjMonth) }} {{ spjYear }}</span>
+                        </div>
+
+                        <div class="bg-slate-900 border border-sky-800/80 p-4 rounded-2xl space-y-1 bg-sky-950/20">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-sky-300 font-bold">Bengkel PKP (Faktur Pajak)</span>
+                                <span class="text-[9px] bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded-full font-mono font-bold">PKP</span>
+                            </div>
+                            <p class="text-lg sm:text-2xl font-black text-sky-400 font-mono">Rp {{ totalSpjPkp.toLocaleString('id-ID') }}</p>
+                            <span class="text-[10px] text-slate-400 font-mono">{{ spjPkpLogs.length }} Transaksi (Nasmoco & Montecarlo)</span>
+                        </div>
+
+                        <div class="bg-slate-900 border border-amber-800/80 p-4 rounded-2xl space-y-1 bg-amber-950/20">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-amber-300 font-bold">Bengkel Non-PKP (Nota)</span>
+                                <span class="text-[9px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded-full font-mono font-bold">NON PKP</span>
+                            </div>
+                            <p class="text-lg sm:text-2xl font-black text-amber-400 font-mono">Rp {{ totalSpjNonPkp.toLocaleString('id-ID') }}</p>
+                            <span class="text-[10px] text-slate-400 font-mono">{{ spjNonPkpLogs.length }} Transaksi (Zaini Auto & Luar)</span>
+                        </div>
+                    </div>
+                </section>
+
                 <section v-if="currentTab === 'settings'" class="space-y-4 sm:space-y-6 max-w-3xl">
                     <!-- Password Admin -->
                     <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-3 sm:space-y-4">
@@ -605,51 +711,6 @@
                                 <i class="fa-solid fa-server text-[9px]"></i>
                                 {{ getGeminiKeys().length }} Keys Terpasang
                             </span>
-                        </div>
-
-                        <!-- Gemini Mode Selector -->
-                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
-                            <label class="block font-bold text-slate-300 text-xs">Strategi Penggunaan Model AI (Efisiensi Kuota):</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <button type="button" @click="settings.aiScanMode = 'HEMAT'" :class="settings.aiScanMode !== 'AKURASI' ? 'bg-amber-500 text-slate-950 font-extrabold border-amber-400' : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'" class="p-2.5 rounded-xl text-xs border transition text-left flex items-start gap-2">
-                                    <i class="fa-solid fa-bolt text-sm mt-0.5"></i>
-                                    <div>
-                                        <div class="font-bold">⚡ Mode Hemat Token (Rekomendasi)</div>
-                                        <div class="text-[10px] opacity-80 font-normal">Prioritas Gemini 2.5 Flash / Gemini 3 Flash. Menghemat kuota harian s/d 80%.</div>
-                                    </div>
-                                </button>
-                                <button type="button" @click="settings.aiScanMode = 'AKURASI'" :class="settings.aiScanMode === 'AKURASI' ? 'bg-sky-600 text-white font-extrabold border-sky-400' : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'" class="p-2.5 rounded-xl text-xs border transition text-left flex items-start gap-2">
-                                    <i class="fa-solid fa-bullseye text-sm mt-0.5"></i>
-                                    <div>
-                                        <div class="font-bold">🎯 Mode Akurasi Maksimal</div>
-                                        <div class="text-[10px] opacity-80 font-normal">Prioritas model resolusi tinggi untuk nota buram / tulisan tangan sulit.</div>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Gemini Standard Rate Limits Reference -->
-                        <div class="bg-slate-950 p-3 sm:p-4 rounded-xl border border-slate-800 space-y-2">
-                            <div class="flex items-center justify-between text-xs font-bold text-slate-300">
-                                <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-gauge text-amber-400"></i>
-                                    <span>Batas Limit Standar Google Gemini API</span>
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
-                                <div class="p-2 bg-slate-900 rounded-lg border border-slate-800/80">
-                                    <span class="text-[9px] sm:text-[10px] text-slate-400 block">RPM (Per Menit)</span>
-                                    <strong class="text-amber-400 font-mono text-xs sm:text-sm">15 req/m</strong>
-                                </div>
-                                <div class="p-2 bg-slate-900 rounded-lg border border-slate-800/80">
-                                    <span class="text-[9px] sm:text-[10px] text-slate-400 block">TPM (Token)</span>
-                                    <strong class="text-sky-400 font-mono text-xs sm:text-sm">1.000.000 TPM</strong>
-                                </div>
-                                <div class="p-2 bg-slate-900 rounded-lg border border-slate-800/80">
-                                    <span class="text-[9px] sm:text-[10px] text-slate-400 block">RPD (Per Hari)</span>
-                                    <strong class="text-emerald-400 font-mono text-xs sm:text-sm">1.500 req/h</strong>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="space-y-3 text-xs">
@@ -716,10 +777,128 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Google Sheets Auto-Read & Auto-Write Reporting Integration -->
+                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+                            <div>
+                                <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
+                                    <span>Integrasi Google Sheets (Auto-Read & Write Pelaporan)</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">Sinkronisasi laporan otomatis ke Google Spreadsheet via Apps Script Web App</p>
+                            </div>
+                            <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded-full font-mono font-bold">Laporan / Audit Only</span>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-300 mb-1">Google Apps Script Web App URL</label>
+                                <input type="url" v-model="settings.sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+                                <div>
+                                    <span class="font-bold text-slate-200 block">Auto-Write Laporan Realtime</span>
+                                    <span class="text-[10px] text-slate-400">Otomatis kirim salinan laporan ke Google Sheets setiap ada penyimpanan log servis</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" v-model="settings.autoSyncSheets" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button @click="saveIntegrations" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition active:scale-95">
+                                    Simpan Konfigurasi Sheets
+                                </button>
+                                <button @click="syncToGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95">
+                                    <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-up'"></i>
+                                    <span>{{ isSheetsSyncing ? 'Mengirim...' : 'Tes Auto-Write Laporan' }}</span>
+                                </button>
+                                <button @click="readFromGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95">
+                                    <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-down'"></i>
+                                    <span>Tes Auto-Read Sheets</span>
+                                </button>
+                            </div>
+
+                            <div v-if="sheetsReadResult" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-slate-300 space-y-1">
+                                <div class="text-amber-400 font-bold">Hasil Auto-Read Google Sheets:</div>
+                                <pre class="text-[10px] overflow-x-auto text-emerald-400 max-h-32 touch-scroll">{{ JSON.stringify(sheetsReadResult, null, 2) }}</pre>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
             </main>
         </template>
+
+        <!-- MODAL: ADD / EDIT VEHICLE -->
+        <div v-if="modals.vehicle" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-white text-base">{{ vehicleForm.id ? 'Edit Armada' : 'Tambah Armada Baru' }}</h3>
+                    <button @click="modals.vehicle = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <form @submit.prevent="saveVehicle" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Plat Nomor *</label>
+                        <input type="text" v-model="vehicleForm.plate" required placeholder="Contoh: AD 1001 ZA" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono uppercase">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Model / Tipe Kendaraan *</label>
+                        <input type="text" v-model="vehicleForm.model" required placeholder="Contoh: Toyota Innova Zenix" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Pengemudi / Penanggung Jawab</label>
+                        <input type="text" v-model="vehicleForm.driver" placeholder="Contoh: Pak Bambang" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Kategori Operational</label>
+                        <select v-model="vehicleForm.category" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                            <option value="Pimpinan">Pimpinan</option>
+                            <option value="Operasional">Operasional</option>
+                            <option value="Fakultas">Fakultas</option>
+                            <option value="Unit">Unit</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Odometer Terkini (KM)</label>
+                        <input type="number" v-model.number="vehicleForm.currentKm" min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
+                    </div>
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-800">
+                        <button type="button" @click="modals.vehicle = false" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
+                        <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl">Simpan Armada</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: UPDATE ODOMETER -->
+        <div v-if="modals.updateKm" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-white text-base">Update Odometer Armada</h3>
+                    <button @click="modals.updateKm = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <form @submit.prevent="saveUpdateKm" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Pilih Armada *</label>
+                        <select v-model="updateKmForm.vehicleId" @change="onUpdateKmCarChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                            <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Odometer Baru (KM) *</label>
+                        <input type="number" v-model.number="updateKmForm.newKm" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                        <button type="button" @click="modals.updateKm = false" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
+                        <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl">Simpan Odometer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <!-- MODAL: CREATE / PROCESS SERVICE LOG -->
         <div v-if="modals.log" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -737,8 +916,8 @@
                             <div>
                                 <span class="text-xs text-slate-300 font-bold block flex items-center gap-1.5">
                                     <span>AI Gemini Vision Invoice Scan</span>
-                                    <span :class="settings.aiScanMode === 'AKURASI' ? 'bg-sky-950 text-sky-400 border-sky-800' : 'bg-amber-950 text-amber-400 border-amber-800'" class="text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
-                                        {{ settings.aiScanMode === 'AKURASI' ? '🎯 Mode Akurasi' : '⚡ Mode Hemat' }}
+                                    <span class="bg-amber-950 text-amber-400 border-amber-800 text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
+                                        ⚡ Output Schema JSON
                                     </span>
                                 </span>
                                 <span class="text-[10px] text-slate-400">Kompresi ultra-ringan (800px) & penghematan token harian</span>
@@ -835,7 +1014,12 @@
 
                     <div class="space-y-2 pt-2 border-t border-slate-800">
                         <div class="flex justify-between items-center">
-                            <label class="font-bold text-slate-300">Rincian Sparepart & Biaya</label>
+                            <label class="font-bold text-slate-300 flex items-center gap-2">
+                                <span>Rincian Sparepart & Biaya</span>
+                                <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded-lg border border-emerald-800/80 shadow-sm">
+                                    Total: Rp {{ logFormTotalCost.toLocaleString('id-ID') }}
+                                </span>
+                            </label>
                             <button type="button" @click="addLogItem" class="text-sky-400 font-bold text-xs p-1">+ Tambah Item</button>
                         </div>
 
@@ -899,7 +1083,6 @@
         const db = getDatabase(app);
         const auth = getAuth(app);
 
-        // Helper sleep function to prevent spamming Google AI Studio 15 RPM Rate Limit
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         createApp({
@@ -944,7 +1127,6 @@
                     selectedLog: null,
                     settings: {
                         geminiApiKey: '',
-                        aiScanMode: 'HEMAT',
                         telegramBotToken: '',
                         telegramChatId: '',
                         sheetsWebhookUrl: '',
@@ -989,6 +1171,10 @@
                 };
             },
             computed: {
+                logFormTotalCost() {
+                    if (!this.logForm || !this.logForm.items || !Array.isArray(this.logForm.items)) return 0;
+                    return this.logForm.items.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+                },
                 allSparepartSuggestions() {
                     const counts = new Map();
                     this.quickSparepartSuggestions.forEach(s => {
@@ -1275,7 +1461,6 @@
                         if (data) {
                             if (data.adminPassword) this.adminPassword = data.adminPassword;
                             if (data.geminiApiKey) this.settings.geminiApiKey = data.geminiApiKey;
-                            if (data.aiScanMode) this.settings.aiScanMode = data.aiScanMode;
                             if (data.telegramBotToken) this.settings.telegramBotToken = data.telegramBotToken;
                             if (data.telegramChatId) this.settings.telegramChatId = data.telegramChatId;
                             if (data.sheetsWebhookUrl !== undefined) this.settings.sheetsWebhookUrl = data.sheetsWebhookUrl;
@@ -1459,7 +1644,7 @@
                     if (stat.status === 'INVALID') return 'fa-circle-xmark';
                     return 'fa-circle-question';
                 },
-                recordKeyUsage(key, tokens = 300, status = 'HEALTHY') {
+                recordKeyUsage(key, tokens = 180, status = 'HEALTHY') {
                     if (!this.keyUsageStats[key]) {
                         this.keyUsageStats[key] = { callsToday: 0, totalTokens: 0, status: 'UNTESTED' };
                     }
@@ -1470,59 +1655,6 @@
                     this.keyUsageStats[key].status = status;
                     const safeKeyId = key.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 16);
                     set(ref(db, `artifacts/${appId}/public/data/keyStats/${safeKeyId}`), this.keyUsageStats[key]);
-                },
-
-                getGeminiModelSequence() {
-                    // gemini-2.5-flash is Primary, gemini-3-flash-preview is First Fallback
-                    return ['gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'];
-                },
-
-                arrayBufferToBase64(buffer) {
-                    let binary = '';
-                    const bytes = new Uint8Array(buffer);
-                    const len = bytes.byteLength;
-                    const chunkSize = 8192;
-                    for (let i = 0; i < len; i += chunkSize) {
-                        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
-                    }
-                    return btoa(binary);
-                },
-
-                async callGeminiApiWithFailover(modelName, key, payload, signal) {
-                    const cleanKey = String(key || '').trim();
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
-                    
-                    let res = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'x-goog-api-key': cleanKey
-                        },
-                        body: JSON.stringify(payload),
-                        signal: signal
-                    });
-
-                    // Fallback for Google Cloud OAuth / Bearer tokens if 401/403
-                    if (!res.ok && (res.status === 401 || res.status === 403)) {
-                        try {
-                            const altUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-                            const altRes = await fetch(altUrl, {
-                                method: 'POST',
-                                headers: { 
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${cleanKey}`
-                                },
-                                body: JSON.stringify(payload),
-                                signal: signal
-                            });
-                            if (altRes.ok || altRes.status === 429) {
-                                return altRes;
-                            }
-                        } catch (altErr) {
-                            console.warn('Bearer fallback failed:', altErr);
-                        }
-                    }
-                    return res;
                 },
 
                 async testGeminiKey(key, index) {
@@ -1536,40 +1668,28 @@
                             return;
                         }
 
-                        const modelsToTry = this.getGeminiModelSequence();
-                        let testedOk = false;
-                        for (const modelName of modelsToTry) {
-                            try {
-                                const controller = new AbortController();
-                                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                                
-                                const payload = {
-                                    contents: [{ parts: [{ text: "ping" }] }],
-                                    generationConfig: { maxOutputTokens: 1 }
-                                };
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${cleanKey}`;
+                        const res = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'x-goog-api-key': cleanKey
+                            },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: "ping" }] }],
+                                generationConfig: { maxOutputTokens: 1 }
+                            })
+                        });
 
-                                const res = await this.callGeminiApiWithFailover(modelName, cleanKey, payload, controller.signal);
-                                clearTimeout(timeoutId);
-
-                                if (res.ok) {
-                                    this.recordKeyUsage(cleanKey, 1, 'HEALTHY');
-                                    this.showToast(`Key #${index + 1} (${modelName}) Aktif & Normal!`);
-                                    testedOk = true;
-                                    break;
-                                } else if (res.status === 429) {
-                                    this.recordKeyUsage(cleanKey, 0, 'LIMITED');
-                                    this.showToast(`Key #${index + 1} Limit 429 Exceeded`);
-                                    testedOk = true;
-                                    break;
-                                }
-                            } catch (err) {
-                                console.warn(`Test model ${modelName} failed for key #${index + 1}`, err);
-                            }
-                            await sleep(500);
-                        }
-                        if (!testedOk) {
+                        if (res.ok) {
+                            this.recordKeyUsage(cleanKey, 1, 'HEALTHY');
+                            this.showToast(`Key #${index + 1} (gemini-3-flash-preview) Aktif & Normal!`);
+                        } else if (res.status === 429) {
+                            this.recordKeyUsage(cleanKey, 0, 'LIMITED');
+                            this.showToast(`Key #${index + 1} Limit 429 Exceeded`);
+                        } else {
                             this.recordKeyUsage(cleanKey, 0, 'INVALID');
-                            this.showToast(`Key #${index + 1} Tidak Valid / Error HTTP`);
+                            this.showToast(`Key #${index + 1} HTTP ${res.status}`);
                         }
                     } catch (e) {
                         this.recordKeyUsage(key, 0, 'INVALID');
@@ -1591,113 +1711,6 @@
                     }
                 },
 
-                compressImageForAI(file, maxDimension = 800, quality = 0.65) {
-                    return new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            const dataUrl = e.target.result;
-                            if (!file.type || !file.type.startsWith('image/')) {
-                                let base64 = typeof dataUrl === 'string' && dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
-                                base64 = String(base64).replace(/^data:[^;]+;base64,/, '').replace(/[\r\n\s]/g, '').trim();
-                                resolve({ base64, mimeType: file.type || 'application/octet-stream' });
-                                return;
-                            }
-
-                            const img = new Image();
-                            img.onload = () => {
-                                try {
-                                    let width = img.width;
-                                    let height = img.height;
-
-                                    if (width > maxDimension || height > maxDimension) {
-                                        if (width > height) {
-                                            height = Math.round((height * maxDimension) / width);
-                                            width = maxDimension;
-                                        } else {
-                                            width = Math.round((width * maxDimension) / height);
-                                            height = maxDimension;
-                                        }
-                                    }
-
-                                    const canvas = document.createElement('canvas');
-                                    canvas.width = width;
-                                    canvas.height = height;
-                                    const ctx = canvas.getContext('2d');
-                                    ctx.drawImage(img, 0, 0, width, height);
-                                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                                    const cleanBase64 = compressedDataUrl.split(',')[1].replace(/[\r\n\s]/g, '').trim();
-                                    resolve({ base64: cleanBase64, mimeType: 'image/jpeg' });
-                                } catch (err) {
-                                    console.warn('Canvas compression fallback:', err);
-                                    let base64 = typeof dataUrl === 'string' && dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
-                                    base64 = String(base64).replace(/^data:[^;]+;base64,/, '').replace(/[\r\n\s]/g, '').trim();
-                                    resolve({ base64, mimeType: file.type || 'image/jpeg' });
-                                }
-                            };
-                            img.onerror = () => {
-                                let base64 = typeof dataUrl === 'string' && dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
-                                base64 = String(base64).replace(/^data:[^;]+;base64,/, '').replace(/[\r\n\s]/g, '').trim();
-                                resolve({ base64, mimeType: file.type || 'image/jpeg' });
-                            };
-                            img.src = dataUrl;
-                        };
-                        reader.onerror = () => resolve({ base64: '', mimeType: 'image/jpeg' });
-                        reader.readAsDataURL(file);
-                    });
-                },
-
-                async convertPdfToCompressedJpeg(file, maxDimension = 800, quality = 0.65) {
-                    return new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = async (e) => {
-                            const buffer = e.target.result;
-                            try {
-                                if (!window.pdfjsLib) {
-                                    const rawB64 = this.arrayBufferToBase64(buffer).replace(/^data:[^;]+;base64,/, '').replace(/[\r\n\s]/g, '').trim();
-                                    resolve({ base64: rawB64, mimeType: 'application/pdf' });
-                                    return;
-                                }
-                                const typedarray = new Uint8Array(buffer);
-                                const loadingTask = window.pdfjsLib.getDocument({ data: typedarray, isEvalSupported: false });
-                                const pdf = await loadingTask.promise;
-                                const page = await pdf.getPage(1);
-                                
-                                const unscaledViewport = page.getViewport({ scale: 1.0 });
-                                const maxDim = Math.max(unscaledViewport.width, unscaledViewport.height);
-                                const scale = maxDimension / maxDim;
-
-                                const viewport = page.getViewport({ scale: Math.min(scale, 1.5) });
-                                const canvas = document.createElement('canvas');
-                                canvas.width = viewport.width;
-                                canvas.height = viewport.height;
-                                const ctx = canvas.getContext('2d');
-
-                                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-                                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                                resolve({
-                                    base64: compressedDataUrl.split(',')[1].replace(/[\r\n\s]/g, '').trim(),
-                                    mimeType: 'image/jpeg'
-                                });
-                            } catch (err) {
-                                console.warn('PDF conversion fallback:', err);
-                                const rawB64 = this.arrayBufferToBase64(buffer).replace(/^data:[^;]+;base64,/, '').replace(/[\r\n\s]/g, '').trim();
-                                resolve({ base64: rawB64, mimeType: 'application/pdf' });
-                            }
-                        };
-                        reader.onerror = () => resolve({ base64: '', mimeType: 'application/pdf' });
-                        reader.readAsArrayBuffer(file);
-                    });
-                },
-
-                async compressPdfOrImageForAI(file, maxDimension = 800, quality = 0.65) {
-                    if (file.type === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'))) {
-                        return await this.convertPdfToCompressedJpeg(file, maxDimension, quality);
-                    } else {
-                        return await this.compressImageForAI(file, maxDimension, quality);
-                    }
-                },
-
                 async handleInvoiceScan(event) {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -1709,44 +1722,85 @@
                     }
 
                     this.isScanningInvoice = true;
-                    this.scanStatusMessage = 'Mengompres gambar ultra-ringan (800px) untuk hemat token...';
+                    this.scanStatusMessage = 'Membaca berkas & menyiapkan AI Gemini Vision...';
 
                     try {
-                        let { base64: base64Data, mimeType } = await this.compressPdfOrImageForAI(file, 800, 0.65);
+                        const base64Data = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const res = reader.result;
+                                const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
+                                resolve(b64);
+                            };
+                            reader.onerror = error => reject(error);
+                            reader.readAsDataURL(file);
+                        });
 
-                        base64Data = String(base64Data).replace(/^data:[^;]+;base64,/, '').replace(/[\r\n\s]/g, '').trim();
-
-                        if (!base64Data || base64Data.length < 50) {
-                            this.scanStatusMessage = 'Gagal membaca berkas gambar/PDF.';
-                            this.showToast('Dokumen gagal dibaca.');
-                            this.isScanningInvoice = false;
-                            return;
+                        let mimeType = file.type;
+                        if (!mimeType || mimeType === '') {
+                            if (file.name.toLowerCase().endsWith('.pdf')) {
+                                mimeType = 'application/pdf';
+                            } else if (file.name.toLowerCase().endsWith('.png')) {
+                                mimeType = 'image/png';
+                            } else {
+                                mimeType = 'image/jpeg';
+                            }
                         }
 
-                        const userPrompt = "Ekstrak rincian nota bengkel ini ke JSON valid dengan format persis:\n" +
-                            "{\n" +
-                            '  "invoiceNo": "string",\n' +
-                            '  "workshop": "Nasmoco|Montecarlo|Zaini Auto|Rekanan|Bengkel Luar",\n' +
-                            '  "date": "YYYY-MM-DD",\n' +
-                            '  "km": 0,\n' +
-                            '  "isRoutine": true,\n' +
-                            '  "replacedComponents": ["filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac"],\n' +
-                            '  "items": [{"name": "string", "cost": 0}]\n' +
-                            "}\n" +
-                            "Kembalikan HANYA JSON tanpa teks pengantar.";
+                        const systemPrompt = "Anda adalah AI OCR Vision berpengalaman khusus mengekstrak data dari dokumen PDF atau foto nota/invoice/faktur/kwitansi perbaikan dan pemeliharaan kendaraan bengkel (mobil/motor). Analisis berkas dengan teliti, baca seluruh baris item, harga, tanggal, nomor nota, dan nama bengkel.";
+
+                        const userPrompt = `Analisis foto atau dokumen PDF nota/kwitansi bengkel ini secara detail.
+Ekstrak informasi berikut ke dalam format JSON:
+1. invoiceNo: Nomor invoice/faktur/nota (string, e.g. "INV-1234"). Kosongkan jika tidak ada.
+2. workshop: Nama bengkel (pilih paling sesuai dari: "Nasmoco", "Montecarlo", "Zaini Auto", "Rekanan", atau "Bengkel Luar").
+3. date: Tanggal transaksi dalam format "YYYY-MM-DD" (string). Jika hanya ada tanggal biasa, konversi ke format standar YYYY-MM-DD.
+4. km: Odometer/Kilometer kendaraan yang tercatat di nota (number, e.g. 45000). Set 0 jika tidak tertera.
+5. items: Array dari seluruh sparepart, oli, bahan, atau jasa perbaikan yang tercantum pada nota. Setiap item memiliki objek { "name": string, "cost": number }. Pastikan cost dalam satuan Rupiah angka murni tanpa titik/koma.
+6. replacedComponents: Array string komponen vital yang diganti. Pilih HANYA dari kunci berikut yang teridentifikasi diganti pada nota: "filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac".`;
 
                         const payload = {
                             contents: [{
                                 role: "user",
                                 parts: [
                                     { text: userPrompt },
-                                    { inlineData: { mimeType, data: base64Data } }
+                                    {
+                                        inlineData: {
+                                            mimeType: mimeType,
+                                            data: base64Data
+                                        }
+                                    }
                                 ]
                             }],
+                            systemInstruction: {
+                                parts: [{ text: systemPrompt }]
+                            },
                             generationConfig: {
                                 responseMimeType: "application/json",
-                                maxOutputTokens: 600,
-                                temperature: 0.1
+                                responseSchema: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        invoiceNo: { type: "STRING" },
+                                        workshop: { type: "STRING" },
+                                        date: { type: "STRING" },
+                                        km: { type: "NUMBER" },
+                                        items: {
+                                            type: "ARRAY",
+                                            items: {
+                                                type: "OBJECT",
+                                                properties: {
+                                                    name: { type: "STRING" },
+                                                    cost: { type: "NUMBER" }
+                                                },
+                                                propertyOrdering: ["name", "cost"]
+                                            }
+                                        },
+                                        replacedComponents: {
+                                            type: "ARRAY",
+                                            items: { type: "STRING" }
+                                        }
+                                    },
+                                    propertyOrdering: ["invoiceNo", "workshop", "date", "km", "items", "replacedComponents"]
+                                }
                             }
                         };
 
@@ -1756,86 +1810,85 @@
                         for (let i = 0; i < apiKeys.length; i++) {
                             const currentKey = apiKeys[i];
                             const keyLabel = i === 0 ? 'Primary Key' : `Backup Key #${i}`;
-                            const modelsToTry = this.getGeminiModelSequence();
+                            this.scanStatusMessage = `Mengekstrak nota (${keyLabel}) via gemini-3-flash-preview...`;
 
-                            for (const modelName of modelsToTry) {
-                                this.scanStatusMessage = `Mencoba ekstraksi (${keyLabel}) via model ${modelName}...`;
+                            try {
+                                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${currentKey}`;
+                                const res = await fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: { 
+                                        'Content-Type': 'application/json',
+                                        'x-goog-api-key': currentKey
+                                    },
+                                    body: JSON.stringify(payload)
+                                });
 
-                                try {
-                                    const controller = new AbortController();
-                                    const timeoutId = setTimeout(() => controller.abort(), 15000);
-                                    
-                                    const res = await this.callGeminiApiWithFailover(modelName, currentKey, payload, controller.signal);
-                                    clearTimeout(timeoutId);
+                                if (res.ok) {
+                                    const result = await res.json();
+                                    let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    if (jsonText) {
+                                        jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+                                        const parsed = JSON.parse(jsonText);
 
-                                    if (res.ok) {
-                                        const result = await res.json();
-                                        let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (jsonText) {
-                                            jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
-                                            const parsed = JSON.parse(jsonText);
-                                            if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
-                                            if (parsed.workshop) {
-                                                const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
-                                                const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
-                                                if (matched) this.logForm.workshop = matched;
-                                                else this.logForm.workshop = String(parsed.workshop);
-                                            }
-                                            if (parsed.date) this.logForm.date = parsed.date;
-                                            if (parsed.km) this.logForm.km = Number(parsed.km);
-                                            if (typeof parsed.isRoutine === 'boolean') this.logForm.isRoutine = parsed.isRoutine;
-                                            if (parsed.replacedComponents && Array.isArray(parsed.replacedComponents)) {
-                                                const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
-                                                this.logForm.replacedComponents = parsed.replacedComponents.filter(k => validKeys.includes(k));
-                                            }
-                                            if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
-                                                this.logForm.items = parsed.items.map(it => ({
-                                                    name: it.name || '',
-                                                    cost: Number(it.cost) || 0
-                                                }));
-                                            }
-
-                                            scanSuccess = true;
-                                            this.recordKeyUsage(currentKey, 250, 'HEALTHY');
-
-                                            const successMsg = `⚡ AI Scan Nota Berhasil (${modelName})!`;
-                                            this.showToast(successMsg);
-                                            this.scanStatusMessage = `Sukses (${keyLabel} - ${modelName})`;
-                                            break;
+                                        if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
+                                        if (parsed.workshop) {
+                                            const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
+                                            const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
+                                            if (matched) this.logForm.workshop = matched;
+                                            else this.logForm.workshop = String(parsed.workshop);
                                         }
-                                    } else {
-                                        const errBody = await res.json().catch(() => ({}));
-                                        lastErrorMessage = errBody?.error?.message || `HTTP ${res.status}`;
-
-                                        if (res.status === 429) {
-                                            this.recordKeyUsage(currentKey, 0, 'LIMITED');
-                                            console.warn(`Key #${i + 1} Limit 429 on ${modelName}, waiting 1s...`);
-                                            await sleep(1000);
-                                        } else if (res.status === 404) {
-                                            console.warn(`Model ${modelName} 404 not found, skipping to next model...`);
-                                        } else if (res.status === 400) {
-                                            this.recordKeyUsage(currentKey, 0, 'INVALID');
-                                            console.warn(`400 Bad Request on Key #${i + 1} / ${modelName}:`, lastErrorMessage);
-                                            break;
+                                        if (parsed.date) {
+                                            const parsedD = this.parseLocalDate(parsed.date);
+                                            if (parsedD) {
+                                                const y = parsedD.getFullYear();
+                                                const m = String(parsedD.getMonth() + 1).padStart(2, '0');
+                                                const d = String(parsedD.getDate()).padStart(2, '0');
+                                                this.logForm.date = `${y}-${m}-${d}`;
+                                            }
                                         }
+                                        if (parsed.km && Number(parsed.km) > 0) {
+                                            this.logForm.km = Number(parsed.km);
+                                        }
+                                        if (parsed.replacedComponents && Array.isArray(parsed.replacedComponents)) {
+                                            const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
+                                            this.logForm.replacedComponents = parsed.replacedComponents.filter(k => validKeys.includes(k));
+                                        }
+                                        if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                                            this.logForm.items = parsed.items.map(it => ({
+                                                name: String(it.name || 'Sparepart/Jasa').trim(),
+                                                cost: Math.abs(Number(it.cost)) || 0
+                                            }));
+                                        }
+
+                                        scanSuccess = true;
+                                        this.recordKeyUsage(currentKey, 180, 'HEALTHY');
+                                        this.showToast('✨ AI Scan Berhasil! Transaksi terisi otomatis.');
+                                        this.scanStatusMessage = `Sukses terestrak (${keyLabel})`;
+                                        break;
                                     }
-                                } catch (fetchErr) {
-                                    console.warn(`Fetch error for Key #${i + 1} (${modelName}):`, fetchErr);
-                                    lastErrorMessage = fetchErr.message;
+                                } else {
+                                    const errBody = await res.json().catch(() => ({}));
+                                    lastErrorMessage = errBody?.error?.message || `HTTP ${res.status}`;
+                                    if (res.status === 429) {
+                                        this.recordKeyUsage(currentKey, 0, 'LIMITED');
+                                        this.showToast(`Key #${i + 1} limit (429). Beralih ke Key Backup berikutnya...`);
+                                    } else {
+                                        this.recordKeyUsage(currentKey, 0, 'INVALID');
+                                    }
                                 }
+                            } catch (fetchErr) {
+                                console.warn(`Fetch error for Key #${i + 1}:`, fetchErr);
+                                lastErrorMessage = fetchErr.message;
                             }
 
-                            if (scanSuccess) break;
-
                             if (i < apiKeys.length - 1) {
-                                this.showToast(`Key #${i + 1} limit/error. Beralih ke Backup Key #${i + 2}...`);
                                 await sleep(1000);
                             }
                         }
 
                         if (!scanSuccess) {
-                            this.scanStatusMessage = `Gagal scan: ${lastErrorMessage || 'Habis kuota API'}`;
-                            this.showToast(`Gagal ekstraksi AI: ${lastErrorMessage || 'Habis kuota API'}`);
+                            this.scanStatusMessage = `Gagal scan: ${lastErrorMessage || 'Gagal mengekstrak nota'}`;
+                            this.showToast(`Gagal AI Scan: ${lastErrorMessage}`);
                         }
 
                     } catch (e) {
@@ -1979,12 +2032,60 @@
                 },
                 async saveIntegrations() {
                     await set(ref(db, `artifacts/${appId}/public/data/settings/geminiApiKey`), this.settings.geminiApiKey);
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/aiScanMode`), this.settings.aiScanMode || 'HEMAT');
                     await set(ref(db, `artifacts/${appId}/public/data/settings/telegramBotToken`), this.settings.telegramBotToken);
                     await set(ref(db, `artifacts/${appId}/public/data/settings/telegramChatId`), this.settings.telegramChatId);
                     await set(ref(db, `artifacts/${appId}/public/data/settings/sheetsWebhookUrl`), this.settings.sheetsWebhookUrl || '');
                     await set(ref(db, `artifacts/${appId}/public/data/settings/autoSyncSheets`), Boolean(this.settings.autoSyncSheets));
                     this.showToast('Pengaturan integrasi & API Keys berhasil disimpan!');
+                },
+                async syncToGoogleSheets() {
+                    if (!this.settings.sheetsWebhookUrl) {
+                        this.showToast('Isi Google Apps Script Web App URL terlebih dahulu!');
+                        return;
+                    }
+                    this.isSheetsSyncing = true;
+                    try {
+                        const payload = {
+                            type: 'AUTO_WRITE_REPORT',
+                            timestamp: new Date().toISOString(),
+                            totalSpending: this.totalSpending,
+                            vehiclesCount: this.vehicles.length,
+                            logsCount: this.serviceLogs.length,
+                            vehicles: this.vehicles,
+                            logs: this.serviceLogs
+                        };
+                        await fetch(this.settings.sheetsWebhookUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        this.showToast('Data laporan berhasil dikirim ke Google Sheets!');
+                    } catch (e) {
+                        this.showToast('Gagal Auto-Write Google Sheets: ' + e.message);
+                    } finally {
+                        this.isSheetsSyncing = false;
+                    }
+                },
+                async readFromGoogleSheets() {
+                    if (!this.settings.sheetsWebhookUrl) {
+                        this.showToast('Isi Google Apps Script Web App URL terlebih dahulu!');
+                        return;
+                    }
+                    this.isSheetsSyncing = true;
+                    try {
+                        const url = this.settings.sheetsWebhookUrl.includes('?') 
+                            ? `${this.settings.sheetsWebhookUrl}&action=read` 
+                            : `${this.settings.sheetsWebhookUrl}?action=read`;
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        this.sheetsReadResult = data;
+                        this.showToast('Berhasil Auto-Read dari Google Sheets!');
+                    } catch (e) {
+                        this.showToast('Gagal Auto-Read Google Sheets: ' + e.message);
+                    } finally {
+                        this.isSheetsSyncing = false;
+                    }
                 },
                 triggerVehicleExcelImport() {
                     this.$refs.vehicleExcelInput.click();
