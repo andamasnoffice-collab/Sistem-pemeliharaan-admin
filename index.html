@@ -297,6 +297,70 @@
                     </div>
                 </section>
 
+                <!-- TAB 2: APPROVALS QUEUE -->
+                <section v-if="currentTab === 'approvals'" class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="font-extrabold text-sm sm:text-base text-white">Antrean Pengajuan Servis Pengemudi</h2>
+                            <p class="text-xs text-slate-400">Verifikasi dan input invoice resmi untuk menyelesaikan proses pengajuan servis</p>
+                        </div>
+                        <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 border border-amber-800 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+                            {{ inServiceVehicles.length }} Antrean Aktif
+                        </span>
+                    </div>
+
+                    <div v-if="inServiceVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="car in inServiceVehicles" :key="car.id" class="bg-slate-900 border border-amber-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+                            <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+                                <div>
+                                    <span class="px-2.5 py-1 bg-amber-950 border border-amber-800 text-amber-400 font-mono font-bold text-xs rounded-lg uppercase">
+                                        {{ car.plate }}
+                                    </span>
+                                    <h3 class="font-bold text-base text-white mt-1.5">{{ car.model }}</h3>
+                                    <p class="text-xs text-slate-400">Pengemudi: {{ car.driver || 'Pengemudi UNS' }}</p>
+                                </div>
+                                <span class="px-2 py-1 bg-sky-950 text-sky-400 border border-sky-800 text-[10px] font-bold rounded-full font-mono animate-pulse">
+                                    PENDING APPROVAL
+                                </span>
+                            </div>
+
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs font-mono">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Bengkel Tujuan:</span>
+                                    <span class="text-white font-bold">{{ car.targetWorkshop || 'Nasmoco' }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Tanggal Pengajuan:</span>
+                                    <span class="text-amber-400">{{ car.inServiceDate || '-' }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Odometer Terbaca:</span>
+                                    <span class="text-sky-400 font-bold">{{ (car.currentKm || 0).toLocaleString('id-ID') }} KM</span>
+                                </div>
+                                <div v-if="car.inServiceNotes" class="pt-1 text-slate-300 font-sans italic">
+                                    "{{ car.inServiceNotes }}"
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <button @click="openProcessInvoiceModal(car)" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95">
+                                    <i class="fa-solid fa-file-circle-check"></i>
+                                    <span>Setujui & Input Invoice</span>
+                                </button>
+                                <button @click="rejectInService(car)" class="px-3 py-2.5 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 border border-slate-700 text-slate-300 font-bold rounded-xl text-xs transition active:scale-95">
+                                    Batal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center text-slate-500 space-y-2">
+                        <i class="fa-solid fa-circle-check text-3xl text-emerald-500/50"></i>
+                        <p class="text-sm font-bold text-slate-300">Tidak ada pengajuan servis dalam antrean.</p>
+                        <p class="text-xs">Pengajuan baru dari aplikasi pengemudi akan otomatis muncul di sini secara real-time.</p>
+                    </div>
+                </section>
+
                 <!-- TAB 3: FLEET MASTER MANAGEMENT -->
                 <section v-if="currentTab === 'vehicles'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -765,12 +829,33 @@
                                     <i class="fa-solid fa-wand-magic-sparkles text-sky-400"></i>
                                     <span>Google Gemini AI API Keys & Monitor</span>
                                 </h3>
-                                <p class="text-xs text-slate-400">Multi-key, pemantauan batas limit kuota, dan tes kesehatan API</p>
+                                <p class="text-xs text-slate-400">Multi-key, pemantauan batas limit kuota, dan penghematan token</p>
                             </div>
                             <span class="text-[10px] font-mono bg-sky-950 text-sky-400 border border-sky-800 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5">
                                 <i class="fa-solid fa-server text-[9px]"></i>
                                 {{ getGeminiKeys().length }} Keys Terpasang
                             </span>
+                        </div>
+
+                        <!-- Gemini Mode Selector for Token Savings -->
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                            <label class="block font-bold text-slate-300 text-xs">Strategi Penggunaan Model AI (Efisiensi Kuota):</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button type="button" @click="settings.aiScanMode = 'HEMAT'" :class="settings.aiScanMode !== 'AKURASI' ? 'bg-amber-500 text-slate-950 font-extrabold border-amber-400' : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'" class="p-2.5 rounded-xl text-xs border transition text-left flex items-start gap-2">
+                                    <i class="fa-solid fa-bolt text-sm mt-0.5"></i>
+                                    <div>
+                                        <div class="font-bold">⚡ Mode Hemat Token (Rekomendasi)</div>
+                                        <div class="text-[10px] opacity-80 font-normal">Prioritas model Flash-Lite & Flash. Menghemat kuota harian s/d 80%.</div>
+                                    </div>
+                                </button>
+                                <button type="button" @click="settings.aiScanMode = 'AKURASI'" :class="settings.aiScanMode === 'AKURASI' ? 'bg-sky-600 text-white font-extrabold border-sky-400' : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'" class="p-2.5 rounded-xl text-xs border transition text-left flex items-start gap-2">
+                                    <i class="fa-solid fa-bullseye text-sm mt-0.5"></i>
+                                    <div>
+                                        <div class="font-bold">🎯 Mode Akurasi Maksimal</div>
+                                        <div class="text-[10px] opacity-80 font-normal">Prioritas Gemini Pro untuk nota buram / tulisan tangan sulit.</div>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Gemini Standard Rate Limits Reference Table -->
@@ -801,9 +886,13 @@
                             <div>
                                 <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
                                     <span>Daftar Gemini API Keys:</span>
-                                    <span class="text-[10px] text-amber-400 font-mono">1 Key Per Baris</span>
+                                    <span class="text-[10px] text-amber-400 font-mono">1 Key Per Baris (Diawali AIzaSy...)</span>
                                 </label>
                                 <textarea v-model="settings.geminiApiKey" rows="3" placeholder="AIzaSy... (API Key Utama)&#10;AIzaSy... (API Key Backup 1)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-sky-500 leading-relaxed"></textarea>
+                                <p class="text-[11px] text-amber-400/90 mt-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    <span>API Key Gemini resmi <strong>WAJIB diawali dengan <code class="bg-amber-950 px-1 py-0.5 rounded border border-amber-800 text-amber-300 font-mono">AIzaSy...</code></strong>. Buat API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold text-sky-400 hover:text-sky-300">Google AI Studio</a>.</span>
+                                </p>
                             </div>
 
                             <!-- Live Capacity & Health Monitor Cards per API Key -->
@@ -1014,11 +1103,11 @@
                             <div>
                                 <span class="text-xs text-slate-300 font-bold block flex items-center gap-1.5">
                                     <span>AI Gemini Vision Invoice Scan</span>
-                                    <span v-if="getGeminiKeys().length > 1" class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.2 rounded font-mono">
-                                        {{ getGeminiKeys().length }} Keys
+                                    <span :class="settings.aiScanMode === 'AKURASI' ? 'bg-sky-950 text-sky-400 border-sky-800' : 'bg-amber-950 text-amber-400 border-amber-800'" class="text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
+                                        {{ settings.aiScanMode === 'AKURASI' ? '🎯 Mode Akurasi' : '⚡ Mode Hemat' }}
                                     </span>
                                 </span>
-                                <span class="text-[10px] text-slate-400">Scan foto / PDF nota untuk ekstrak otomatis</span>
+                                <span class="text-[10px] text-slate-400">Kompresi gambar otomatis & ekstraksi hemat token</span>
                             </div>
                         </div>
                         <label :class="isScanningInvoice ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95">
@@ -1144,6 +1233,82 @@
             </div>
         </div>
 
+        <!-- MODAL: UPDATE ODOMETER -->
+        <div v-if="modals.updateKm" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-white text-base">Update Odometer Armada</h3>
+                    <button @click="modals.updateKm = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <form @submit.prevent="saveUpdateKm" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Pilih Armada *</label>
+                        <select v-model="updateKmForm.vehicleId" @change="onUpdateKmCarChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                            <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Odometer Baru (KM) *</label>
+                        <input type="number" v-model.number="updateKmForm.newKm" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                        <button type="button" @click="modals.updateKm = false" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
+                        <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl">Simpan Odometer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: DIGITAL INVOICE VIEWER -->
+        <div v-if="modals.invoice && selectedLog" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-white text-base">Faktur Pemeliharaan Digital</h3>
+                    <button @click="modals.invoice = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+                <div class="space-y-2 text-xs font-mono bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <div class="flex justify-between"><span class="text-slate-400">No. Invoice:</span><span class="text-white font-bold">{{ selectedLog.invoiceNo || '-' }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Armada Plat:</span><span class="text-amber-400 font-bold">{{ selectedLog.vehicleId }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Bengkel:</span><span class="text-white">{{ selectedLog.workshop }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Tanggal:</span><span class="text-white">{{ selectedLog.date }}</span></div>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-xs font-bold text-slate-300">Rincian Pekerjaan & Part:</p>
+                    <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 divide-y divide-slate-800 max-h-40 overflow-y-auto text-xs touch-scroll">
+                        <div v-for="(it, i) in selectedLog.items" :key="i" class="py-1 flex justify-between">
+                            <span class="text-slate-200">{{ it.name }}</span>
+                            <span class="text-emerald-400 font-mono">Rp {{ (it.cost || 0).toLocaleString('id-ID') }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-slate-800 font-bold text-xs">
+                    <span class="text-slate-300">Total Pembayaran:</span>
+                    <span class="text-emerald-400 font-mono text-sm">Rp {{ (selectedLog.totalCost || 0).toLocaleString('id-ID') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOM CONFIRMATION DIALOG MODAL -->
+        <div v-if="confirmModal.show" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 sm:p-6 space-y-4 text-center">
+                <div class="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-white text-base">{{ confirmModal.title }}</h3>
+                    <p class="text-xs text-slate-400">{{ confirmModal.message }}</p>
+                </div>
+                <div class="flex justify-center gap-2 pt-2">
+                    <button @click="closeConfirmModal(false)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition">
+                        Batal
+                    </button>
+                    <button @click="closeConfirmModal(true)" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition shadow">
+                        Lanjutkan
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Floating Toast Notification for Mobile and Desktop -->
         <div v-if="toast.show" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-50 bg-amber-500 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 max-w-md mx-auto sm:mx-0">
             <i class="fa-solid fa-circle-check text-base"></i>
@@ -1222,6 +1387,7 @@
                     selectedLog: null,
                     settings: {
                         geminiApiKey: '',
+                        aiScanMode: 'HEMAT',
                         telegramBotToken: '',
                         telegramChatId: '',
                         sheetsWebhookUrl: '',
@@ -1510,6 +1676,39 @@
                         this.showToast('Password Admin Master Salah!');
                     }
                 },
+                logout() {
+                    this.isAuthenticated = false;
+                    this.passwordInput = '';
+                },
+                initRealtimeSync() {
+                    const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
+                    const lRef = ref(db, `artifacts/${appId}/public/data/logs`);
+                    const sRef = ref(db, `artifacts/${appId}/public/data/settings`);
+
+                    onValue(vRef, (snap) => {
+                        this.cloudStatus = 'connected';
+                        const data = snap.val();
+                        this.vehicles = data ? Object.values(data) : [];
+                    });
+
+                    onValue(lRef, (snap) => {
+                        const data = snap.val();
+                        this.serviceLogs = data ? Object.values(data) : [];
+                    });
+
+                    onValue(sRef, (snap) => {
+                        const data = snap.val();
+                        if (data) {
+                            if (data.adminPassword) this.adminPassword = data.adminPassword;
+                            if (data.geminiApiKey) this.settings.geminiApiKey = data.geminiApiKey;
+                            if (data.aiScanMode) this.settings.aiScanMode = data.aiScanMode;
+                            if (data.telegramBotToken) this.settings.telegramBotToken = data.telegramBotToken;
+                            if (data.telegramChatId) this.settings.telegramChatId = data.telegramChatId;
+                            if (data.sheetsWebhookUrl !== undefined) this.settings.sheetsWebhookUrl = data.sheetsWebhookUrl;
+                            if (typeof data.autoSyncSheets === 'boolean') this.settings.autoSyncSheets = data.autoSyncSheets;
+                        }
+                    });
+                },
                 getGeminiKeys() {
                     const raw = this.settings.geminiApiKey || '';
                     if (!raw.trim()) return [];
@@ -1557,24 +1756,38 @@
                 async testGeminiKey(key, index) {
                     this.isTestingKeys = true;
                     try {
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-                        const res = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: "ping" }] }]
-                            })
-                        });
+                        const modelsToTry = this.getGeminiModelSequence();
+                        let testedOk = false;
+                        for (const modelName of modelsToTry) {
+                            try {
+                                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
+                                const res = await fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        contents: [{ parts: [{ text: "ping" }] }],
+                                        generationConfig: { maxOutputTokens: 1 }
+                                    })
+                                });
 
-                        if (res.ok) {
-                            this.recordKeyUsage(key, 10, 'HEALTHY');
-                            this.showToast(`Key #${index + 1} Aktif & Normal!`);
-                        } else if (res.status === 429) {
-                            this.recordKeyUsage(key, 0, 'LIMITED');
-                            this.showToast(`Key #${index + 1} Terkena Rate Limit (429 Exceeded)`);
-                        } else {
+                                if (res.ok) {
+                                    this.recordKeyUsage(key, 2, 'HEALTHY');
+                                    this.showToast(`Key #${index + 1} (${modelName}) Aktif & Normal!`);
+                                    testedOk = true;
+                                    break;
+                                } else if (res.status === 429) {
+                                    this.recordKeyUsage(key, 0, 'LIMITED');
+                                    this.showToast(`Key #${index + 1} Limit 429 Exceeded`);
+                                    testedOk = true;
+                                    break;
+                                }
+                            } catch (err) {
+                                console.warn(`Test model ${modelName} failed for key #${index + 1}`, err);
+                            }
+                        }
+                        if (!testedOk) {
                             this.recordKeyUsage(key, 0, 'INVALID');
-                            this.showToast(`Key #${index + 1} Error / Tidak Valid (${res.status})`);
+                            this.showToast(`Key #${index + 1} Tidak Valid / Error`);
                         }
                     } catch (e) {
                         this.recordKeyUsage(key, 0, 'INVALID');
@@ -1585,97 +1798,116 @@
                 },
                 async testAllGeminiKeys() {
                     const keys = this.getGeminiKeys();
-                    if (keys.length === 0) {
-                        this.showToast('Masukkan minimal 1 Gemini API Key!');
+                    if (!keys.length) {
+                        this.showToast('Belum ada Gemini API Key yang diisi.');
                         return;
                     }
                     for (let i = 0; i < keys.length; i++) {
                         await this.testGeminiKey(keys[i], i);
                     }
                 },
-                logout() {
-                    this.isAuthenticated = false;
-                    this.passwordInput = '';
+                getGeminiModelSequence() {
+                    // Standard Google Gemini API endpoint model identifiers
+                    if (this.settings.aiScanMode === 'AKURASI') {
+                        return ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+                    }
+                    // Default HEMAT mode
+                    return ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
                 },
-                initRealtimeSync() {
-                    const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
-                    const lRef = ref(db, `artifacts/${appId}/public/data/logs`);
-                    const sRef = ref(db, `artifacts/${appId}/public/data/settings`);
-                    const kRef = ref(db, `artifacts/${appId}/public/data/keyStats`);
+                compressImageForAI(file, maxDimension = 1024, quality = 0.75) {
+                    return new Promise((resolve, reject) => {
+                        if (!file.type.startsWith('image/')) {
+                            // If PDF or other format, pass raw base64
+                            const reader = new FileReader();
+                            reader.onload = () => resolve({ base64: reader.result.split(',')[1], mimeType: file.type || 'application/pdf' });
+                            reader.onerror = (err) => reject(err);
+                            reader.readAsDataURL(file);
+                            return;
+                        }
 
-                    onValue(vRef, (snap) => {
-                        this.cloudStatus = 'connected';
-                        const data = snap.val();
-                        this.vehicles = data ? Object.values(data) : [];
-                    });
+                        const img = new Image();
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            img.src = e.target.result;
+                        };
+                        img.onload = () => {
+                            let width = img.width;
+                            let height = img.height;
 
-                    onValue(lRef, (snap) => {
-                        const data = snap.val();
-                        this.serviceLogs = data ? Object.values(data) : [];
-                    });
-
-                    onValue(kRef, (snap) => {
-                        const data = snap.val();
-                        if (data) {
-                            // Merge synced key stats
-                            const keys = this.getGeminiKeys();
-                            keys.forEach(k => {
-                                const prefix = k.substring(0, 12);
-                                if (data[prefix]) {
-                                    this.keyUsageStats[k] = data[prefix];
+                            if (width > maxDimension || height > maxDimension) {
+                                if (width > height) {
+                                    height = Math.round((height * maxDimension) / width);
+                                    width = maxDimension;
+                                } else {
+                                    width = Math.round((width * maxDimension) / height);
+                                    height = maxDimension;
                                 }
-                            });
-                        }
-                    });
+                            }
 
-                    onValue(sRef, (snap) => {
-                        const data = snap.val();
-                        if (data) {
-                            if (data.adminPassword) this.adminPassword = data.adminPassword;
-                            if (data.geminiApiKey) this.settings.geminiApiKey = data.geminiApiKey;
-                            if (data.telegramBotToken) this.settings.telegramBotToken = data.telegramBotToken;
-                            if (data.telegramChatId) this.settings.telegramChatId = data.telegramChatId;
-                            if (data.sheetsWebhookUrl !== undefined) this.settings.sheetsWebhookUrl = data.sheetsWebhookUrl;
-                            if (typeof data.autoSyncSheets === 'boolean') this.settings.autoSyncSheets = data.autoSyncSheets;
-                        }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                            resolve({
+                                base64: compressedDataUrl.split(',')[1],
+                                mimeType: 'image/jpeg'
+                            });
+                        };
+                        img.onerror = (err) => reject(err);
+                        reader.onerror = (err) => reject(err);
+                        reader.readAsDataURL(file);
                     });
                 },
-                openAddVehicleModal() {
-                    this.vehicleForm = { id: null, plate: '', model: '', driver: '', category: 'Operasional', currentKm: 0 };
-                    this.modals.vehicle = true;
-                },
-                editVehicle(car) {
-                    this.vehicleForm = { ...car };
-                    this.modals.vehicle = true;
-                },
-                async saveVehicle() {
-                    const plateUpper = this.vehicleForm.plate.toUpperCase().trim();
-                    const carObj = {
-                        ...this.vehicleForm,
-                        id: plateUpper,
-                        plate: plateUpper,
-                        currentKm: Number(this.vehicleForm.currentKm) || 0,
-                        isUnderService: Boolean(this.vehicleForm.isUnderService)
-                    };
-                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${plateUpper}`), carObj);
-                    this.modals.vehicle = false;
-                    this.showToast(`Armada ${plateUpper} berhasil disimpan!`);
-                },
-                confirmDeleteVehicleModal(car) {
-                    this.askConfirmation(
-                        'Hapus Armada',
-                        `Apakah Anda yakin ingin menghapus armada ${car.plate}? Data tidak dapat dikembalikan.`,
-                        () => {
-                            remove(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`));
-                            this.showToast('Armada berhasil dihapus');
+                async testGeminiKey(key, index) {
+                    this.isTestingKeys = true;
+                    try {
+                        if (!key.startsWith('AIzaSy')) {
+                            this.recordKeyUsage(key, 0, 'INVALID');
+                            this.showToast(`Key #${index + 1} Tidak Valid! Key harus diawali AIzaSy...`);
+                            this.isTestingKeys = false;
+                            return;
                         }
-                    );
-                },
-                openUpdateKmModal(car) {
-                    const targetCar = car || (this.vehicles[0] || null);
-                    if (targetCar) {
-                        this.updateKmForm = { vehicleId: targetCar.id, newKm: targetCar.currentKm || 0 };
-                        this.modals.updateKm = true;
+
+                        const modelsToTry = this.getGeminiModelSequence();
+                        let testedOk = false;
+                        for (const modelName of modelsToTry) {
+                            try {
+                                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`;
+                                const res = await fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        contents: [{ parts: [{ text: "ping" }] }],
+                                        generationConfig: { maxOutputTokens: 1 }
+                                    })
+                                });
+
+                                if (res.ok) {
+                                    this.recordKeyUsage(key, 2, 'HEALTHY');
+                                    this.showToast(`Key #${index + 1} (${modelName}) Aktif & Normal!`);
+                                    testedOk = true;
+                                    break;
+                                } else if (res.status === 429) {
+                                    this.recordKeyUsage(key, 0, 'LIMITED');
+                                    this.showToast(`Key #${index + 1} Limit 429 Exceeded`);
+                                    testedOk = true;
+                                    break;
+                                }
+                            } catch (err) {
+                                console.warn(`Test model ${modelName} failed for key #${index + 1}`, err);
+                            }
+                        }
+                        if (!testedOk) {
+                            this.recordKeyUsage(key, 0, 'INVALID');
+                            this.showToast(`Key #${index + 1} Tidak Valid / Error HTTP`);
+                        }
+                    } catch (e) {
+                        this.recordKeyUsage(key, 0, 'INVALID');
+                        this.showToast(`Gagal tes Key #${index + 1}: ` + e.message);
+                    } finally {
+                        this.isTestingKeys = false;
                     }
                 },
                 onUpdateKmCarChange() {
@@ -1775,16 +2007,10 @@
                     }
 
                     this.isScanningInvoice = true;
-                    this.scanStatusMessage = 'Mempersiapkan dokumen nota...';
+                    this.scanStatusMessage = 'Mengompres dokumen untuk menghemat token...';
 
                     try {
-                        const base64Data = await new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(reader.result.split(',')[1]);
-                            reader.readAsDataURL(file);
-                        });
-
-                        const mimeType = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+                        const { base64: base64Data, mimeType } = await this.compressImageForAI(file, 1024, 0.75);
 
                         const payload = {
                             contents: [{
@@ -1796,6 +2022,7 @@
                             }],
                             generationConfig: {
                                 responseMimeType: "application/json",
+                                maxOutputTokens: 800,
                                 responseSchema: {
                                     type: "OBJECT",
                                     properties: {
@@ -1825,14 +2052,11 @@
                         for (let i = 0; i < apiKeys.length; i++) {
                             const currentKey = apiKeys[i];
                             const keyLabel = i === 0 ? 'Primary Key' : `Backup Key #${i}`;
-                            this.scanStatusMessage = `Mencoba ekstraksi dengan Gemini API ${keyLabel}...`;
-
-                            const modelsToTry = [
-                                'gemini-2.5-flash',
-                                'gemini-1.5-flash'
-                            ];
+                            const modelsToTry = this.getGeminiModelSequence();
 
                             for (const modelName of modelsToTry) {
+                                this.scanStatusMessage = `Mencoba ekstraksi (${keyLabel}) via model ${modelName}...`;
+
                                 try {
                                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${currentKey}`;
                                     const res = await fetch(apiUrl, {
@@ -1843,14 +2067,16 @@
 
                                     if (res.ok) {
                                         const result = await res.json();
-                                        const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                        let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (jsonText) {
+                                            jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
                                             const parsed = JSON.parse(jsonText);
                                             if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
                                             if (parsed.workshop) {
                                                 const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
                                                 const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
                                                 if (matched) this.logForm.workshop = matched;
+                                                else this.logForm.workshop = String(parsed.workshop);
                                             }
                                             if (parsed.date) this.logForm.date = parsed.date;
                                             if (parsed.km) this.logForm.km = Number(parsed.km);
@@ -1859,23 +2085,30 @@
                                                 const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
                                                 this.logForm.replacedComponents = parsed.replacedComponents.filter(k => validKeys.includes(k));
                                             }
-                                            if (parsed.items && parsed.items.length) this.logForm.items = parsed.items;
+                                            if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                                                this.logForm.items = parsed.items.map(it => ({
+                                                    name: it.name || '',
+                                                    cost: Number(it.cost) || 0
+                                                }));
+                                            }
 
                                             scanSuccess = true;
-                                            this.recordKeyUsage(currentKey, 2500, 'HEALTHY');
+                                            // Record estimated low token usage due to compression & model choice
+                                            const estTokens = modelName.includes('lite') ? 300 : modelName.includes('flash') ? 600 : 1200;
+                                            this.recordKeyUsage(currentKey, estTokens, 'HEALTHY');
 
-                                            const successMsg = i === 0 
-                                                ? '✨ AI Scan Nota Berhasil!' 
-                                                : `✨ AI Scan Nota Berhasil (Failover ke Backup Key #${i})!`;
-                                            
+                                            const successMsg = `⚡ AI Scan Nota Berhasil (${modelName}) - Kuota Hemat!`;
                                             this.showToast(successMsg);
-                                            this.scanStatusMessage = `Terbaca sukses menggunakan API Key #${i + 1}`;
+                                            this.scanStatusMessage = `Sukses (${keyLabel} - ${modelName})`;
                                             break;
                                         }
                                     } else {
                                         if (res.status === 429) {
                                             this.recordKeyUsage(currentKey, 0, 'LIMITED');
+                                        } else if (res.status === 400 || res.status === 403) {
+                                            this.recordKeyUsage(currentKey, 0, 'INVALID');
                                         }
+                                        console.warn(`Gemini API key #${i + 1} with model ${modelName} returned status ${res.status}`);
                                     }
                                 } catch (fetchErr) {
                                     console.warn(`Fetch error for Key #${i + 1} (${modelName}):`, fetchErr);
@@ -1885,13 +2118,12 @@
                             if (scanSuccess) break;
 
                             if (i < apiKeys.length - 1) {
-                                const nextLabel = `Backup Key #${i + 1}`;
-                                this.showToast(`Quota API Key #${i + 1} habis/error. Otomatis beralih ke ${nextLabel}...`);
+                                this.showToast(`Key #${i + 1} limit/error. Beralih ke Backup Key #${i + 1}...`);
                             }
                         }
 
                         if (!scanSuccess) {
-                            this.scanStatusMessage = 'Gagal memproses nota dengan seluruh API Key.';
+                            this.scanStatusMessage = 'Gagal memproses nota dengan seluruh API Key / Model.';
                             this.showToast('Seluruh API Key Gemini habis kuota atau tidak valid.');
                         }
 
@@ -1973,7 +2205,7 @@
                     return months[m - 1];
                 },
                 getServicedVehiclesForMonth(m, year) {
-                    const logs = this.serviceLogs.filter(l => {
+                    const logs = (this.serviceLogs || []).filter(l => {
                         if (!l.date) return false;
                         const d = this.parseLocalDate(l.date);
                         return d && (d.getMonth() + 1) === m && d.getFullYear() === Number(year);
@@ -2038,6 +2270,7 @@
                 },
                 async saveIntegrations() {
                     await set(ref(db, `artifacts/${appId}/public/data/settings/geminiApiKey`), this.settings.geminiApiKey);
+                    await set(ref(db, `artifacts/${appId}/public/data/settings/aiScanMode`), this.settings.aiScanMode || 'HEMAT');
                     await set(ref(db, `artifacts/${appId}/public/data/settings/telegramBotToken`), this.settings.telegramBotToken);
                     await set(ref(db, `artifacts/${appId}/public/data/settings/telegramChatId`), this.settings.telegramChatId);
                     await set(ref(db, `artifacts/${appId}/public/data/settings/sheetsWebhookUrl`), this.settings.sheetsWebhookUrl || '');
