@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AUTOMAN UNS - Portal Admin Terpusat & Command Center Armada</title>
 
     <!-- Tailwind CSS -->
@@ -162,6 +162,7 @@
 
             <main class="flex-1 p-3 sm:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
+                <!-- Overview Tab -->
                 <section v-if="currentTab === 'overview'" class="space-y-4 sm:space-y-6">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
@@ -299,6 +300,7 @@
                     </div>
                 </section>
 
+                <!-- Approvals Tab -->
                 <section v-if="currentTab === 'approvals'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                         <div>
@@ -344,11 +346,11 @@
                             </div>
 
                             <div class="flex items-center gap-2 pt-1">
-                                <button @click="openProcessInvoiceModal(car)" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95">
+                                <button @click="openProcessInvoiceModal(car)" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[44px]">
                                     <i class="fa-solid fa-file-circle-check"></i>
                                     <span>Setujui & Input Invoice</span>
                                 </button>
-                                <button @click="rejectInService(car)" class="px-3 py-2.5 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 border border-slate-700 text-slate-300 font-bold rounded-xl text-xs transition active:scale-95">
+                                <button @click="rejectInService(car)" class="px-3 py-2.5 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 border border-slate-700 text-slate-300 font-bold rounded-xl text-xs transition active:scale-95 min-h-[44px]">
                                     Batal
                                 </button>
                             </div>
@@ -362,6 +364,7 @@
                     </div>
                 </section>
 
+                <!-- Vehicles Tab -->
                 <section v-if="currentTab === 'vehicles'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                         <div class="relative flex-1">
@@ -439,21 +442,25 @@
                     </div>
                 </section>
 
+                <!-- Transactions Tab -->
                 <section v-if="currentTab === 'logs'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-3">
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                            <h2 class="font-extrabold text-sm sm:text-base text-white">Riwayat Transaksi Maintenance Master</h2>
+                            <h2 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                                <i class="fa-solid fa-receipt text-amber-400"></i>
+                                <span>Riwayat Transaksi Maintenance Master</span>
+                            </h2>
                             <div class="flex items-center gap-2 flex-wrap">
-                                <button @click="openCreateLogModal" class="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95">
+                                <button @click="openCreateLogModal" class="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i class="fa-solid fa-plus"></i>
                                     <span>Input Log Baru</span>
                                 </button>
-                                <button @click="triggerLogExcelImport" class="px-3 py-2.5 sm:py-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
-                                    <i class="fa-solid fa-file-excel"></i> <span>Import Log</span>
+                                <button @click="triggerLogExcelImport" class="px-3 py-2.5 sm:py-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[40px]">
+                                    <i class="fa-solid fa-file-excel"></i> <span>Import</span>
                                 </button>
                                 <input type="file" ref="logExcelInput" accept=".xlsx, .xls" @change="importLogsExcel" class="hidden">
 
-                                <button @click="exportLogsExcel" class="px-3 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold rounded-xl text-xs transition flex items-center justify-center active:scale-95">
+                                <button @click="exportLogsExcel" class="px-3 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold rounded-xl text-xs transition flex items-center justify-center active:scale-95 min-h-[40px]">
                                     <i class="fa-solid fa-file-excel mr-1"></i> Export Master Logs
                                 </button>
                             </div>
@@ -514,7 +521,8 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                    <!-- DESKTOP TABLE VIEW -->
+                    <div class="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
                         <div class="overflow-x-auto touch-scroll">
                             <table class="w-full text-left text-xs text-slate-300 min-w-[750px]">
                                 <thead class="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
@@ -531,7 +539,7 @@
                                 </thead>
                                 <tbody v-if="filteredServiceLogs.length > 0" class="divide-y divide-slate-800 font-medium">
                                     <tr v-for="log in filteredServiceLogs" :key="log.id" class="hover:bg-slate-800/40">
-                                        <td class="p-3 font-mono text-slate-400 whitespace-nowrap">{{ log.date }}</td>
+                                        <td class="p-3 font-mono text-slate-400 whitespace-nowrap">{{ formatDateDisplay(log.date) }}</td>
                                         <td class="p-3 font-mono font-bold text-amber-400 whitespace-nowrap">{{ log.vehicleId }}</td>
                                         <td class="p-3 text-white font-semibold whitespace-nowrap">{{ log.workshop }}</td>
                                         <td class="p-3 font-mono text-slate-300 whitespace-nowrap">{{ log.invoiceNo || '-' }}</td>
@@ -544,7 +552,7 @@
                                                 <span v-for="cKey in normalizeArray(log.replacedComponents)" :key="cKey" class="px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-800 rounded text-[9px] font-bold">
                                                     ✓ {{ getComponentNameLabel(cKey) }}
                                                 </span>
-                                                <span v-for="(it, i) in normalizeArray(log.items)" :key="i" class="text-slate-300 text-[10px]">
+                                                <span v-for="(it, i) in normalizeArray(log.items)" :key="i" class="text-slate-300 text-[10px] bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">
                                                     {{ it.name }}
                                                 </span>
                                             </div>
@@ -575,8 +583,66 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- MOBILE CARD LIST VIEW (Comfortable for Smartphone Users) -->
+                    <div class="block md:hidden space-y-3">
+                        <div v-if="filteredServiceLogs.length > 0" class="space-y-3">
+                            <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+                                <div class="flex items-start justify-between border-b border-slate-800 pb-2.5">
+                                    <div>
+                                        <span class="px-2.5 py-0.5 bg-amber-950 border border-amber-800 text-amber-400 font-mono font-extrabold text-xs rounded-lg uppercase">
+                                            {{ log.vehicleId }}
+                                        </span>
+                                        <h3 class="font-bold text-sm text-white mt-1">{{ log.workshop }}</h3>
+                                        <p class="text-[10px] text-slate-400 font-mono">No. Invoice: <span class="text-slate-200">{{ log.invoiceNo || '-' }}</span></p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-sm font-black font-mono text-emerald-400 block">Rp {{ (log.totalCost || 0).toLocaleString('id-ID') }}</span>
+                                        <span class="text-[10px] text-slate-400 font-mono">{{ formatDateDisplay(log.date) }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 space-y-2 text-xs">
+                                    <div class="flex justify-between items-center text-[11px]">
+                                        <span class="text-slate-400">Odometer Terbaca:</span>
+                                        <span class="font-mono text-sky-400 font-bold">{{ (log.km || 0).toLocaleString('id-ID') }} KM</span>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-1 items-center pt-1 border-t border-slate-900">
+                                        <span :class="log.isRoutine !== false ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-slate-950 text-slate-400 border-slate-800'" class="px-1.5 py-0.5 rounded text-[9px] font-bold border">
+                                            {{ log.isRoutine !== false ? 'Servis Rutin' : 'Perbaikan' }}
+                                        </span>
+                                        <span v-for="cKey in normalizeArray(log.replacedComponents)" :key="cKey" class="px-1.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-800 rounded text-[9px] font-bold">
+                                            ✓ {{ getComponentNameLabel(cKey) }}
+                                        </span>
+                                        <span v-for="(it, i) in normalizeArray(log.items)" :key="i" class="text-slate-300 text-[10px] bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                                            {{ it.name }} (Rp {{ (Number(it.cost) || 0).toLocaleString('id-ID') }})
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-800/80">
+                                    <button @click="openInvoiceModal(log)" class="flex-1 py-2 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95 min-h-[38px]">
+                                        <i class="fa-solid fa-file-invoice"></i>
+                                        <span>Faktur Digital</span>
+                                    </button>
+                                    <button @click="openEditLogModal(log)" class="px-3 py-2 bg-slate-800 text-amber-400 hover:text-amber-300 font-bold rounded-xl text-xs transition active:scale-95 min-h-[38px]" title="Edit Log">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button @click="confirmDeleteLogModal(log.id)" class="px-3 py-2 bg-slate-800 text-rose-400 hover:text-rose-300 font-bold rounded-xl text-xs transition active:scale-95 min-h-[38px]" title="Hapus Log">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center text-slate-500 space-y-1">
+                            <p class="text-xs font-bold text-slate-300">Tidak ada riwayat transaksi yang sesuai filter.</p>
+                        </div>
+                    </div>
                 </section>
 
+                <!-- Monthly Recap Tab -->
                 <section v-if="currentTab === 'recap'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-2">
                         <div>
@@ -622,6 +688,7 @@
                     </div>
                 </section>
 
+                <!-- SPJ Tab -->
                 <section v-if="currentTab === 'spj'" class="space-y-4 sm:space-y-6">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
@@ -678,6 +745,7 @@
                     </div>
                 </section>
 
+                <!-- Settings Tab -->
                 <section v-if="currentTab === 'settings'" class="space-y-4 sm:space-y-6 max-w-3xl">
                     <!-- Password Admin -->
                     <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-3 sm:space-y-4">
@@ -691,7 +759,7 @@
                                 <label class="block font-bold text-slate-300 mb-1">Password Baru</label>
                                 <input type="password" v-model="newPassword" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono">
                             </div>
-                            <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-amber-600 hover:bg-amber-500 active:scale-95 text-slate-950 font-bold rounded-xl transition">
+                            <button type="submit" class="w-full sm:w-auto px-4 py-2.5 bg-amber-600 hover:bg-amber-500 active:scale-95 text-slate-950 font-bold rounded-xl transition min-h-[44px]">
                                 Simpan Password Baru
                             </button>
                         </form>
@@ -771,14 +839,14 @@
                                 </div>
                             </div>
 
-                            <button @click="saveIntegrations" class="w-full sm:w-auto px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 active:scale-95">
+                            <button @click="saveIntegrations" class="w-full sm:w-auto px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 active:scale-95 min-h-[44px]">
                                 <i class="fa-solid fa-floppy-disk"></i>
                                 <span>Simpan Konfigurasi Gemini</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Google Sheets Auto-Read & Auto-Write Reporting Integration -->
+                    <!-- Google Sheets Integration -->
                     <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4">
                         <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
                             <div>
@@ -809,14 +877,14 @@
                             </div>
 
                             <div class="flex items-center gap-2 flex-wrap">
-                                <button @click="saveIntegrations" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition active:scale-95">
+                                <button @click="saveIntegrations" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition active:scale-95 min-h-[40px]">
                                     Simpan Konfigurasi Sheets
                                 </button>
-                                <button @click="syncToGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95">
+                                <button @click="syncToGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-up'"></i>
                                     <span>{{ isSheetsSyncing ? 'Mengirim...' : 'Tes Auto-Write Laporan' }}</span>
                                 </button>
-                                <button @click="readFromGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95">
+                                <button @click="readFromGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-down'"></i>
                                     <span>Tes Auto-Read Sheets</span>
                                 </button>
@@ -867,8 +935,8 @@
                         <input type="number" v-model.number="vehicleForm.currentKm" min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
                     </div>
                     <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-800">
-                        <button type="button" @click="modals.vehicle = false" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl">Simpan Armada</button>
+                        <button type="button" @click="modals.vehicle = false" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
+                        <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl min-h-[44px]">Simpan Armada</button>
                     </div>
                 </form>
             </div>
@@ -893,10 +961,67 @@
                         <input type="number" v-model.number="updateKmForm.newKm" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
                     </div>
                     <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                        <button type="button" @click="modals.updateKm = false" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl">Simpan Odometer</button>
+                        <button type="button" @click="modals.updateKm = false" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
+                        <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl min-h-[44px]">Simpan Odometer</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- MODAL: DIGITAL INVOICE VIEWER (Restored & Responsive) -->
+        <div v-if="modals.invoice && selectedLog" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll shadow-2xl">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-lg border border-sky-500/20">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base">Faktur Pemeliharaan Digital</h3>
+                            <p class="text-[10px] text-slate-400 font-mono">Status: Terverifikasi Sistem AUTOMAN</p>
+                        </div>
+                    </div>
+                    <button @click="modals.invoice = false" class="text-slate-400 hover:text-white p-2 text-lg active:scale-95"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="space-y-2 text-xs font-mono bg-slate-950 p-3.5 rounded-xl border border-slate-800 shadow-inner">
+                    <div class="flex justify-between"><span class="text-slate-400">No. Invoice:</span><span class="text-white font-bold">{{ selectedLog.invoiceNo || '-' }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Armada / Plat:</span><span class="text-amber-400 font-bold">{{ selectedLog.vehicleId }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Bengkel Mitra:</span><span class="text-white font-semibold">{{ selectedLog.workshop }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Tanggal Servis:</span><span class="text-white">{{ formatDateDisplay(selectedLog.date) }}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Odometer Terbaca:</span><span class="text-sky-400 font-bold">{{ (selectedLog.km || 0).toLocaleString('id-ID') }} KM</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Kategori Servis:</span><span class="font-bold" :class="selectedLog.isRoutine !== false ? 'text-emerald-400' : 'text-slate-300'">{{ selectedLog.isRoutine !== false ? 'Servis Rutin Berkala' : 'Perbaikan Non-Rutin' }}</span></div>
+                </div>
+
+                <div v-if="normalizeArray(selectedLog.replacedComponents).length > 0" class="space-y-1.5">
+                    <p class="text-xs font-bold text-slate-300">Komponen Vital Diganti:</p>
+                    <div class="flex flex-wrap gap-1">
+                        <span v-for="cKey in normalizeArray(selectedLog.replacedComponents)" :key="cKey" class="px-2 py-1 bg-sky-950 text-sky-300 border border-sky-800 rounded-lg text-[10px] font-bold">
+                            ✓ {{ getComponentNameLabel(cKey) }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <p class="text-xs font-bold text-slate-300">Rincian Pekerjaan & Sparepart:</p>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 divide-y divide-slate-800/80 max-h-48 overflow-y-auto text-xs touch-scroll">
+                        <div v-for="(it, i) in normalizeArray(selectedLog.items)" :key="i" class="py-1.5 flex justify-between items-center">
+                            <span class="text-slate-200 font-medium">{{ it.name }}</span>
+                            <span class="text-emerald-400 font-mono font-bold">Rp {{ (Number(it.cost) || 0).toLocaleString('id-ID') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-950 p-3.5 rounded-xl border border-slate-800 font-bold text-xs">
+                    <span class="text-slate-300 uppercase tracking-wider">Total Pembayaran:</span>
+                    <span class="text-emerald-400 font-mono text-base sm:text-lg">Rp {{ (Number(selectedLog.totalCost) || 0).toLocaleString('id-ID') }}</span>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                    <button @click="modals.invoice = false" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition active:scale-95 min-h-[44px]">
+                        Tutup Faktur
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -917,13 +1042,13 @@
                                 <span class="text-xs text-slate-300 font-bold block flex items-center gap-1.5">
                                     <span>AI Gemini Vision Invoice Scan</span>
                                     <span class="bg-amber-950 text-amber-400 border-amber-800 text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
-                                        ⚡ Output Schema JSON
+                                        ⚡ Focused Schema
                                     </span>
                                 </span>
                                 <span class="text-[10px] text-slate-400">Kompresi ultra-ringan (800px) & penghematan token harian</span>
                             </div>
                         </div>
-                        <label :class="isScanningInvoice ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95">
+                        <label :class="isScanningInvoice ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95 min-h-[40px]">
                             <i v-if="isScanningInvoice" class="fa-solid fa-circle-notch fa-spin"></i>
                             <i v-else class="fa-solid fa-camera"></i>
                             <span>{{ isScanningInvoice ? 'Scanning...' : 'Scan Foto / PDF Nota' }}</span>
@@ -1042,8 +1167,8 @@
                     </div>
 
                     <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-800">
-                        <button type="button" @click="modals.log = false" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button>
-                        <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl">Simpan Log Servis</button>
+                        <button type="button" @click="modals.log = false" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
+                        <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl min-h-[44px]">Simpan Log Servis</button>
                     </div>
                 </form>
             </div>
@@ -1620,6 +1745,10 @@
                         .map(k => k.trim())
                         .filter(k => k.length > 5);
                 },
+                getGeminiModelSequence() {
+                    // Single Focused Endpoint (gemini-3-flash-preview) + Backups
+                    return ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+                },
                 getKeyHealthText(key) {
                     const stat = this.keyUsageStats[key];
                     if (!stat) return 'Belum Dites';
@@ -1668,28 +1797,43 @@
                             return;
                         }
 
-                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${cleanKey}`;
-                        const res = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'x-goog-api-key': cleanKey
-                            },
-                            body: JSON.stringify({
-                                contents: [{ parts: [{ text: "ping" }] }],
-                                generationConfig: { maxOutputTokens: 1 }
-                            })
-                        });
+                        const modelsToTry = this.getGeminiModelSequence();
+                        let testedOk = false;
+                        for (const modelName of modelsToTry) {
+                            try {
+                                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+                                const res = await fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: { 
+                                        'Content-Type': 'application/json',
+                                        'x-goog-api-key': cleanKey
+                                    },
+                                    body: JSON.stringify({
+                                        contents: [{ parts: [{ text: "ping" }] }],
+                                        generationConfig: { maxOutputTokens: 1 }
+                                    })
+                                });
 
-                        if (res.ok) {
-                            this.recordKeyUsage(cleanKey, 1, 'HEALTHY');
-                            this.showToast(`Key #${index + 1} (gemini-3-flash-preview) Aktif & Normal!`);
-                        } else if (res.status === 429) {
-                            this.recordKeyUsage(cleanKey, 0, 'LIMITED');
-                            this.showToast(`Key #${index + 1} Limit 429 Exceeded`);
-                        } else {
+                                if (res.ok) {
+                                    this.recordKeyUsage(cleanKey, 1, 'HEALTHY');
+                                    this.showToast(`Key #${index + 1} (${modelName}) Aktif & Normal!`);
+                                    testedOk = true;
+                                    break;
+                                } else if (res.status === 429) {
+                                    this.recordKeyUsage(cleanKey, 0, 'LIMITED');
+                                    this.showToast(`Key #${index + 1} Limit 429 Exceeded (${modelName})`);
+                                    testedOk = true;
+                                    break;
+                                }
+                            } catch (err) {
+                                console.warn(`Test model ${modelName} failed for key #${index + 1}`, err);
+                            }
+                            await sleep(800);
+                        }
+
+                        if (!testedOk) {
                             this.recordKeyUsage(cleanKey, 0, 'INVALID');
-                            this.showToast(`Key #${index + 1} HTTP ${res.status}`);
+                            this.showToast(`Key #${index + 1} Tidak Valid / HTTP Error`);
                         }
                     } catch (e) {
                         this.recordKeyUsage(key, 0, 'INVALID');
@@ -1806,84 +1950,88 @@ Ekstrak informasi berikut ke dalam format JSON:
 
                         let scanSuccess = false;
                         let lastErrorMessage = '';
+                        const modelsToTry = this.getGeminiModelSequence();
 
                         for (let i = 0; i < apiKeys.length; i++) {
                             const currentKey = apiKeys[i];
                             const keyLabel = i === 0 ? 'Primary Key' : `Backup Key #${i}`;
-                            this.scanStatusMessage = `Mengekstrak nota (${keyLabel}) via gemini-3-flash-preview...`;
 
-                            try {
-                                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${currentKey}`;
-                                const res = await fetch(apiUrl, {
-                                    method: 'POST',
-                                    headers: { 
-                                        'Content-Type': 'application/json',
-                                        'x-goog-api-key': currentKey
-                                    },
-                                    body: JSON.stringify(payload)
-                                });
+                            for (const modelName of modelsToTry) {
+                                this.scanStatusMessage = `Mengekstrak nota (${keyLabel}) via ${modelName}...`;
 
-                                if (res.ok) {
-                                    const result = await res.json();
-                                    let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                                    if (jsonText) {
-                                        jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
-                                        const parsed = JSON.parse(jsonText);
+                                try {
+                                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${currentKey}`;
+                                    const res = await fetch(apiUrl, {
+                                        method: 'POST',
+                                        headers: { 
+                                            'Content-Type': 'application/json',
+                                            'x-goog-api-key': currentKey
+                                        },
+                                        body: JSON.stringify(payload)
+                                    });
 
-                                        if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
-                                        if (parsed.workshop) {
-                                            const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
-                                            const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
-                                            if (matched) this.logForm.workshop = matched;
-                                            else this.logForm.workshop = String(parsed.workshop);
-                                        }
-                                        if (parsed.date) {
-                                            const parsedD = this.parseLocalDate(parsed.date);
-                                            if (parsedD) {
-                                                const y = parsedD.getFullYear();
-                                                const m = String(parsedD.getMonth() + 1).padStart(2, '0');
-                                                const d = String(parsedD.getDate()).padStart(2, '0');
-                                                this.logForm.date = `${y}-${m}-${d}`;
+                                    if (res.ok) {
+                                        const result = await res.json();
+                                        let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                        if (jsonText) {
+                                            jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+                                            const parsed = JSON.parse(jsonText);
+
+                                            if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
+                                            if (parsed.workshop) {
+                                                const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
+                                                const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
+                                                if (matched) this.logForm.workshop = matched;
+                                                else this.logForm.workshop = String(parsed.workshop);
                                             }
-                                        }
-                                        if (parsed.km && Number(parsed.km) > 0) {
-                                            this.logForm.km = Number(parsed.km);
-                                        }
-                                        if (parsed.replacedComponents && Array.isArray(parsed.replacedComponents)) {
-                                            const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
-                                            this.logForm.replacedComponents = parsed.replacedComponents.filter(k => validKeys.includes(k));
-                                        }
-                                        if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
-                                            this.logForm.items = parsed.items.map(it => ({
-                                                name: String(it.name || 'Sparepart/Jasa').trim(),
-                                                cost: Math.abs(Number(it.cost)) || 0
-                                            }));
-                                        }
+                                            if (parsed.date) {
+                                                const parsedD = this.parseLocalDate(parsed.date);
+                                                if (parsedD) {
+                                                    const y = parsedD.getFullYear();
+                                                    const m = String(parsedD.getMonth() + 1).padStart(2, '0');
+                                                    const d = String(parsedD.getDate()).padStart(2, '0');
+                                                    this.logForm.date = `${y}-${m}-${d}`;
+                                                }
+                                            }
+                                            if (parsed.km && Number(parsed.km) > 0) {
+                                                this.logForm.km = Number(parsed.km);
+                                            }
+                                            if (parsed.replacedComponents && Array.isArray(parsed.replacedComponents)) {
+                                                const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
+                                                this.logForm.replacedComponents = parsed.replacedComponents.filter(k => validKeys.includes(k));
+                                            }
+                                            if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                                                this.logForm.items = parsed.items.map(it => ({
+                                                    name: String(it.name || 'Sparepart/Jasa').trim(),
+                                                    cost: Math.abs(Number(it.cost)) || 0
+                                                }));
+                                            }
 
-                                        scanSuccess = true;
-                                        this.recordKeyUsage(currentKey, 180, 'HEALTHY');
-                                        this.showToast('✨ AI Scan Berhasil! Transaksi terisi otomatis.');
-                                        this.scanStatusMessage = `Sukses terestrak (${keyLabel})`;
-                                        break;
-                                    }
-                                } else {
-                                    const errBody = await res.json().catch(() => ({}));
-                                    lastErrorMessage = errBody?.error?.message || `HTTP ${res.status}`;
-                                    if (res.status === 429) {
-                                        this.recordKeyUsage(currentKey, 0, 'LIMITED');
-                                        this.showToast(`Key #${i + 1} limit (429). Beralih ke Key Backup berikutnya...`);
+                                            scanSuccess = true;
+                                            this.recordKeyUsage(currentKey, 180, 'HEALTHY');
+                                            this.showToast(`✨ AI Scan Berhasil (${modelName})! Transaksi terisi otomatis.`);
+                                            this.scanStatusMessage = `Sukses terestrak (${keyLabel} - ${modelName})`;
+                                            break;
+                                        }
                                     } else {
-                                        this.recordKeyUsage(currentKey, 0, 'INVALID');
+                                        const errBody = await res.json().catch(() => ({}));
+                                        lastErrorMessage = errBody?.error?.message || `HTTP ${res.status}`;
+                                        if (res.status === 429) {
+                                            this.recordKeyUsage(currentKey, 0, 'LIMITED');
+                                            this.showToast(`Key #${i + 1} limit (${modelName}). Beralih ke cadangan...`);
+                                        } else {
+                                            this.recordKeyUsage(currentKey, 0, 'INVALID');
+                                        }
                                     }
+                                } catch (fetchErr) {
+                                    console.warn(`Fetch error for Key #${i + 1} (${modelName}):`, fetchErr);
+                                    lastErrorMessage = fetchErr.message;
                                 }
-                            } catch (fetchErr) {
-                                console.warn(`Fetch error for Key #${i + 1}:`, fetchErr);
-                                lastErrorMessage = fetchErr.message;
-                            }
 
-                            if (i < apiKeys.length - 1) {
                                 await sleep(1000);
                             }
+
+                            if (scanSuccess) break;
                         }
 
                         if (!scanSuccess) {
