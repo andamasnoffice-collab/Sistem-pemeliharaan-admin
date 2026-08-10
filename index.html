@@ -32,11 +32,14 @@
             background-color: #020617;
             color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom Scrollbar for Desktop & Mobile */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         
         .touch-scroll {
@@ -44,9 +47,17 @@
             scrollbar-width: thin;
         }
 
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         @media (max-width: 640px) {
             input, select, textarea {
-                font-size: 16px !important;
+                font-size: 16px !important; /* Prevents auto-zoom on iOS */
             }
         }
     </style>
@@ -55,14 +66,14 @@
 
     <div id="app" class="flex-1 flex flex-col min-h-screen max-w-full overflow-x-hidden" v-cloak>
 
-        <!-- Header -->
-        <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 shadow-xl">
+        <!-- Responsive Header -->
+        <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 shadow-xl">
             <div class="flex items-center gap-2.5 sm:gap-3">
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-base sm:text-lg shadow-lg shrink-0">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-sm sm:text-lg tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
+                    <h1 class="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
                         <span>AUTOMAN <span class="text-amber-400">ADMIN</span></span>
                         <span class="text-[9px] sm:text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-1.5 sm:px-2 py-0.5 rounded-full font-mono uppercase font-bold">Command Center</span>
                     </h1>
@@ -78,14 +89,14 @@
                     <span class="text-slate-300 sm:hidden">{{ cloudStatus === 'connected' ? 'Cloud' : 'Offline' }}</span>
                 </div>
 
-                <button v-if="isAuthenticated" @click="logout" class="px-2.5 sm:px-3 py-1.5 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95">
+                <button v-if="isAuthenticated" @click="logout" class="px-2.5 sm:px-3.5 py-2 bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95 min-h-[38px]">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span class="hidden sm:inline">Keluar</span>
                 </button>
             </div>
         </header>
 
-        <!-- Unauthenticated View -->
+        <!-- Unauthenticated Login View -->
         <div v-if="!isAuthenticated" class="flex-1 flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
                 <div class="text-center space-y-2">
@@ -105,7 +116,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-500 active:scale-98 text-slate-950 font-extrabold rounded-xl text-sm transition shadow-lg shadow-amber-600/20 flex items-center justify-center gap-2 min-h-[46px]">
+                    <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 active:scale-98 text-slate-950 font-extrabold rounded-xl text-sm transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 min-h-[46px]">
                         <i class="fa-solid fa-shield-halved"></i>
                         <span>Masuk Pusat Kendali Admin</span>
                     </button>
@@ -117,16 +128,16 @@
             </div>
         </div>
 
-        <!-- Authenticated Portal -->
+        <!-- Authenticated Portal View -->
         <template v-else>
-            <!-- Navigation -->
-            <nav class="bg-slate-900/90 border-b border-slate-800 px-3 sm:px-8 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto touch-scroll scrollbar-none snap-x">
-                <button @click="currentTab = 'overview'" :class="currentTab === 'overview' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95">
+            <!-- Navigation Tabs (Touch-Scroll Enabled) -->
+            <nav class="sticky top-[53px] sm:top-[57px] z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto touch-scroll scrollbar-none snap-x">
+                <button @click="currentTab = 'overview'" :class="currentTab === 'overview' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-chart-line text-xs"></i>
                     <span>Ringkasan</span>
                 </button>
 
-                <button @click="currentTab = 'approvals'" :class="currentTab === 'approvals' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap relative shrink-0 snap-start active:scale-95">
+                <button @click="currentTab = 'approvals'" :class="currentTab === 'approvals' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap relative shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-clock-rotate-left text-xs"></i>
                     <span>Pengajuan Servis</span>
                     <span v-if="pendingApprovalsCount > 0" class="bg-rose-500 text-white font-bold px-1.5 py-0.5 rounded-full text-[10px] animate-pulse">
@@ -134,71 +145,72 @@
                     </span>
                 </button>
 
-                <button @click="currentTab = 'vehicles'" :class="currentTab === 'vehicles' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95">
+                <button @click="currentTab = 'vehicles'" :class="currentTab === 'vehicles' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-car text-xs"></i>
                     <span>Armada ({{ vehicles.length }})</span>
                 </button>
 
-                <button @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95">
+                <button @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-receipt text-xs"></i>
                     <span>Transaksi ({{ serviceLogs.length }})</span>
                 </button>
 
-                <button @click="currentTab = 'recap'" :class="currentTab === 'recap' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95">
+                <button @click="currentTab = 'recap'" :class="currentTab === 'recap' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-calendar-days text-xs"></i>
                     <span>Rekap Bulanan</span>
                 </button>
 
-                <button @click="currentTab = 'spj'" :class="currentTab === 'spj' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95">
+                <button @click="currentTab = 'spj'" :class="currentTab === 'spj' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-file-invoice-dollar text-xs"></i>
                     <span>SPJ Bulanan</span>
                 </button>
 
-                <button @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 sm:ml-auto snap-start active:scale-95">
+                <button @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 sm:ml-auto snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-sliders text-xs"></i>
                     <span>Pengaturan</span>
                 </button>
             </nav>
 
-            <main class="flex-1 p-3 sm:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
+            <!-- Main Content Container -->
+            <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
                 <!-- Overview Tab -->
                 <section v-if="currentTab === 'overview'" class="space-y-4 sm:space-y-6">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
                             <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Total Akumulasi Biaya</span>
-                            <p class="text-base sm:text-2xl font-black text-emerald-400 font-mono truncate">Rp {{ totalSpending.toLocaleString('id-ID') }}</p>
+                            <p class="text-base sm:text-xl lg:text-2xl font-black text-emerald-400 font-mono truncate">Rp {{ totalSpending.toLocaleString('id-ID') }}</p>
                             <span class="text-[9px] sm:text-[10px] text-slate-500 font-mono block">{{ serviceLogs.length }} transaksi</span>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
                             <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Pengajuan Servis</span>
-                            <p class="text-base sm:text-2xl font-black text-amber-400 font-mono truncate">{{ pendingApprovalsCount }} Unit</p>
+                            <p class="text-base sm:text-xl lg:text-2xl font-black text-amber-400 font-mono truncate">{{ pendingApprovalsCount }} Unit</p>
                             <span class="text-[9px] sm:text-[10px] text-slate-500 block">Perlu verifikasi</span>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
                             <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Armada Jatuh Tempo</span>
-                            <p class="text-base sm:text-2xl font-black text-rose-400 font-mono truncate">{{ expiredCount }} Unit</p>
+                            <p class="text-base sm:text-xl lg:text-2xl font-black text-rose-400 font-mono truncate">{{ expiredCount }} Unit</p>
                             <span class="text-[9px] sm:text-[10px] text-slate-500 block">Perlu perawatan</span>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
                             <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Total Armada Terdaftar</span>
-                            <p class="text-base sm:text-2xl font-black text-sky-400 font-mono truncate">{{ vehicles.length }} Unit</p>
+                            <p class="text-base sm:text-xl lg:text-2xl font-black text-sky-400 font-mono truncate">{{ vehicles.length }} Unit</p>
                             <span class="text-[9px] sm:text-[10px] text-slate-500 block">Terdaftar di sistem</span>
                         </div>
                     </div>
 
-                    <!-- Periodic Schedule -->
-                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl space-y-3 sm:space-y-4">
+                    <!-- Periodic Schedule Card -->
+                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl space-y-3 sm:space-y-4 shadow-xl">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                             <div>
                                 <h3 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-2">
                                     <i class="fa-solid fa-calendar-check text-sky-400"></i>
                                     <span>Jadwal Servis Berkala Armada (Siklus 6 Bulan)</span>
                                 </h3>
-                                <p class="text-[11px] sm:text-xs text-slate-400">Estimasi tanggal servis berdasarkan perhitungan 6 bulan dari tanggal servis terakhir</p>
+                                <p class="text-[11px] sm:text-xs text-slate-400">Estimasi berdasarkan perhitungan 6 bulan dari <strong>servis rutin berkala</strong> terakhir (perbaikan non-rutin diabaikan)</p>
                             </div>
                             <span class="text-xs font-mono font-bold bg-sky-950 text-sky-400 border border-sky-800 px-2.5 py-1 rounded-xl shrink-0 self-start sm:self-auto">
                                 {{ upcomingPeriodicServices.length }} Unit
@@ -212,7 +224,7 @@
                                         <th class="p-2.5">Plat Nomor</th>
                                         <th class="p-2.5">Model Armada</th>
                                         <th class="p-2.5">Pengemudi / Unit</th>
-                                        <th class="p-2.5">Servis Terakhir</th>
+                                        <th class="p-2.5">Servis Rutin Terakhir</th>
                                         <th class="p-2.5">Estimasi Servis (+6 Bln)</th>
                                         <th class="p-2.5 text-center">Status Tenggat</th>
                                     </tr>
@@ -246,7 +258,6 @@
 
                     <!-- Workshop Breakdown & Top Spend Vehicles -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                        <!-- Workshop Breakdown -->
                         <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl space-y-4">
                             <h3 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-2">
                                 <i class="fa-solid fa-wrench text-amber-400"></i>
@@ -269,7 +280,6 @@
                             </div>
                         </div>
 
-                        <!-- Top Spend Vehicles -->
                         <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl space-y-4">
                             <h3 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-2">
                                 <i class="fa-solid fa-trophy text-amber-400"></i>
@@ -327,20 +337,28 @@
                                 </span>
                             </div>
 
-                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs font-mono">
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs font-mono">
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Bengkel Tujuan:</span>
                                     <span class="text-white font-bold">{{ car.targetWorkshop || 'Nasmoco' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Tanggal Pengajuan:</span>
-                                    <span class="text-amber-400">{{ car.inServiceDate || '-' }}</span>
+                                    <span class="text-amber-400 font-bold">{{ car.inServiceDate || '-' }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Odometer Terbaca:</span>
                                     <span class="text-sky-400 font-bold">{{ (car.currentKm || 0).toLocaleString('id-ID') }} KM</span>
                                 </div>
-                                <div v-if="car.inServiceNotes" class="pt-1 text-slate-300 font-sans italic">
+                                <div class="flex justify-between border-t border-slate-800/80 pt-1.5">
+                                    <span class="text-slate-400">Tanggal Servis Terakhir:</span>
+                                    <span class="text-slate-200 font-bold">{{ getLastServiceDate(car) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Tenggat Odometer (+7.000 KM):</span>
+                                    <span class="text-emerald-400 font-bold">{{ getLastServiceKm(car) > 0 ? (getLastServiceKm(car) + 7000).toLocaleString('id-ID') + ' KM' : '7.000 KM' }}</span>
+                                </div>
+                                <div v-if="car.inServiceNotes" class="pt-1.5 border-t border-slate-800/80 text-slate-300 font-sans italic">
                                     "{{ car.inServiceNotes }}"
                                 </div>
                             </div>
@@ -369,23 +387,23 @@
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                         <div class="relative flex-1">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                            <input type="text" v-model="searchVehicle" placeholder="Cari Plat, Tipe, Sopir..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 sm:py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                            <input type="text" v-model="searchVehicle" placeholder="Cari Plat, Tipe, Sopir..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
                         </div>
 
                         <div class="grid grid-cols-2 sm:flex items-center gap-2">
-                            <button @click="openUpdateKmModal(null)" class="px-3 py-2.5 sm:py-2 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
+                            <button @click="openUpdateKmModal(null)" class="px-3 py-2.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[42px]">
                                 <i class="fa-solid fa-gauge-high"></i> <span>Update Odometer</span>
                             </button>
-                            <button @click="triggerVehicleExcelImport" class="px-3 py-2.5 sm:py-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95">
+                            <button @click="triggerVehicleExcelImport" class="px-3 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[42px]">
                                 <i class="fa-solid fa-file-excel"></i> <span>Import Excel</span>
                             </button>
                             <input type="file" ref="vehicleExcelInput" accept=".xlsx, .xls" @change="importVehiclesExcel" class="hidden">
 
-                            <button @click="openAddVehicleModal" class="col-span-2 sm:col-auto px-4 py-2.5 sm:py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95">
+                            <button @click="openAddVehicleModal" class="col-span-2 sm:col-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[42px]">
                                 <i class="fa-solid fa-plus"></i>
                                 <span>Tambah Armada</span>
                             </button>
-                            <button @click="exportVehiclesExcel" class="col-span-2 sm:col-auto px-3 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-xl text-xs transition flex items-center justify-center active:scale-95">
+                            <button @click="exportVehiclesExcel" class="col-span-2 sm:col-auto px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-xl text-xs transition flex items-center justify-center active:scale-95 min-h-[42px]">
                                 <i class="fa-solid fa-file-excel text-emerald-400 mr-1"></i> Export Excel
                             </button>
                         </div>
@@ -451,26 +469,30 @@
                                 <span>Riwayat Transaksi Maintenance Master</span>
                             </h2>
                             <div class="flex items-center gap-2 flex-wrap">
-                                <button @click="openCreateLogModal" class="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[40px]">
+                                <button @click="openCreateLogModal" class="flex-1 sm:flex-initial px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i class="fa-solid fa-plus"></i>
                                     <span>Input Log Baru</span>
                                 </button>
-                                <button @click="triggerLogExcelImport" class="px-3 py-2.5 sm:py-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[40px]">
+                                <button @click="syncToGoogleSheets" :disabled="isSheetsSyncing" class="px-3 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95 min-h-[40px]">
+                                    <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-spreadsheet'"></i>
+                                    <span>Sync ke Spreadsheet</span>
+                                </button>
+                                <button @click="triggerLogExcelImport" class="px-3 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[40px]">
                                     <i class="fa-solid fa-file-excel"></i> <span>Import</span>
                                 </button>
                                 <input type="file" ref="logExcelInput" accept=".xlsx, .xls" @change="importLogsExcel" class="hidden">
 
-                                <button @click="exportLogsExcel" class="px-3 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold rounded-xl text-xs transition flex items-center justify-center active:scale-95 min-h-[40px]">
+                                <button @click="exportLogsExcel" class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold rounded-xl text-xs transition flex items-center justify-center active:scale-95 min-h-[40px]">
                                     <i class="fa-solid fa-file-excel mr-1"></i> Export Master Logs
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Filters -->
+                        <!-- Responsive Filters -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-800">
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Armada</label>
-                                <select v-model="logVehicleFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 sm:p-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                                <select v-model="logVehicleFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
                                     <option value="ALL">Semua Armada</option>
                                     <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
                                 </select>
@@ -478,7 +500,7 @@
 
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bengkel Mitra</label>
-                                <select v-model="logWorkshopFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 sm:p-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                                <select v-model="logWorkshopFilter" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
                                     <option value="ALL">Semua Bengkel</option>
                                     <option value="Nasmoco">Nasmoco</option>
                                     <option value="Montecarlo">Montecarlo</option>
@@ -491,11 +513,11 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bulan & Tahun Servis</label>
                                 <div class="grid grid-cols-2 gap-1">
-                                    <select v-model="logMonthFilter" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 sm:p-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                                    <select v-model="logMonthFilter" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
                                         <option value="ALL">Semua Bln</option>
                                         <option v-for="m in 12" :key="m" :value="m">{{ getMonthName(m) }}</option>
                                     </select>
-                                    <select v-model="logYearFilter" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 sm:p-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                                    <select v-model="logYearFilter" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
                                         <option value="ALL">Semua Thn</option>
                                         <option :value="2024">2024</option>
                                         <option :value="2025">2025</option>
@@ -506,7 +528,7 @@
 
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Urutan Data</label>
-                                <select v-model="logSortOption" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 sm:p-2 text-xs text-white font-semibold focus:outline-none focus:border-amber-500">
+                                <select v-model="logSortOption" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white font-semibold focus:outline-none focus:border-amber-500">
                                     <option value="DATE_DESC">📅 Tanggal Terbaru → Terlama</option>
                                     <option value="DATE_ASC">📅 Tanggal Terlama → Terbaru</option>
                                     <option value="COST_DESC">💰 Biaya Servis Tertinggi</option>
@@ -538,7 +560,7 @@
                                     </tr>
                                 </thead>
                                 <tbody v-if="filteredServiceLogs.length > 0" class="divide-y divide-slate-800 font-medium">
-                                    <tr v-for="log in filteredServiceLogs" :key="log.id" class="hover:bg-slate-800/40">
+                                    <tr v-for="log in filteredServiceLogs" :key="log.id" class="hover:bg-slate-800/40 transition">
                                         <td class="p-3 font-mono text-slate-400 whitespace-nowrap">{{ formatDateDisplay(log.date) }}</td>
                                         <td class="p-3 font-mono font-bold text-amber-400 whitespace-nowrap">{{ log.vehicleId }}</td>
                                         <td class="p-3 text-white font-semibold whitespace-nowrap">{{ log.workshop }}</td>
@@ -560,6 +582,9 @@
                                         <td class="p-3 font-mono text-emerald-400 font-bold whitespace-nowrap">Rp {{ (log.totalCost || 0).toLocaleString('id-ID') }}</td>
                                         <td class="p-3 text-center whitespace-nowrap">
                                             <div class="flex items-center justify-center gap-1.5">
+                                                <a v-if="log.fileUrl" :href="log.fileUrl" target="_blank" class="text-emerald-400 hover:text-emerald-300 p-2 min-w-[36px] min-h-[36px] active:scale-95 flex items-center justify-center" title="Buka File Google Drive">
+                                                    <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
+                                                </a>
                                                 <button @click="openInvoiceModal(log)" class="text-sky-400 hover:text-sky-300 p-2 min-w-[36px] min-h-[36px] active:scale-95" title="Faktur Digital">
                                                     <i class="fa-solid fa-file-invoice"></i>
                                                 </button>
@@ -584,7 +609,7 @@
                         </div>
                     </div>
 
-                    <!-- MOBILE CARD LIST VIEW (Comfortable for Smartphone Users) -->
+                    <!-- MOBILE CARD LIST VIEW (Ultra Comfortable for Smartphones) -->
                     <div class="block md:hidden space-y-3">
                         <div v-if="filteredServiceLogs.length > 0" class="space-y-3">
                             <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
@@ -622,6 +647,9 @@
                                 </div>
 
                                 <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-800/80">
+                                    <a v-if="log.fileUrl" :href="log.fileUrl" target="_blank" class="px-3 py-2 bg-emerald-950 border border-emerald-800 text-emerald-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[38px]">
+                                        <i class="fa-solid fa-cloud-arrow-down"></i> Drive
+                                    </a>
                                     <button @click="openInvoiceModal(log)" class="flex-1 py-2 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95 min-h-[38px]">
                                         <i class="fa-solid fa-file-invoice"></i>
                                         <span>Faktur Digital</span>
@@ -700,17 +728,17 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
-                            <select v-model="spjMonth" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-2 text-xs text-white font-bold flex-1 sm:flex-none">
+                            <select v-model="spjMonth" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-2 text-xs text-white font-bold flex-1 sm:flex-none min-h-[40px]">
                                 <option v-for="m in 12" :key="m" :value="m">{{ getMonthName(m) }}</option>
                             </select>
 
-                            <select v-model="spjYear" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-2 text-xs text-white font-bold flex-1 sm:flex-none">
+                            <select v-model="spjYear" class="bg-slate-950 border border-slate-800 rounded-xl px-2.5 sm:px-3 py-2 text-xs text-white font-bold flex-1 sm:flex-none min-h-[40px]">
                                 <option :value="2024">Thn 2024</option>
                                 <option :value="2025">Thn 2025</option>
                                 <option :value="2026">Thn 2026</option>
                             </select>
 
-                            <button @click="exportSpjExcel" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow active:scale-95">
+                            <button @click="exportSpjExcel" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow active:scale-95 min-h-[40px]">
                                 <i class="fa-solid fa-file-excel"></i>
                                 <span class="hidden sm:inline">Export SPJ Excel</span>
                                 <span class="sm:hidden">Excel</span>
@@ -846,17 +874,17 @@
                         </div>
                     </div>
 
-                    <!-- Google Sheets Integration -->
+                    <!-- Google Sheets & Drive Integration -->
                     <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4">
                         <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
                             <div>
                                 <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
                                     <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
-                                    <span>Integrasi Google Sheets (Auto-Read & Write Pelaporan)</span>
+                                    <span>Integrasi Google Sheets & Google Drive (Auto-Read & Write Pelaporan)</span>
                                 </h3>
-                                <p class="text-xs text-slate-400">Sinkronisasi laporan otomatis ke Google Spreadsheet via Apps Script Web App</p>
+                                <p class="text-xs text-slate-400">Sinkronisasi laporan otomatis dan simpan berkas scan nota langsung ke Google Drive & Spreadsheet</p>
                             </div>
-                            <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded-full font-mono font-bold">Laporan / Audit Only</span>
+                            <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded-full font-mono font-bold">Sheets & Drive Active</span>
                         </div>
 
                         <div class="space-y-3 text-xs">
@@ -865,10 +893,39 @@
                                 <input type="url" v-model="settings.sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
                             </div>
 
+                            <!-- Step by Step GAS Deployment Guide -->
+                            <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 space-y-2 text-xs">
+                                <span class="font-bold text-amber-400 block text-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                    <span>Petunjuk Penting Deployment Google Apps Script (Drive Upload & Sheets Write):</span>
+                                </span>
+                                <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
+                                    <li>Buka <a href="https://script.google.com" target="_blank" class="text-sky-400 underline font-bold">Google Apps Script</a> dan buat proyek baru.</li>
+                                    <li>Klik tombol <strong>"Salin Kode Apps Script"</strong> di bawah lalu tempelkan seluruh kode ke editor proyek Apps Script.</li>
+                                    <li>Klik <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; pilih jenis <strong>Web app</strong>.</li>
+                                    <li>Set <strong>Execute as</strong>: <code class="bg-slate-900 px-1 text-amber-300 font-mono">Me (Saya)</code></li>
+                                    <li>Set <strong>Who has access</strong>: <code class="bg-amber-950 px-1.5 py-0.5 text-amber-300 border border-amber-800 rounded font-mono font-bold">Anyone (Siapa saja)</code> &larr; <strong class="text-rose-400">WAJIB!</strong> Opsi ini wajib "Anyone" agar browser tidak memblokir akses upload!</li>
+                                    <li>Klik <strong>Deploy</strong>, berikan izin akses Google Drive & Sheets, lalu salin Web App URL (<code class="text-sky-400">/exec</code>) ke kolom di atas.</li>
+                                </ol>
+                            </div>
+
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-slate-200 block text-xs">📜 Kode Backend Apps Script (Drive Upload & Sheets Auto-Write Logs)</span>
+                                    <button @click="copyAppsScriptCode" class="px-2.5 py-1.5 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 active:scale-95">
+                                        <i class="fa-solid fa-copy"></i>
+                                        <span>Salin Kode Apps Script</span>
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-400 leading-relaxed">
+                                    Kode ini membuat/memperbarui tab <code class="bg-slate-900 text-emerald-300 px-1 rounded">Riwayat_Servis_Logs</code> dan <code class="bg-slate-900 text-amber-300 px-1 rounded">Master_Armada</code> di Google Sheets, serta menyimpan nota di folder Google Drive <code class="bg-slate-900 text-sky-300 px-1 rounded">AUTOMAN_Nota_Servis</code>.
+                                </p>
+                            </div>
+
                             <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
                                 <div>
                                     <span class="font-bold text-slate-200 block">Auto-Write Laporan Realtime</span>
-                                    <span class="text-[10px] text-slate-400">Otomatis kirim salinan laporan ke Google Sheets setiap ada penyimpanan log servis</span>
+                                    <span class="text-[10px] text-slate-400">Otomatis kirim/perbarui data log ke tab Riwayat_Servis_Logs di Google Sheets setiap ada penyimpanan transaksi</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" v-model="settings.autoSyncSheets" class="sr-only peer">
@@ -878,11 +935,11 @@
 
                             <div class="flex items-center gap-2 flex-wrap">
                                 <button @click="saveIntegrations" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition active:scale-95 min-h-[40px]">
-                                    Simpan Konfigurasi Sheets
+                                    Simpan Konfigurasi Integrasi
                                 </button>
                                 <button @click="syncToGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-up'"></i>
-                                    <span>{{ isSheetsSyncing ? 'Mengirim...' : 'Tes Auto-Write Laporan' }}</span>
+                                    <span>{{ isSheetsSyncing ? 'Mengirim...' : 'Tulis / Sync Riwayat_Servis_Logs' }}</span>
                                 </button>
                                 <button @click="readFromGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-down'"></i>
@@ -968,7 +1025,7 @@
             </div>
         </div>
 
-        <!-- MODAL: DIGITAL INVOICE VIEWER (Restored & Responsive) -->
+        <!-- MODAL: DIGITAL INVOICE VIEWER -->
         <div v-if="modals.invoice && selectedLog" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll shadow-2xl">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -991,6 +1048,17 @@
                     <div class="flex justify-between"><span class="text-slate-400">Tanggal Servis:</span><span class="text-white">{{ formatDateDisplay(selectedLog.date) }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Odometer Terbaca:</span><span class="text-sky-400 font-bold">{{ (selectedLog.km || 0).toLocaleString('id-ID') }} KM</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Kategori Servis:</span><span class="font-bold" :class="selectedLog.isRoutine !== false ? 'text-emerald-400' : 'text-slate-300'">{{ selectedLog.isRoutine !== false ? 'Servis Rutin Berkala' : 'Perbaikan Non-Rutin' }}</span></div>
+                </div>
+
+                <!-- Google Drive File Attachment Link -->
+                <div v-if="selectedLog.fileUrl" class="bg-emerald-950/40 border border-emerald-800/80 p-3 rounded-xl flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 truncate">
+                        <i class="fa-solid fa-file-pdf text-emerald-400 text-base shrink-0"></i>
+                        <span class="text-xs text-slate-200 font-medium truncate">Berkas Scan Terdaftar di Google Drive</span>
+                    </div>
+                    <a :href="selectedLog.fileUrl" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition shrink-0 flex items-center gap-1 active:scale-95">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka File
+                    </a>
                 </div>
 
                 <div v-if="normalizeArray(selectedLog.replacedComponents).length > 0" class="space-y-1.5">
@@ -1033,36 +1101,54 @@
                     <button @click="modals.log = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
 
-                <!-- AI Gemini Vision OCR Banner -->
+                <!-- AI Gemini Vision OCR & Google Drive Auto Save Banner -->
                 <div class="bg-slate-950 p-3 sm:p-3.5 rounded-xl border border-dashed border-sky-800/80 space-y-2">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-lg"></i>
                             <div>
-                                <span class="text-xs text-slate-300 font-bold block flex items-center gap-1.5">
-                                    <span>AI Gemini Vision Invoice Scan</span>
+                                <span class="text-xs text-slate-300 font-bold flex items-center gap-1.5 flex-wrap">
+                                    <span>AI Gemini Vision & Drive Upload</span>
                                     <span class="bg-amber-950 text-amber-400 border-amber-800 text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
-                                        ⚡ Focused Schema
+                                        ⚡ Auto-Drive Save
                                     </span>
                                 </span>
-                                <span class="text-[10px] text-slate-400">Kompresi ultra-ringan (800px) & penghematan token harian</span>
+                                <span class="text-[10px] text-slate-400">Ekstraksi AI & otomatis simpan berkas asli ke Google Drive</span>
                             </div>
                         </div>
-                        <label :class="isScanningInvoice ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95 min-h-[40px]">
-                            <i v-if="isScanningInvoice" class="fa-solid fa-circle-notch fa-spin"></i>
+                        <label :class="(isScanningInvoice || isUploadingToDrive) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95 min-h-[40px]">
+                            <i v-if="isScanningInvoice || isUploadingToDrive" class="fa-solid fa-circle-notch fa-spin"></i>
                             <i v-else class="fa-solid fa-camera"></i>
-                            <span>{{ isScanningInvoice ? 'Scanning...' : 'Scan Foto / PDF Nota' }}</span>
-                            <input type="file" accept="image/*,application/pdf" @change="handleInvoiceScan" :disabled="isScanningInvoice" class="hidden">
+                            <span>{{ isScanningInvoice ? 'Scanning AI...' : (isUploadingToDrive ? 'Uploading Drive...' : 'Scan Foto / PDF Nota') }}</span>
+                            <input type="file" accept="image/*,application/pdf" @change="handleInvoiceScan" :disabled="isScanningInvoice || isUploadingToDrive" class="hidden">
                         </label>
                     </div>
 
-                    <div v-if="scanStatusMessage" class="text-[11px] font-mono px-2.5 py-1 bg-slate-900 border border-slate-800 text-sky-300 rounded-lg flex items-center gap-1.5">
-                        <i class="fa-solid fa-info-circle text-amber-400"></i>
-                        <span>{{ scanStatusMessage }}</span>
+                    <div v-if="scanStatusMessage" class="text-[11px] font-mono px-2.5 py-1 bg-slate-900 border border-slate-800 text-sky-300 rounded-lg flex items-center justify-between gap-1.5">
+                        <span class="truncate"><i class="fa-solid fa-info-circle text-amber-400 mr-1"></i>{{ scanStatusMessage }}</span>
+                        <a v-if="logForm.fileUrl" :href="logForm.fileUrl" target="_blank" class="text-amber-400 hover:underline font-bold text-[10px] shrink-0">
+                            [Lihat Drive]
+                        </a>
                     </div>
                 </div>
 
                 <form @submit.prevent="saveLog" class="space-y-3 text-xs">
+                    <!-- Manual Drive Attachment / Upload Row -->
+                    <div class="space-y-1 p-3 bg-slate-950 rounded-xl border border-slate-800/80">
+                        <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
+                            <span>Link Scan Nota (Google Drive URL):</span>
+                            <span v-if="logForm.fileUrl" class="text-emerald-400 font-mono text-[10px]">✓ Terhubung</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input type="url" v-model="logForm.fileUrl" placeholder="https://drive.google.com/file/d/..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                            <label :class="isUploadingToDrive ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-emerald-600'" class="px-3 py-2.5 bg-emerald-700 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 active:scale-95 min-h-[40px]">
+                                <i :class="isUploadingToDrive ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-cloud-arrow-up'"></i>
+                                <span>{{ isUploadingToDrive ? 'Uploading...' : 'Unggah ke Drive' }}</span>
+                                <input type="file" accept="image/*,application/pdf" @change="manualDriveUpload" :disabled="isUploadingToDrive" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block font-bold text-slate-300 mb-1">Armada Kendaraan *</label>
@@ -1174,6 +1260,23 @@
             </div>
         </div>
 
+        <!-- Confirm Modal -->
+        <div v-if="confirmModal.show" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl">
+                <div class="text-center space-y-2">
+                    <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl flex items-center justify-center mx-auto text-xl border border-rose-500/20">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-base">{{ confirmModal.title }}</h3>
+                    <p class="text-xs text-slate-400">{{ confirmModal.message }}</p>
+                </div>
+                <div class="flex items-center gap-2 pt-2">
+                    <button @click="closeConfirmModal(false)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">Batal</button>
+                    <button @click="closeConfirmModal(true)" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition min-h-[42px]">Ya, Lanjutkan</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Floating Toast -->
         <div v-if="toast.show" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-50 bg-amber-500 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 max-w-md mx-auto sm:mx-0">
             <i class="fa-solid fa-circle-check text-base"></i>
@@ -1224,6 +1327,7 @@
                     spjMonth: new Date().getMonth() + 1,
                     spjYear: 2026,
                     isScanningInvoice: false,
+                    isUploadingToDrive: false,
                     isTestingKeys: false,
                     scanStatusMessage: '',
                     isSheetsSyncing: false,
@@ -1290,11 +1394,14 @@
                         km: 0,
                         invoiceNo: '',
                         isRoutine: true,
+                        fileUrl: '',
+                        fileName: '',
                         replacedComponents: [],
                         items: [{ name: 'Servis Berkala & Maintenance', cost: 0 }]
                     }
                 };
             },
+
             computed: {
                 logFormTotalCost() {
                     if (!this.logForm || !this.logForm.items || !Array.isArray(this.logForm.items)) return 0;
@@ -1446,16 +1553,23 @@
                 },
                 upcomingPeriodicServices() {
                     return this.vehicles.map(v => {
-                        let lastDate = v.lastServiceDate;
-                        if (!lastDate) {
-                            const vLogs = (this.serviceLogs || []).filter(l => l.vehicleId === v.id || l.vehicleId === v.plate);
-                            if (vLogs.length > 0) {
-                                const dates = vLogs.map(l => this.parseLocalDate(l.date)).filter(Boolean);
-                                if (dates.length > 0) {
-                                    const latest = new Date(Math.max(...dates.map(d => d.getTime())));
-                                    const y = latest.getFullYear();
-                                    const m = String(latest.getMonth() + 1).padStart(2, '0');
-                                    const d = String(latest.getDate()).padStart(2, '0');
+                        let lastDate = v.lastServiceDate || '';
+                        
+                        // Strict Filter: Routine service logs ONLY (isRoutine !== false)
+                        const routineLogs = (this.serviceLogs || []).filter(l => 
+                            (l.vehicleId === v.id || l.vehicleId === v.plate) && l.isRoutine !== false
+                        );
+
+                        if (routineLogs.length > 0) {
+                            const dates = routineLogs.map(l => this.parseLocalDate(l.date)).filter(Boolean);
+                            if (dates.length > 0) {
+                                const latestLogDate = new Date(Math.max(...dates.map(d => d.getTime())));
+                                const currentLastDate = lastDate ? this.parseLocalDate(lastDate) : null;
+
+                                if (!currentLastDate || latestLogDate.getTime() > currentLastDate.getTime()) {
+                                    const y = latestLogDate.getFullYear();
+                                    const m = String(latestLogDate.getMonth() + 1).padStart(2, '0');
+                                    const d = String(latestLogDate.getDate()).padStart(2, '0');
                                     lastDate = `${y}-${m}-${d}`;
                                 }
                             }
@@ -1489,6 +1603,7 @@
 
                         return {
                             ...v,
+                            lastServiceDate: lastDate,
                             lastDateFormatted: lastDate ? this.formatDateDisplay(lastDate) : 'Belum Servis',
                             nextDate,
                             formattedNextDate,
@@ -1501,6 +1616,7 @@
                     });
                 }
             },
+
             created() {
                 if (window.pdfjsLib) {
                     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/3.11.174/pdf.worker.min.js';
@@ -1510,12 +1626,43 @@
                     this.initRealtimeSync();
                 });
             },
+
             methods: {
                 normalizeArray(val) {
                     if (!val) return [];
                     if (Array.isArray(val)) return val;
                     if (typeof val === 'object') return Object.values(val);
                     return [];
+                },
+                getLastServiceDate(car) {
+                    if (!car) return '-';
+                    let lastDate = car.lastServiceDate || '';
+                    if (!lastDate && this.serviceLogs && this.serviceLogs.length) {
+                        const vLogs = this.serviceLogs.filter(l => (l.vehicleId === car.id || l.vehicleId === car.plate) && l.isRoutine !== false);
+                        if (vLogs.length > 0) {
+                            const dates = vLogs.map(l => this.parseLocalDate(l.date)).filter(Boolean);
+                            if (dates.length > 0) {
+                                const latest = new Date(Math.max(...dates.map(d => d.getTime())));
+                                const y = latest.getFullYear();
+                                const m = String(latest.getMonth() + 1).padStart(2, '0');
+                                const d = String(latest.getDate()).padStart(2, '0');
+                                lastDate = `${y}-${m}-${d}`;
+                            }
+                        }
+                    }
+                    return lastDate ? this.formatDateDisplay(lastDate) : 'Belum Ada Riwayat';
+                },
+                getLastServiceKm(car) {
+                    if (!car) return 0;
+                    let lastKm = Number(car.lastServiceKm) || 0;
+                    if (!lastKm && this.serviceLogs && this.serviceLogs.length) {
+                        const vLogs = this.serviceLogs.filter(l => (l.vehicleId === car.id || l.vehicleId === car.plate) && l.isRoutine !== false);
+                        if (vLogs.length > 0) {
+                            const maxKm = Math.max(...vLogs.map(l => Number(l.km) || 0));
+                            if (maxKm > 0) lastKm = maxKm;
+                        }
+                    }
+                    return lastKm;
                 },
                 showToast(msg) {
                     this.toast = { show: true, message: msg };
@@ -1629,6 +1776,10 @@
                     await set(ref(db, `artifacts/${appId}/public/data/vehicles/${vehicleId}`), vehicleData);
                     this.modals.vehicle = false;
                     this.showToast('Data armada berhasil disimpan!');
+
+                    if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                        this.syncToGoogleSheets();
+                    }
                 },
                 confirmDeleteVehicleModal(car) {
                     this.askConfirmation(
@@ -1637,6 +1788,9 @@
                         async () => {
                             await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`));
                             this.showToast(`Armada ${car.plate} berhasil dihapus.`);
+                            if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                                this.syncToGoogleSheets();
+                            }
                         }
                     );
                 },
@@ -1665,6 +1819,9 @@
                         car.currentKm = Number(this.updateKmForm.newKm) || 0;
                         await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
                         this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM.`);
+                        if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                            this.syncToGoogleSheets();
+                        }
                     }
                     this.modals.updateKm = false;
                 },
@@ -1682,6 +1839,8 @@
                         km: car.currentKm || 0,
                         invoiceNo: 'INV-' + Math.floor(Math.random() * 90000 + 10000),
                         isRoutine: true,
+                        fileUrl: '',
+                        fileName: '',
                         replacedComponents: [],
                         items: [{ name: car.inServiceNotes || 'Servis Berkala', cost: 500000 }]
                     };
@@ -1697,6 +1856,8 @@
                         km: 0,
                         invoiceNo: '',
                         isRoutine: true,
+                        fileUrl: '',
+                        fileName: '',
                         replacedComponents: [],
                         items: [{ name: 'Servis Berkala & Maintenance', cost: 0 }]
                     };
@@ -1714,6 +1875,8 @@
                         km: log.km || 0,
                         invoiceNo: log.invoiceNo || '',
                         isRoutine: log.isRoutine !== false,
+                        fileUrl: log.fileUrl || '',
+                        fileName: log.fileName || '',
                         replacedComponents: [...rawComponents],
                         items: rawItems.length > 0 ? rawItems.map(i => ({ name: i.name || '', cost: Number(i.cost) || 0 })) : [{ name: '', cost: 0 }]
                     };
@@ -1746,7 +1909,6 @@
                         .filter(k => k.length > 5);
                 },
                 getGeminiModelSequence() {
-                    // Single Focused Endpoint (gemini-3-flash-preview) + Backups
                     return ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-2.0-flash'];
                 },
                 getKeyHealthText(key) {
@@ -1855,6 +2017,102 @@
                     }
                 },
 
+                async uploadFileToGoogleDrive(base64Data, mimeType, fileName) {
+                    if (!this.settings.sheetsWebhookUrl) {
+                        this.showToast('⚠️ Webhook Google Apps Script belum diisi di Pengaturan.');
+                        this.scanStatusMessage = 'URL Apps Script belum dikonfigurasi di Pengaturan.';
+                        return null;
+                    }
+
+                    this.isUploadingToDrive = true;
+                    this.scanStatusMessage = 'Mengunggah berkas scan nota ke Google Drive...';
+
+                    try {
+                        const payload = {
+                            action: 'UPLOAD_TO_DRIVE',
+                            type: 'UPLOAD_FILE',
+                            fileName: fileName || 'nota_servis.jpg',
+                            mimeType: mimeType || 'image/jpeg',
+                            base64: base64Data,
+                            vehicleId: this.logForm.vehicleId || 'ARMADA',
+                            invoiceNo: this.logForm.invoiceNo || 'INV'
+                        };
+
+                        const res = await fetch(this.settings.sheetsWebhookUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (res.ok) {
+                            const text = await res.text();
+                            let data = {};
+                            try {
+                                data = JSON.parse(text);
+                            } catch(e) {
+                                console.warn("Raw response from Apps Script:", text);
+                            }
+
+                            if (data.status === 'success' && data.fileUrl) {
+                                this.logForm.fileUrl = data.fileUrl;
+                                this.logForm.fileName = fileName;
+                                this.scanStatusMessage = '✅ Berkas tersimpan di Google Drive!';
+                                this.showToast('📁 Berkas nota berhasil diunggah ke Google Drive!');
+                                return data.fileUrl;
+                            } else if (data.message) {
+                                throw new Error(data.message);
+                            } else {
+                                throw new Error('Respon Apps Script tidak mengembalikan URL file.');
+                            }
+                        } else {
+                            throw new Error(`HTTP Status Error: ${res.status}`);
+                        }
+                    } catch (err) {
+                        console.error("Gagal mengunggah ke Google Drive:", err);
+                        this.scanStatusMessage = `⚠️ Gagal Upload Drive: ${err.message}`;
+                        this.showToast(`⚠️ Gagal Upload Google Drive: ${err.message}`);
+                    } finally {
+                        this.isUploadingToDrive = false;
+                    }
+                    return null;
+                },
+
+                async manualDriveUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    if (!this.settings.sheetsWebhookUrl) {
+                        this.showToast('Isikan URL Google Apps Script di Pengaturan terlebih dahulu!');
+                        return;
+                    }
+
+                    try {
+                        const base64Data = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const res = reader.result;
+                                const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
+                                resolve(b64);
+                            };
+                            reader.onerror = error => reject(error);
+                            reader.readAsDataURL(file);
+                        });
+
+                        let mimeType = file.type;
+                        if (!mimeType || mimeType === '') {
+                            if (file.name.toLowerCase().endsWith('.pdf')) mimeType = 'application/pdf';
+                            else if (file.name.toLowerCase().endsWith('.png')) mimeType = 'image/png';
+                            else mimeType = 'image/jpeg';
+                        }
+
+                        await this.uploadFileToGoogleDrive(base64Data, mimeType, file.name);
+                    } catch (e) {
+                        this.showToast('Gagal membaca file: ' + e.message);
+                    } finally {
+                        event.target.value = '';
+                    }
+                },
+
                 async handleInvoiceScan(event) {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -1889,6 +2147,13 @@
                             } else {
                                 mimeType = 'image/jpeg';
                             }
+                        }
+
+                        let driveUploadPromise = null;
+                        if (this.settings.sheetsWebhookUrl) {
+                            driveUploadPromise = this.uploadFileToGoogleDrive(base64Data, mimeType, file.name);
+                        } else {
+                            this.showToast('ℹ️ URL Apps Script belum diisi. File tidak akan otomatis tersimpan ke Drive.');
                         }
 
                         const systemPrompt = "Anda adalah AI OCR Vision berpengalaman khusus mengekstrak data dari dokumen PDF atau foto nota/invoice/faktur/kwitansi perbaikan dan pemeliharaan kendaraan bengkel (mobil/motor). Analisis berkas dengan teliti, baca seluruh baris item, harga, tanggal, nomor nota, dan nama bengkel.";
@@ -2039,6 +2304,10 @@ Ekstrak informasi berikut ke dalam format JSON:
                             this.showToast(`Gagal AI Scan: ${lastErrorMessage}`);
                         }
 
+                        if (driveUploadPromise) {
+                            await driveUploadPromise;
+                        }
+
                     } catch (e) {
                         this.scanStatusMessage = 'Error: ' + e.message;
                         this.showToast('Gagal scan nota: ' + e.message);
@@ -2059,6 +2328,8 @@ Ekstrak informasi berikut ke dalam format JSON:
                         km: Number(this.logForm.km) || 0,
                         invoiceNo: this.logForm.invoiceNo,
                         isRoutine: Boolean(this.logForm.isRoutine),
+                        fileUrl: this.logForm.fileUrl || '',
+                        fileName: this.logForm.fileName || '',
                         replacedComponents: this.logForm.replacedComponents || [],
                         items: this.logForm.items,
                         totalCost
@@ -2104,9 +2375,12 @@ Ekstrak informasi berikut ke dalam format JSON:
                     this.askConfirmation(
                         'Hapus Log Transaksi',
                         'Apakah Anda yakin ingin menghapus catatan transaksi servis ini?',
-                        () => {
-                            remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
+                        async () => {
+                            await remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
                             this.showToast('Transaksi berhasil dihapus.');
+                            if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                                this.syncToGoogleSheets();
+                            }
                         }
                     );
                 },
@@ -2186,6 +2460,164 @@ Ekstrak informasi berikut ke dalam format JSON:
                     await set(ref(db, `artifacts/${appId}/public/data/settings/autoSyncSheets`), Boolean(this.settings.autoSyncSheets));
                     this.showToast('Pengaturan integrasi & API Keys berhasil disimpan!');
                 },
+                copyAppsScriptCode() {
+                    const scriptCode = `function doGet(e) {
+  try {
+    var action = e ? e.parameter.action : '';
+    if (action === 'read') {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName('Riwayat_Servis_Logs') || ss.getActiveSheet();
+      var data = sheet.getDataRange().getValues();
+      return ContentService.createTextOutput(JSON.stringify({ status: 'success', data: data })).setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'AUTOMAN GAS Active' })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  try {
+    var contents = e && e.postData ? e.postData.contents : "";
+    if (!contents) {
+      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No post data received' })).setMimeType(ContentService.MimeType.JSON);
+    }
+    var data = JSON.parse(contents);
+
+    // 1. UPLOAD BERKAS NOTA KE GOOGLE DRIVE
+    if (data.action === 'UPLOAD_TO_DRIVE' || data.type === 'UPLOAD_FILE') {
+      var folderName = "AUTOMAN_Nota_Servis";
+      var folders = DriveApp.getFoldersByName(folderName);
+      var targetFolder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+
+      var decoded = Utilities.base64Decode(data.base64);
+      var safeName = (data.vehicleId ? data.vehicleId + "_" : "") + (data.invoiceNo ? data.invoiceNo + "_" : "") + (data.fileName || "nota.jpg");
+      var blob = Utilities.newBlob(decoded, data.mimeType, safeName);
+      var file = targetFolder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        fileUrl: file.getUrl(),
+        fileId: file.getId()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 2. AUTO-WRITE LAPORAN & RIWAYAT SERVIS LOGS KE SPREADSHEET
+    if (data.type === 'AUTO_WRITE_REPORT' || data.action === 'SYNC_LOGS' || data.logs) {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      
+      // A. SHEET: Riwayat_Servis_Logs
+      var logSheet = ss.getSheetByName('Riwayat_Servis_Logs');
+      if (!logSheet) {
+        logSheet = ss.insertSheet('Riwayat_Servis_Logs');
+      }
+      logSheet.clear(); // Bersihkan isi lama untuk penulisan ulang lengkap
+      
+      // Header Riwayat_Servis_Logs
+      logSheet.appendRow([
+        'ID Log',
+        'Tanggal Servis',
+        'Plat Armada',
+        'Bengkel Mitra',
+        'No Invoice',
+        'Odometer (KM)',
+        'Kategori Servis',
+        'Rincian Item / Sparepart',
+        'Total Biaya (Rp)',
+        'Link Drive Nota',
+        'Waktu Sync'
+      ]);
+      logSheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground('#0f172a').setFontColor('#ffffff');
+
+      if (data.logs && data.logs.length > 0) {
+        var logRows = [];
+        for (var i = 0; i < data.logs.length; i++) {
+          var l = data.logs[i];
+          var itemsStr = '';
+          if (l.items && Array.isArray(l.items)) {
+            itemsStr = l.items.map(function(it) {
+              return (it.name || '') + ' (Rp ' + (Number(it.cost)||0).toLocaleString('id-ID') + ')';
+            }).join('; ');
+          } else if (typeof l.items === 'object') {
+            itemsStr = JSON.stringify(l.items);
+          }
+          var categoryStr = (l.isRoutine !== false) ? 'Servis Rutin Berkala' : 'Perbaikan Non-Rutin';
+          logRows.push([
+            l.id || '',
+            l.date || '',
+            l.vehicleId || '',
+            l.workshop || '',
+            l.invoiceNo || '',
+            Number(l.km) || 0,
+            categoryStr,
+            itemsStr,
+            Number(l.totalCost) || 0,
+            l.fileUrl || '',
+            Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd HH:mm:ss")
+          ]);
+        }
+        if (logRows.length > 0) {
+          logSheet.getRange(2, 1, logRows.length, 11).setValues(logRows);
+        }
+      }
+
+      // B. SHEET: Master_Armada
+      if (data.vehicles && data.vehicles.length > 0) {
+        var carSheet = ss.getSheetByName('Master_Armada');
+        if (!carSheet) {
+          carSheet = ss.insertSheet('Master_Armada');
+        }
+        carSheet.clear();
+        carSheet.appendRow([
+          'Plat Nomor',
+          'Model Armada',
+          'Pengemudi',
+          'Kategori Operasional',
+          'Odometer Terkini (KM)',
+          'Status Maintenance',
+          'Tanggal Servis Rutin Terakhir'
+        ]);
+        carSheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#0f172a').setFontColor('#ffffff');
+
+        var carRows = [];
+        for (var j = 0; j < data.vehicles.length; j++) {
+          var v = data.vehicles[j];
+          carRows.push([
+            v.plate || v.id || '',
+            v.model || '',
+            v.driver || '-',
+            v.category || 'Operasional',
+            Number(v.currentKm) || 0,
+            v.isUnderService ? 'SEDANG SERVIS' : 'NORMAL',
+            v.lastServiceDate || '-'
+          ]);
+        }
+        if (carRows.length > 0) {
+          carSheet.getRange(2, 1, carRows.length, 7).setValues(carRows);
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: 'success', 
+        message: 'Berhasil menulis ' + (data.logs ? data.logs.length : 0) + ' data log ke tab Riwayat_Servis_Logs!' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Tipe Aksi Tidak Dikenal' })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+                    const dummy = document.createElement('textarea');
+                    dummy.value = scriptCode;
+                    document.body.appendChild(dummy);
+                    dummy.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(dummy);
+                    this.showToast('Kode Google Apps Script berhasil disalin ke clipboard!');
+                },
                 async syncToGoogleSheets() {
                     if (!this.settings.sheetsWebhookUrl) {
                         this.showToast('Isi Google Apps Script Web App URL terlebih dahulu!');
@@ -2195,6 +2627,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                     try {
                         const payload = {
                             type: 'AUTO_WRITE_REPORT',
+                            action: 'SYNC_LOGS',
                             timestamp: new Date().toISOString(),
                             totalSpending: this.totalSpending,
                             vehiclesCount: this.vehicles.length,
@@ -2202,13 +2635,42 @@ Ekstrak informasi berikut ke dalam format JSON:
                             vehicles: this.vehicles,
                             logs: this.serviceLogs
                         };
-                        await fetch(this.settings.sheetsWebhookUrl, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        this.showToast('Data laporan berhasil dikirim ke Google Sheets!');
+                        const payloadStr = JSON.stringify(payload);
+
+                        let syncSuccess = false;
+
+                        try {
+                            const res = await fetch(this.settings.sheetsWebhookUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                body: payloadStr
+                            });
+
+                            if (res.ok) {
+                                const text = await res.text();
+                                let resJson = {};
+                                try { resJson = JSON.parse(text); } catch(e) {}
+                                if (resJson.status === 'success') {
+                                    this.showToast('📊 Success write ke tab Riwayat_Servis_Logs di Spreadsheet!');
+                                } else {
+                                    this.showToast('Data dikirim ke Google Sheets: ' + (resJson.message || 'Sukses'));
+                                }
+                                syncSuccess = true;
+                            }
+                        } catch (fetchErr) {
+                            console.warn("Standard fetch warning, fallbacking to no-cors mode:", fetchErr);
+                        }
+
+                        if (!syncSuccess) {
+                            await fetch(this.settings.sheetsWebhookUrl, {
+                                method: 'POST',
+                                mode: 'no-cors',
+                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                body: payloadStr
+                            });
+                            this.showToast('📊 Data berhasil dikirim & ditulis ke Spreadsheet Google Sheets!');
+                        }
+
                     } catch (e) {
                         this.showToast('Gagal Auto-Write Google Sheets: ' + e.message);
                     } finally {
