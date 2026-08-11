@@ -81,7 +81,7 @@
                 </div>
             </div>
 
-            <!-- Login / Status -->
+            <!-- Login / Status Indicator -->
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                 <div class="flex items-center gap-2 bg-slate-950 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] sm:text-xs font-mono">
                     <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="cloudStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'"></span>
@@ -609,7 +609,7 @@
                         </div>
                     </div>
 
-                    <!-- MOBILE CARD LIST VIEW (Ultra Comfortable for Smartphones) -->
+                    <!-- MOBILE CARD LIST VIEW -->
                     <div class="block md:hidden space-y-3">
                         <div v-if="filteredServiceLogs.length > 0" class="space-y-3">
                             <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
@@ -812,17 +812,16 @@
                         <div class="space-y-3 text-xs">
                             <div>
                                 <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
-                                    <span>Daftar Gemini API Keys / GCP Tokens:</span>
-                                    <span class="text-[10px] text-amber-400 font-mono">1 Key Per Baris (AQ..., AIzaSy...)</span>
+                                    <span>Daftar Gemini API Keys:</span>
+                                    <span class="text-[10px] text-amber-400 font-mono">1 Key Per Baris (AIzaSy...)</span>
                                 </label>
-                                <textarea v-model="settings.geminiApiKey" rows="3" placeholder="AIzaSy... atau AQ.Ab8RN6... (API Key Utama)&#10;AQ... (API Key Backup 1)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-sky-500 leading-relaxed"></textarea>
+                                <textarea v-model="settings.geminiApiKey" rows="3" placeholder="AIzaSy... (API Key Utama)&#10;AIzaSy... (API Key Backup 1)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-sky-500 leading-relaxed"></textarea>
                                 <p class="text-[11px] text-amber-400/90 mt-1 flex items-center gap-1.5">
                                     <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                                    <span>Mendukung API Key AI Studio (<code class="bg-amber-950 px-1 py-0.5 rounded border border-amber-800 text-amber-300 font-mono">AIzaSy...</code>) maupun Google Cloud Token (<code class="bg-amber-950 px-1 py-0.5 rounded border border-amber-800 text-amber-300 font-mono">AQ...</code>). Buat API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold text-sky-400 hover:text-sky-300">Google AI Studio</a>.</span>
+                                    <span>Mendukung API Key Google AI Studio. Buat API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold text-sky-400 hover:text-sky-300">Google AI Studio</a>.</span>
                                 </p>
                             </div>
 
-                            <!-- Live Capacity Cards -->
                             <div v-if="getGeminiKeys().length > 0" class="space-y-2">
                                 <div class="flex items-center justify-between text-xs font-bold text-slate-300 pt-1">
                                     <span>Status Kesehatan API Key:</span>
@@ -845,11 +844,6 @@
                                                 <span class="text-[9px] font-bold px-1.5 py-0.2 rounded shrink-0" :class="idx === 0 ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-slate-900 text-slate-400 border border-slate-800'">
                                                     {{ idx === 0 ? 'Primary' : 'Backup #' + idx }}
                                                 </span>
-                                            </div>
-                                            <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
-                                                <span>Panggilan: <strong class="text-white">{{ (keyUsageStats[k]?.callsToday || 0) }} / 1.500</strong></span>
-                                                <span>•</span>
-                                                <span>Tokens: <strong class="text-sky-400">{{ (keyUsageStats[k]?.totalTokens || 0).toLocaleString('id-ID') }}</strong></span>
                                             </div>
                                         </div>
 
@@ -882,7 +876,7 @@
                                     <i class="fa-solid fa-file-spreadsheet text-emerald-400"></i>
                                     <span>Integrasi Google Sheets & Google Drive (Auto-Read & Write Pelaporan)</span>
                                 </h3>
-                                <p class="text-xs text-slate-400">Sinkronisasi laporan otomatis dan simpan berkas scan nota ke folder bulanan/tahunan di Google Drive & Spreadsheet</p>
+                                <p class="text-xs text-slate-400">Sinkronisasi laporan otomatis dan simpan berkas scan nota langsung ke Google Drive & Spreadsheet</p>
                             </div>
                             <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded-full font-mono font-bold">Sheets & Drive Active</span>
                         </div>
@@ -893,39 +887,29 @@
                                 <input type="url" v-model="settings.sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
                             </div>
 
-                            <!-- Step by Step GAS Deployment Guide -->
                             <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 space-y-2 text-xs">
                                 <span class="font-bold text-amber-400 block text-xs flex items-center gap-1.5">
                                     <i class="fa-solid fa-circle-exclamation"></i>
-                                    <span>Petunjuk Penting Deployment Google Apps Script (Solusi Eror createFolder):</span>
+                                    <span>Petunjuk Deployment Google Apps Script:</span>
                                 </span>
                                 <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
-                                    <li>Buka <a href="https://script.google.com" target="_blank" class="text-sky-400 underline font-bold">Google Apps Script</a> dan buka proyek skrip Anda.</li>
-                                    <li>Klik tombol <strong>"Salin Kode Apps Script"</strong> di bawah lalu ganti seluruh isi kode lama dengan kode baru.</li>
-                                    <li class="text-amber-300 font-bold bg-amber-950/40 p-2 rounded border border-amber-800/50 my-1 space-y-1">
-                                        <p class="text-amber-400 font-extrabold"><i class="fa-solid fa-key mr-1"></i> LANGKAH WAJIB MEMBERIKAN IZIN CREATE FOLDER:</p>
-                                        <p class="font-normal text-slate-200">a. Di baris tombol atas Apps Script, ganti pilihan fungsi dari <code class="bg-slate-900 px-1 text-slate-300 font-mono">doGet</code> menjadi <code class="bg-slate-900 px-1 text-emerald-400 font-mono font-bold">testPermissions</code>.</p>
-                                        <p class="font-normal text-slate-200">b. Klik tombol <strong>▶ RUN (Jalankan)</strong>.</p>
-                                        <p class="font-normal text-slate-200">c. Pop-up izin Google akan muncul: Klik <strong>Review Permissions</strong> &rarr; Pilih Akun Google &rarr; Klik <strong>Advanced</strong> &rarr; Klik <strong>Go to Project (unsafe)</strong> &rarr; Klik <strong>Allow (Izinkan)</strong>.</p>
-                                        <p class="font-normal text-emerald-300">d. Langkah ini memberikan otorisasi <code class="font-mono">https://www.googleapis.com/auth/drive</code> (Full Drive Write Access).</p>
-                                    </li>
-                                    <li>Setelah di-Run, klik tombol <strong>Deploy</strong> di pojok kanan atas &rarr; pilih <strong>New deployment</strong>.</li>
-                                    <li>Pilih jenis <strong>Web app</strong>, atur <strong>Execute as:</strong> <code class="bg-slate-900 px-1 text-amber-300 font-mono">Me (Saya)</code>, dan <strong>Who has access:</strong> <code class="bg-amber-950 px-1.5 py-0.5 text-amber-300 border border-amber-800 rounded font-mono font-bold">Anyone (Siapa saja)</code>.</li>
-                                    <li>Klik <strong>Deploy</strong>, lalu salin Web App URL baru (<code class="text-sky-400">/exec</code>) ke kolom Webhook URL di atas.</li>
+                                    <li>Buka <a href="https://script.google.com" target="_blank" class="text-sky-400 underline font-bold">Google Apps Script</a> dan buat proyek baru.</li>
+                                    <li>Klik tombol <strong>"Salin Kode Apps Script"</strong> di bawah lalu tempelkan seluruh kode ke editor Apps Script.</li>
+                                    <li>Pilih fungsi <code class="bg-slate-900 px-1 text-amber-300 font-mono">testPermissions</code> di toolbar atas lalu klik <strong>▶ Run</strong> untuk memberikan izin awal Google Drive.</li>
+                                    <li>Klik <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; pilih jenis <strong>Web app</strong>.</li>
+                                    <li>Set <strong>Execute as</strong>: <code class="bg-slate-900 px-1 text-amber-300 font-mono">Me</code>, dan <strong>Who has access</strong>: <code class="bg-amber-950 px-1 text-amber-300 border border-amber-800 rounded font-mono font-bold">Anyone</code>.</li>
+                                    <li>Klik <strong>Deploy</strong>, lalu salin Web App URL (<code class="text-sky-400">/exec</code>) ke kolom di atas.</li>
                                 </ol>
                             </div>
 
                             <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="font-bold text-slate-200 block text-xs">📜 Kode Backend Apps Script (Drive Upload Folder Bulan/Tahun & Sheets Auto-Write Logs)</span>
+                                    <span class="font-bold text-slate-200 block text-xs">📜 Kode Backend Apps Script (Drive Subfolder Bulanan & Sheets Auto-Write)</span>
                                     <button @click="copyAppsScriptCode" class="px-2.5 py-1.5 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 active:scale-95">
                                         <i class="fa-solid fa-copy"></i>
                                         <span>Salin Kode Apps Script</span>
                                     </button>
                                 </div>
-                                <p class="text-[10px] text-slate-400 leading-relaxed">
-                                    Kode ini membuat/memperbarui tab <code class="bg-slate-900 text-emerald-300 px-1 rounded">Riwayat_Servis_Logs</code> dan <code class="bg-slate-900 text-amber-300 px-1 rounded">Master_Armada</code> di Google Sheets, serta menyimpan nota secara rapi di folder Google Drive <code class="bg-slate-900 text-sky-300 px-1 rounded">AUTOMAN_Nota_Servis / [Tahun] / [Bulan]</code> (contoh: <code class="text-amber-300">AUTOMAN_Nota_Servis/2026/08 - Agustus/</code>).
-                                </p>
                             </div>
 
                             <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
@@ -1056,7 +1040,6 @@
                     <div class="flex justify-between"><span class="text-slate-400">Kategori Servis:</span><span class="font-bold" :class="selectedLog.isRoutine !== false ? 'text-emerald-400' : 'text-slate-300'">{{ selectedLog.isRoutine !== false ? 'Servis Rutin Berkala' : 'Perbaikan Non-Rutin' }}</span></div>
                 </div>
 
-                <!-- Google Drive File Attachment Link -->
                 <div v-if="selectedLog.fileUrl" class="bg-emerald-950/40 border border-emerald-800/80 p-3 rounded-xl flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 truncate">
                         <i class="fa-solid fa-file-pdf text-emerald-400 text-base shrink-0"></i>
@@ -1107,19 +1090,19 @@
                     <button @click="modals.log = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
 
-                <!-- AI Gemini Vision OCR & Google Drive Auto Save Banner -->
+                <!-- AI Gemini Vision OCR Banner -->
                 <div class="bg-slate-950 p-3 sm:p-3.5 rounded-xl border border-dashed border-sky-800/80 space-y-2">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-lg"></i>
                             <div>
                                 <span class="text-xs text-slate-300 font-bold flex items-center gap-1.5 flex-wrap">
-                                    <span>AI Gemini Vision & Drive Upload</span>
+                                    <span>AI Gemini Vision & Auto Plate Match</span>
                                     <span class="bg-amber-950 text-amber-400 border-amber-800 text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
-                                        ⚡ Upload Saat Simpan
+                                        ⚡ Auto-Drive Folder Bulan/Tahun
                                     </span>
                                 </span>
-                                <span class="text-[10px] text-slate-400">Ekstraksi AI & simpan berkas asli ke Google Drive saat klik Simpan</span>
+                                <span class="text-[10px] text-slate-400">Pindai nota untuk deteksi plat & isi otomatis. File diunggah ke Drive saat Simpan diklik</span>
                             </div>
                         </div>
                         <label :class="(isScanningInvoice || isUploadingToDrive) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95 min-h-[40px]">
@@ -1138,8 +1121,8 @@
                     </div>
                 </div>
 
-                <form @submit.prevent="saveLog" class="space-y-3 text-xs">
-                    <!-- Manual Drive Attachment / Upload Row -->
+                <form @submit.prevent="saveLog(false)" class="space-y-3 text-xs">
+                    <!-- Drive Link Input / Deferred Attachment -->
                     <div class="space-y-1 p-3 bg-slate-950 rounded-xl border border-slate-800/80">
                         <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
                             <span>Link Scan Nota (Google Drive URL):</span>
@@ -1270,7 +1253,7 @@
             </div>
         </div>
 
-        <!-- Confirm Modal -->
+        <!-- Confirmation Modal -->
         <div v-if="confirmModal.show" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl">
                 <div class="text-center space-y-2">
@@ -1278,7 +1261,7 @@
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                     <h3 class="font-bold text-white text-base">{{ confirmModal.title }}</h3>
-                    <p class="text-xs text-slate-400">{{ confirmModal.message }}</p>
+                    <p class="text-xs text-slate-400 whitespace-pre-line">{{ confirmModal.message }}</p>
                 </div>
                 <div class="flex items-center gap-2 pt-2">
                     <button @click="closeConfirmModal(false)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">Batal</button>
@@ -1287,7 +1270,7 @@
             </div>
         </div>
 
-        <!-- Floating Toast -->
+        <!-- Floating Toast Notification -->
         <div v-if="toast.show" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-50 bg-amber-500 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 max-w-md mx-auto sm:mx-0">
             <i class="fa-solid fa-circle-check text-base"></i>
             <span>{{ toast.message }}</span>
@@ -1565,8 +1548,6 @@
                 upcomingPeriodicServices() {
                     return this.vehicles.map(v => {
                         let lastDate = v.lastServiceDate || '';
-                        
-                        // Strict Filter: Routine service logs ONLY (isRoutine !== false)
                         const routineLogs = (this.serviceLogs || []).filter(l => 
                             (l.vehicleId === v.id || l.vehicleId === v.plate) && l.isRoutine !== false
                         );
@@ -1981,8 +1962,7 @@
                                 const res = await fetch(apiUrl, {
                                     method: 'POST',
                                     headers: { 
-                                        'Content-Type': 'application/json',
-                                        'x-goog-api-key': cleanKey
+                                        'Content-Type': 'application/json'
                                     },
                                     body: JSON.stringify({
                                         contents: [{ parts: [{ text: "ping" }] }],
@@ -2048,9 +2028,9 @@
                             fileName: fileName || 'nota_servis.jpg',
                             mimeType: mimeType || 'image/jpeg',
                             base64: base64Data,
+                            date: this.logForm.date || new Date().toISOString().substring(0, 10),
                             vehicleId: this.logForm.vehicleId || 'ARMADA',
-                            invoiceNo: this.logForm.invoiceNo || 'INV',
-                            date: this.logForm.date || new Date().toISOString().substring(0, 10)
+                            invoiceNo: this.logForm.invoiceNo || 'INV'
                         };
 
                         const res = await fetch(this.settings.sheetsWebhookUrl, {
@@ -2121,8 +2101,7 @@
                             fileName: file.name
                         };
                         this.logForm.fileName = file.name;
-                        this.scanStatusMessage = `📁 File "${file.name}" terpilih (akan diunggah ke Drive saat Simpan Log Servis).`;
-                        this.showToast('📁 File terpilih! Berkas akan diunggah ke Drive saat disimpan.');
+                        this.showToast('📎 File nota dipilih! Akan diunggah ke Drive saat Simpan diklik.');
                     } catch (e) {
                         this.showToast('Gagal membaca file: ' + e.message);
                     } finally {
@@ -2166,7 +2145,7 @@
                             }
                         }
 
-                        // Simpan file ke penampungan sementara
+                        // Save file in pending queue to upload when "Simpan Log Servis" is clicked
                         this.pendingUploadFile = {
                             base64Data,
                             mimeType,
@@ -2174,19 +2153,21 @@
                         };
                         this.logForm.fileName = file.name;
 
-                        const systemPrompt = "Anda adalah AI OCR Vision berpengalaman khusus mengekstrak data dari dokumen PDF atau foto nota/invoice/faktur/kwitansi perbaikan dan pemeliharaan kendaraan bengkel (mobil/motor). Analisis berkas dengan teliti, baca seluruh baris item, harga, tanggal, nomor nota, dan nama bengkel.";
+                        const vehicleListContext = this.vehicles.map(v => `${v.plate} (${v.model})`).join(', ');
 
-                        const knownPlatesStr = (this.vehicles || []).map(v => `${v.plate || v.id} (${v.model || ''})`).join(', ');
+                        const systemPrompt = "Anda adalah AI OCR Vision berpengalaman khusus mengekstrak data dari dokumen PDF atau foto nota/invoice/faktur/kwitansi perbaikan dan pemeliharaan kendaraan bengkel (mobil/motor). Analisis berkas dengan teliti, baca seluruh baris item, harga, tanggal, nomor nota, plat nomor kendaraan, dan nama bengkel.";
 
                         const userPrompt = `Analisis foto atau dokumen PDF nota/kwitansi bengkel ini secara detail.
+Berikut adalah daftar armada resmi yang terdaftar di sistem: [${vehicleListContext}].
+
 Ekstrak informasi berikut ke dalam format JSON:
-1. invoiceNo: Nomor invoice/faktur/nota (string, e.g. "INV-1234"). Kosongkan jika tidak ada.
-2. workshop: Nama bengkel (pilih paling sesuai dari: "Nasmoco", "Montecarlo", "Zaini Auto", "Rekanan", atau "Bengkel Luar").
-3. date: Tanggal transaksi dalam format "YYYY-MM-DD" (string). Jika hanya ada tanggal biasa, konversi ke format standar YYYY-MM-DD.
-4. km: Odometer/Kilometer kendaraan yang tercatat di nota (number, e.g. 45000). Set 0 jika tidak tertera.
-5. items: Array dari seluruh sparepart, oli, bahan, atau jasa perbaikan yang tercantum pada nota. Setiap item memiliki objek { "name": string, "cost": number }. Pastikan cost dalam satuan Rupiah angka murni tanpa titik/koma.
-6. replacedComponents: Array string komponen vital yang diganti. Pilih HANYA dari kunci berikut yang teridentifikasi diganti pada nota: "filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac".
-7. plate: Plat nomor / Nomor Polisi kendaraan yang tertera di nota (string, e.g. "AD 8075 XA"). Daftar armada terdaftar di sistem: [${knownPlatesStr}]. Utamakan pencocokan dengan daftar armada tersebut jika tertera.`;
+1. plate: Plat nomor kendaraan / No. Polisi yang tertera di nota (string, e.g. "AD 8075 XA"). Jika ada di daftar armada terdaftar di atas, pastikan ditulis sesuai plat tersebut.
+2. invoiceNo: Nomor invoice/faktur/nota (string, e.g. "INV-1234"). Kosongkan jika tidak ada.
+3. workshop: Nama bengkel (pilih paling sesuai dari: "Nasmoco", "Montecarlo", "Zaini Auto", "Rekanan", atau "Bengkel Luar").
+4. date: Tanggal transaksi dalam format "YYYY-MM-DD" (string).
+5. km: Odometer/Kilometer kendaraan yang tercatat di nota (number, e.g. 45000). Set 0 jika tidak tertera.
+6. items: Array dari seluruh sparepart, oli, bahan, atau jasa perbaikan yang tercantum pada nota. Setiap item memiliki objek { "name": string, "cost": number }. Pastikan cost dalam satuan Rupiah angka murni tanpa titik/koma.
+7. replacedComponents: Array string komponen vital yang diganti. Pilih HANYA dari kunci berikut yang teridentifikasi diganti pada nota: "filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac".`;
 
                         const payload = {
                             contents: [{
@@ -2209,11 +2190,11 @@ Ekstrak informasi berikut ke dalam format JSON:
                                 responseSchema: {
                                     type: "OBJECT",
                                     properties: {
+                                        plate: { type: "STRING" },
                                         invoiceNo: { type: "STRING" },
                                         workshop: { type: "STRING" },
                                         date: { type: "STRING" },
                                         km: { type: "NUMBER" },
-                                        plate: { type: "STRING" },
                                         items: {
                                             type: "ARRAY",
                                             items: {
@@ -2230,13 +2211,14 @@ Ekstrak informasi berikut ke dalam format JSON:
                                             items: { type: "STRING" }
                                         }
                                     },
-                                    propertyOrdering: ["invoiceNo", "workshop", "date", "km", "plate", "items", "replacedComponents"]
+                                    propertyOrdering: ["plate", "invoiceNo", "workshop", "date", "km", "items", "replacedComponents"]
                                 }
                             }
                         };
 
                         let scanSuccess = false;
                         let lastErrorMessage = '';
+                        let rateLimitHit = false;
                         const modelsToTry = this.getGeminiModelSequence();
 
                         for (let i = 0; i < apiKeys.length; i++) {
@@ -2246,100 +2228,118 @@ Ekstrak informasi berikut ke dalam format JSON:
                             for (const modelName of modelsToTry) {
                                 this.scanStatusMessage = `Mengekstrak nota (${keyLabel}) via ${modelName}...`;
 
-                                try {
-                                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${currentKey}`;
-                                    const res = await fetch(apiUrl, {
-                                        method: 'POST',
-                                        headers: { 
-                                            'Content-Type': 'application/json',
-                                            'x-goog-api-key': currentKey
-                                        },
-                                        body: JSON.stringify(payload)
-                                    });
+                                let retries = 0;
+                                const maxRetries = 2;
+                                let delayMs = 2000;
 
-                                    if (res.ok) {
-                                        const result = await res.json();
-                                        let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                                        if (jsonText) {
-                                            jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
-                                            const parsed = JSON.parse(jsonText);
+                                while (retries <= maxRetries) {
+                                    try {
+                                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${currentKey}`;
+                                        const res = await fetch(apiUrl, {
+                                            method: 'POST',
+                                            headers: { 
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify(payload)
+                                        });
 
-                                            if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
-                                            if (parsed.workshop) {
-                                                const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
-                                                const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
-                                                if (matched) this.logForm.workshop = matched;
-                                                else this.logForm.workshop = String(parsed.workshop);
-                                            }
-                                            if (parsed.date) {
-                                                const parsedD = this.parseLocalDate(parsed.date);
-                                                if (parsedD) {
-                                                    const y = parsedD.getFullYear();
-                                                    const m = String(parsedD.getMonth() + 1).padStart(2, '0');
-                                                    const d = String(parsedD.getDate()).padStart(2, '0');
-                                                    this.logForm.date = `${y}-${m}-${d}`;
+                                        if (res.ok) {
+                                            const result = await res.json();
+                                            let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                            if (jsonText) {
+                                                jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
+                                                const parsed = JSON.parse(jsonText);
+
+                                                if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
+                                                if (parsed.workshop) {
+                                                    const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
+                                                    const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
+                                                    if (matched) this.logForm.workshop = matched;
+                                                    else this.logForm.workshop = String(parsed.workshop);
                                                 }
-                                            }
-                                            if (parsed.km && Number(parsed.km) > 0) {
-                                                this.logForm.km = Number(parsed.km);
-                                            }
-
-                                            // Pencocokan Plat Nomor Otomatis dengan Daftar Armada Terdaftar
-                                            let matchedVehicleName = '';
-                                            if (parsed.plate) {
-                                                const rawPlateClean = String(parsed.plate).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-                                                const matchedCar = this.vehicles.find(v => {
-                                                    const pClean = String(v.plate || v.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-                                                    return pClean && rawPlateClean && (pClean === rawPlateClean || pClean.includes(rawPlateClean) || rawPlateClean.includes(pClean));
-                                                });
-                                                if (matchedCar) {
-                                                    this.logForm.vehicleId = matchedCar.id;
-                                                    matchedVehicleName = `${matchedCar.plate} (${matchedCar.model})`;
+                                                if (parsed.date) {
+                                                    const parsedD = this.parseLocalDate(parsed.date);
+                                                    if (parsedD) {
+                                                        const y = parsedD.getFullYear();
+                                                        const m = String(parsedD.getMonth() + 1).padStart(2, '0');
+                                                        const d = String(parsedD.getDate()).padStart(2, '0');
+                                                        this.logForm.date = `${y}-${m}-${d}`;
+                                                    }
                                                 }
-                                            }
+                                                if (parsed.km && Number(parsed.km) > 0) {
+                                                    this.logForm.km = Number(parsed.km);
+                                                }
 
-                                            if (parsed.replacedComponents && Array.isArray(parsed.replacedComponents)) {
-                                                const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
-                                                this.logForm.replacedComponents = parsed.replacedComponents.filter(k => validKeys.includes(k));
-                                            }
-                                            if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
-                                                this.logForm.items = parsed.items.map(it => ({
-                                                    name: String(it.name || 'Sparepart/Jasa').trim(),
-                                                    cost: Math.abs(Number(it.cost)) || 0
-                                                }));
-                                            }
+                                                // Auto Plate Matching
+                                                let matchedVehicleName = '';
+                                                if (parsed.plate) {
+                                                    const rawPlateClean = String(parsed.plate).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                                    const matchedCar = this.vehicles.find(v => {
+                                                        const pClean = String(v.plate || v.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                                        return pClean && (pClean.includes(rawPlateClean) || rawPlateClean.includes(pClean));
+                                                    });
+                                                    if (matchedCar) {
+                                                        this.logForm.vehicleId = matchedCar.id;
+                                                        matchedVehicleName = `${matchedCar.plate} (${matchedCar.model})`;
+                                                    }
+                                                }
 
-                                            scanSuccess = true;
-                                            this.recordKeyUsage(currentKey, 180, 'HEALTHY');
-                                            const plateInfo = matchedVehicleName ? ` • Armada: ${matchedVehicleName}` : '';
-                                            this.showToast(`✨ AI Scan Berhasil!${plateInfo}`);
-                                            this.scanStatusMessage = `✅ Terestrak. ${matchedVehicleName ? 'Armada cocok: ' + matchedVehicleName + '.' : ''} File siap diunggah ke Drive saat Simpan diklik.`;
+                                                if (parsed.replacedComponents && Array.isArray(parsed.replacedComponents)) {
+                                                    const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
+                                                    this.logForm.replacedComponents = parsed.replacedComponents.filter(k => validKeys.includes(k));
+                                                }
+                                                if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                                                    this.logForm.items = parsed.items.map(it => ({
+                                                        name: String(it.name || 'Sparepart/Jasa').trim(),
+                                                        cost: Math.abs(Number(it.cost)) || 0
+                                                    }));
+                                                }
+
+                                                scanSuccess = true;
+                                                this.recordKeyUsage(currentKey, 180, 'HEALTHY');
+                                                this.showToast(`✨ AI Scan Berhasil! ${matchedVehicleName ? 'Armada: ' + matchedVehicleName : ''}`);
+                                                this.scanStatusMessage = `Sukses terestrak (${keyLabel} - ${modelName}). Siap diunggah ke Drive saat Simpan diklik.`;
+                                                break;
+                                            }
+                                        } else if (res.status === 429) {
+                                            rateLimitHit = true;
+                                            this.recordKeyUsage(currentKey, 0, 'LIMITED');
+                                            lastErrorMessage = 'Batas Kuota Gratis API (429 Rate Limit) Terlampaui.';
+                                            if (retries < maxRetries) {
+                                                this.scanStatusMessage = `⏳ Kuota penuh. Menunggu ${delayMs / 1000}s sebelum mencoba ulang...`;
+                                                await sleep(delayMs);
+                                                delayMs *= 2;
+                                                retries++;
+                                                continue;
+                                            }
+                                            break;
+                                        } else {
+                                            const errBody = await res.json().catch(() => ({}));
+                                            lastErrorMessage = errBody?.error?.message || `HTTP Status ${res.status}`;
+                                            this.recordKeyUsage(currentKey, 0, 'INVALID');
                                             break;
                                         }
-                                    } else {
-                                        const errBody = await res.json().catch(() => ({}));
-                                        lastErrorMessage = errBody?.error?.message || `HTTP ${res.status}`;
-                                        if (res.status === 429) {
-                                            this.recordKeyUsage(currentKey, 0, 'LIMITED');
-                                            this.showToast(`Key #${i + 1} limit (${modelName}). Beralih ke cadangan...`);
-                                        } else {
-                                            this.recordKeyUsage(currentKey, 0, 'INVALID');
-                                        }
+                                    } catch (fetchErr) {
+                                        lastErrorMessage = fetchErr.message;
+                                        break;
                                     }
-                                } catch (fetchErr) {
-                                    console.warn(`Fetch error for Key #${i + 1} (${modelName}):`, fetchErr);
-                                    lastErrorMessage = fetchErr.message;
                                 }
 
-                                await sleep(1000);
+                                if (scanSuccess) break;
+                                await sleep(500);
                             }
 
                             if (scanSuccess) break;
                         }
 
                         if (!scanSuccess) {
-                            this.scanStatusMessage = `Gagal scan: ${lastErrorMessage || 'Gagal mengekstrak nota'}`;
-                            this.showToast(`Gagal AI Scan: ${lastErrorMessage}`);
+                            if (rateLimitHit) {
+                                this.scanStatusMessage = `⚠️ Kuota Gratis API Terlampaui (429 Limit). Mohon tunggu ~1 menit atau tambahkan API Key Cadangan di Pengaturan.`;
+                                this.showToast(`⚠️ Kuota API Terlampaui. Tambahkan API Key Cadangan di Pengaturan atau tunggu 1 menit.`);
+                            } else {
+                                this.scanStatusMessage = `Gagal scan: ${lastErrorMessage || 'Gagal mengekstrak nota'}`;
+                                this.showToast(`Gagal AI Scan: ${lastErrorMessage}`);
+                            }
                         }
 
                     } catch (e) {
@@ -2351,23 +2351,59 @@ Ekstrak informasi berikut ke dalam format JSON:
                     }
                 },
 
-                async saveLog() {
-                    // Unggah ke Google Drive terlebih dahulu jika ada berkas yang dipilih
+                async saveLog(skipDuplicateCheck = false) {
+                    const cleanInvoiceNo = String(this.logForm.invoiceNo || '').trim();
+
+                    // DETEKSI DOUBLE UPLOAD INVOICE / TRANSAKSI GANDA
+                    if (!skipDuplicateCheck) {
+                        let existingLog = null;
+
+                        if (cleanInvoiceNo) {
+                            existingLog = (this.serviceLogs || []).find(l => {
+                                if (this.logForm.id && l.id === this.logForm.id) return false;
+                                return String(l.invoiceNo || '').trim().toLowerCase() === cleanInvoiceNo.toLowerCase();
+                            });
+                        }
+
+                        if (!existingLog && this.logForm.vehicleId && this.logForm.date) {
+                            existingLog = (this.serviceLogs || []).find(l => {
+                                if (this.logForm.id && l.id === this.logForm.id) return false;
+                                return l.vehicleId === this.logForm.vehicleId &&
+                                       l.date === this.logForm.date &&
+                                       Number(l.totalCost) === this.logFormTotalCost &&
+                                       this.logFormTotalCost > 0;
+                            });
+                        }
+
+                        if (existingLog) {
+                            const detailMsg = cleanInvoiceNo 
+                                ? `Nomor Invoice "${cleanInvoiceNo}" sudah terdaftar pada armada ${existingLog.vehicleId} (Tanggal: ${this.formatDateDisplay(existingLog.date)}).`
+                                : `Transaksi untuk armada ${existingLog.vehicleId} pada tanggal ${this.formatDateDisplay(existingLog.date)} dengan nominal Rp ${Number(existingLog.totalCost).toLocaleString('id-ID')} sudah ada.`;
+
+                            this.askConfirmation(
+                                '⚠️ Deteksi Transaksi / Invoice Ganda!',
+                                `${detailMsg}\n\nApakah Anda ingin MENIMPA (update) data lama dengan data invoice baru ini?`,
+                                async () => {
+                                    this.logForm.id = existingLog.id;
+                                    await this.saveLog(true);
+                                }
+                            );
+                            return;
+                        }
+                    }
+
+                    // Perform deferred Drive upload if there is a pending file
                     if (this.pendingUploadFile && this.settings.sheetsWebhookUrl) {
                         this.isUploadingToDrive = true;
-                        this.scanStatusMessage = 'Mengunggah berkas nota ke Google Drive...';
                         try {
                             const driveUrl = await this.uploadFileToGoogleDrive(
                                 this.pendingUploadFile.base64Data,
                                 this.pendingUploadFile.mimeType,
                                 this.pendingUploadFile.fileName
                             );
-                            if (driveUrl) {
-                                this.logForm.fileUrl = driveUrl;
-                            }
+                            if (driveUrl) this.logForm.fileUrl = driveUrl;
                         } catch (err) {
-                            console.error("Gagal mengunggah ke Google Drive saat simpan:", err);
-                            this.showToast("⚠️ Gagal Upload ke Drive, data log tetap disimpan.");
+                            console.error("Gagal upload drive:", err);
                         } finally {
                             this.isUploadingToDrive = false;
                         }
@@ -2416,6 +2452,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                     this.modals.log = false;
                     this.showToast('Log transaksi invoice berhasil disimpan!');
                 },
+
                 openInvoiceModal(log) {
                     this.selectedLog = log;
                     this.modals.invoice = true;
@@ -2516,23 +2553,9 @@ Ekstrak informasi berikut ke dalam format JSON:
                     await set(ref(db, `artifacts/${appId}/public/data/settings/autoSyncSheets`), Boolean(this.settings.autoSyncSheets));
                     this.showToast('Pengaturan integrasi & API Keys berhasil disimpan!');
                 },
-                copyAppsScriptCode() {
-                    const scriptCode = `// ----------------------------------------------------------------------
-// FUNGSI MEMICU IZIN FULL ACCESS GOOGLE DRIVE (RUN 1x DI EDITOR APPS SCRIPT)
-// ----------------------------------------------------------------------
-function testPermissions() {
-  // Membuat folder sementara lalu menghapusnya untuk memicu izin Full Drive Write Access (https://www.googleapis.com/auth/drive)
-  var mainFolderName = "AUTOMAN_Nota_Servis";
-  var mainFolders = DriveApp.getFoldersByName(mainFolderName);
-  var mainFolder = mainFolders.hasNext() ? mainFolders.next() : DriveApp.createFolder(mainFolderName);
-  
-  var tempFolder = DriveApp.createFolder("AUTOMAN_TEMP_TEST_PERMISSIONS");
-  tempFolder.setTrashed(true);
-  
-  Logger.log("✅ Izin Full Access Google Drive (createFolder) Berhasil Disetujui! Silahkan lakukan Deploy Web App.");
-}
 
-function doGet(e) {
+                copyAppsScriptCode() {
+                    const scriptCode = `function doGet(e) {
   try {
     var action = e ? e.parameter.action : '';
     if (action === 'read') {
@@ -2547,9 +2570,21 @@ function doGet(e) {
   }
 }
 
-function getOrCreateFolder(parent, folderName) {
-  var folders = parent.getFoldersByName(folderName);
-  return folders.hasNext() ? folders.next() : parent.createFolder(folderName);
+function testPermissions() {
+  var testRoot = DriveApp.getRootFolder();
+  var folderName = "AUTOMAN_Test_Permission_Temp";
+  var testFolder = DriveApp.createFolder(folderName);
+  testFolder.setTrashed(true);
+  Logger.log("Otorisasi Google Drive Berhasil! Root: " + testRoot.getName());
+}
+
+function getOrCreateSubFolder(parentFolder, folderName) {
+  var folders = parentFolder.getFoldersByName(folderName);
+  if (folders.hasNext()) {
+    return folders.next();
+  } else {
+    return parentFolder.createFolder(folderName);
+  }
 }
 
 function doPost(e) {
@@ -2560,58 +2595,43 @@ function doPost(e) {
     }
     var data = JSON.parse(contents);
 
-    // 1. UPLOAD BERKAS NOTA KE GOOGLE DRIVE (OTOMATIS SUBFOLDER TAHUN & BULAN)
     if (data.action === 'UPLOAD_TO_DRIVE' || data.type === 'UPLOAD_FILE') {
-      var mainFolderName = "AUTOMAN_Nota_Servis";
-      var mainFolders = DriveApp.getFoldersByName(mainFolderName);
-      var mainFolder = mainFolders.hasNext() ? mainFolders.next() : DriveApp.createFolder(mainFolderName);
+      var rootFolderName = "AUTOMAN_Nota_Servis";
+      var rootFolders = DriveApp.getFoldersByName(rootFolderName);
+      var rootFolder = rootFolders.hasNext() ? rootFolders.next() : DriveApp.createFolder(rootFolderName);
 
-      // Tentukan Tahun dan Bulan berdasarkan tanggal transaksi
-      var d = new Date();
-      if (data.date) {
-        var parts = String(data.date).split('-');
-        if (parts.length === 3) {
-          var parsedD = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-          if (!isNaN(parsedD.getTime())) {
-            d = parsedD;
-          }
-        }
-      }
+      var serviceDate = data.date ? new Date(data.date) : new Date();
+      if (isNaN(serviceDate.getTime())) serviceDate = new Date();
 
-      var yearStr = String(d.getFullYear());
-      var monthNames = ['01 - Januari', '02 - Februari', '03 - Maret', '04 - April', '05 - Mei', '06 - Juni', '07 - Juli', '08 - Agustus', '09 - September', '10 - Oktober', '11 - November', '12 - Desember'];
-      var monthStr = monthNames[d.getMonth()];
+      var yearStr = serviceDate.getFullYear().toString();
+      var monthNames = ["01 - Januari", "02 - Februari", "03 - Maret", "04 - April", "05 - Mei", "06 - Juni", "07 - Juli", "08 - Agustus", "09 - September", "10 - Oktober", "11 - November", "12 - Desember"];
+      var monthStr = monthNames[serviceDate.getMonth()];
 
-      // Buat/ambil folder Tahun dan Bulan
-      var yearFolder = getOrCreateFolder(mainFolder, yearStr);
-      var targetFolder = getOrCreateFolder(yearFolder, monthStr);
+      var yearFolder = getOrCreateSubFolder(rootFolder, yearStr);
+      var monthFolder = getOrCreateSubFolder(yearFolder, monthStr);
 
       var decoded = Utilities.base64Decode(data.base64);
       var safeName = (data.vehicleId ? data.vehicleId + "_" : "") + (data.invoiceNo ? data.invoiceNo + "_" : "") + (data.fileName || "nota.jpg");
       var blob = Utilities.newBlob(decoded, data.mimeType, safeName);
-      var file = targetFolder.createFile(blob);
+      var file = monthFolder.createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
       return ContentService.createTextOutput(JSON.stringify({
         status: 'success',
         fileUrl: file.getUrl(),
         fileId: file.getId(),
-        folderPath: mainFolderName + "/" + yearStr + "/" + monthStr
+        folderPath: rootFolderName + "/" + yearStr + "/" + monthStr
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 2. AUTO-WRITE LAPORAN & RIWAYAT SERVIS LOGS KE SPREADSHEET
     if (data.type === 'AUTO_WRITE_REPORT' || data.action === 'SYNC_LOGS' || data.logs) {
       var ss = SpreadsheetApp.getActiveSpreadsheet();
-      
-      // A. SHEET: Riwayat_Servis_Logs
       var logSheet = ss.getSheetByName('Riwayat_Servis_Logs');
       if (!logSheet) {
         logSheet = ss.insertSheet('Riwayat_Servis_Logs');
       }
-      logSheet.clear(); // Bersihkan isi lama untuk penulisan ulang lengkap
+      logSheet.clear();
       
-      // Header Riwayat_Servis_Logs
       logSheet.appendRow([
         'ID Log',
         'Tanggal Servis',
@@ -2659,7 +2679,6 @@ function doPost(e) {
         }
       }
 
-      // B. SHEET: Master_Armada
       if (data.vehicles && data.vehicles.length > 0) {
         var carSheet = ss.getSheetByName('Master_Armada');
         if (!carSheet) {
@@ -2715,6 +2734,7 @@ function doPost(e) {
                     document.body.removeChild(dummy);
                     this.showToast('Kode Google Apps Script berhasil disalin ke clipboard!');
                 },
+
                 async syncToGoogleSheets() {
                     if (!this.settings.sheetsWebhookUrl) {
                         this.showToast('Isi Google Apps Script Web App URL terlebih dahulu!');
@@ -2745,18 +2765,10 @@ function doPost(e) {
 
                             if (res.ok) {
                                 const text = await res.text();
-                                let resJson = {};
-                                try { resJson = JSON.parse(text); } catch(e) {}
-                                if (resJson.status === 'success') {
-                                    this.showToast('📊 Success write ke tab Riwayat_Servis_Logs di Spreadsheet!');
-                                } else {
-                                    this.showToast('Data dikirim ke Google Sheets: ' + (resJson.message || 'Sukses'));
-                                }
+                                this.showToast('📊 Success write ke tab Riwayat_Servis_Logs di Spreadsheet!');
                                 syncSuccess = true;
                             }
-                        } catch (fetchErr) {
-                            console.warn("Standard fetch warning, fallbacking to no-cors mode:", fetchErr);
-                        }
+                        } catch (fetchErr) {}
 
                         if (!syncSuccess) {
                             await fetch(this.settings.sheetsWebhookUrl, {
@@ -2765,7 +2777,7 @@ function doPost(e) {
                                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                                 body: payloadStr
                             });
-                            this.showToast('📊 Data berhasil dikirim & ditulis ke Spreadsheet Google Sheets!');
+                            this.showToast('📊 Data dikirim & ditulis ke Spreadsheet Google Sheets!');
                         }
 
                     } catch (e) {
