@@ -130,7 +130,7 @@
 
         <!-- Authenticated Portal View -->
         <template v-else>
-            <!-- Navigation Tabs (Touch-Scroll Enabled) -->
+            <!-- Navigation Tabs -->
             <nav class="sticky top-[53px] sm:top-[57px] z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-3 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto touch-scroll scrollbar-none snap-x">
                 <button @click="currentTab = 'overview'" :class="currentTab === 'overview' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-chart-line text-xs"></i>
@@ -609,7 +609,7 @@
                         </div>
                     </div>
 
-                    <!-- MOBILE CARD LIST VIEW (Ultra Comfortable for Smartphones) -->
+                    <!-- MOBILE CARD LIST VIEW -->
                     <div class="block md:hidden space-y-3">
                         <div v-if="filteredServiceLogs.length > 0" class="space-y-3">
                             <div v-for="log in filteredServiceLogs" :key="log.id" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
@@ -904,7 +904,6 @@
                                 <input type="url" v-model="settings.sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
                             </div>
 
-                            <!-- Step by Step GAS Deployment Guide -->
                             <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 space-y-2 text-xs">
                                 <span class="font-bold text-amber-400 block text-xs flex items-center gap-1.5">
                                     <i class="fa-solid fa-circle-exclamation"></i>
@@ -935,7 +934,7 @@
                                     </button>
                                 </div>
                                 <p class="text-[10px] text-slate-400 leading-relaxed">
-                                    Kode ini membuat/memperbarui tab <code class="bg-slate-900 text-emerald-300 px-1 rounded">Riwayat_Servis_Logs</code> dan <code class="bg-slate-900 text-amber-300 px-1 rounded">Master_Armada</code> di Google Sheets, serta menyimpan nota secara rapi di folder Google Drive <code class="bg-slate-900 text-sky-300 px-1 rounded">AUTOMAN_Nota_Servis / [Tahun] / [Bulan]</code> (contoh: <code class="text-amber-300">AUTOMAN_Nota_Servis/2026/08 - Agustus/</code>).
+                                    Kode ini membuat/memperbarui tab <code class="bg-slate-900 text-emerald-300 px-1 rounded">Riwayat_Servis_Logs</code> dan <code class="bg-slate-900 text-amber-300 px-1 rounded">Master_Armada</code> di Google Sheets, serta menyimpan nota secara rapi di folder Google Drive <code class="bg-slate-900 text-sky-300 px-1 rounded">AUTOMAN_Nota_Servis / [Tahun] / [Bulan]</code>.
                                 </p>
                             </div>
 
@@ -1110,7 +1109,7 @@
             </div>
         </div>
 
-        <!-- NEW MODAL: INTERACTIVE WORKSHOP BREAKDOWN (MONTHLY RECAP) -->
+        <!-- MODAL: INTERACTIVE WORKSHOP BREAKDOWN -->
         <div v-if="modals.workshopDetail && selectedWorkshopDetail" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll shadow-2xl">
                 <div class="flex justify-between items-start border-b border-slate-800 pb-3">
@@ -1269,7 +1268,7 @@
                                     ✓ Deteksi AI: {{ detectedPlateMatch }}
                                 </span>
                             </label>
-                            <select v-model="logForm.vehicleId" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                            <select v-model="logForm.vehicleId" @change="onLogFormVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
                                 <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
                             </select>
                         </div>
@@ -1293,6 +1292,21 @@
                         <div>
                             <label class="block font-bold text-slate-300 mb-1">Odometer (KM) *</label>
                             <input type="number" v-model.number="logForm.km" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
+                            <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1" v-if="getSelectedVehicleCurrentKm > 0">
+                                <i class="fa-solid fa-circle-info text-sky-400"></i>
+                                <span>Oddo pengajuan: <strong class="text-sky-300 font-mono">{{ getSelectedVehicleCurrentKm.toLocaleString('id-ID') }} KM</strong> (auto-fallback jika nota tak ada oddo)</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Tanggal Servis *</label>
+                            <input type="date" v-model="logForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">Odometer (KM) *</label>
+                            <input type="number" v-model.number="logForm.km" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
                         </div>
                     </div>
 
@@ -1300,7 +1314,17 @@
                         <div>
                             <label class="block font-bold text-slate-300 mb-1">No. Invoice / Faktur</label>
                             <input type="text" v-model="logForm.invoiceNo" placeholder="Contoh: INV-9002" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono">
+                            
+                            <!-- Realtime visual warning if invoice exists -->
+                            <div v-if="liveDuplicateWarning" class="mt-1.5 p-2 bg-amber-950/90 border border-amber-800 rounded-lg text-[10px] text-amber-300 flex items-start gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
+                                <div>
+                                    <span class="font-bold block">Perhatian: No Invoice Sudah Ada!</span>
+                                    <span>Tercatat pada armada <strong>{{ liveDuplicateWarning.vehicleId }}</strong> tanggal {{ formatDateDisplay(liveDuplicateWarning.date) }}. Menyimpan akan mengonfirmasi pilihan untuk memperbarui data tersebut.</span>
+                                </div>
+                            </div>
                         </div>
+
                         <div>
                             <label class="block font-bold text-slate-300 mb-1">Kategori Jenis Servis *</label>
                             <select v-model="logForm.isRoutine" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
@@ -1388,11 +1412,15 @@
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                     <h3 class="font-bold text-white text-base">{{ confirmModal.title }}</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">{{ confirmModal.message }}</p>
+                    <p class="text-xs text-slate-400 leading-relaxed whitespace-pre-line">{{ confirmModal.message }}</p>
                 </div>
                 <div class="flex items-center gap-2 pt-2">
-                    <button @click="closeConfirmModal(false)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">Batal</button>
-                    <button @click="closeConfirmModal(true)" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition min-h-[42px]">Ya, Lanjutkan</button>
+                    <button @click="closeConfirmModal(false)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">
+                        {{ confirmModal.cancelText || 'Batal' }}
+                    </button>
+                    <button @click="closeConfirmModal(true)" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition min-h-[42px]">
+                        {{ confirmModal.confirmText || 'Ya, Lanjutkan' }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -1489,6 +1517,8 @@
                         show: false,
                         title: '',
                         message: '',
+                        confirmText: 'Ya, Lanjutkan',
+                        cancelText: 'Batal',
                         onConfirm: null
                     },
                     modals: {
@@ -1530,6 +1560,20 @@
                 logFormTotalCost() {
                     if (!this.logForm || !this.logForm.items || !Array.isArray(this.logForm.items)) return 0;
                     return this.logForm.items.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+                },
+                getSelectedVehicleCurrentKm() {
+                    const car = (this.vehicles || []).find(v => v.id === this.logForm?.vehicleId);
+                    return car ? (Number(car.currentKm) || 0) : 0;
+                },
+                liveDuplicateWarning() {
+                    if (!this.logForm || !this.logForm.invoiceNo) return null;
+                    const cleanInv = this.normalizeInvoice(this.logForm.invoiceNo);
+                    if (!cleanInv) return null;
+
+                    return (this.serviceLogs || []).find(l => 
+                        l.id !== this.logForm.id && 
+                        this.normalizeInvoice(l.invoiceNo) === cleanInv
+                    ) || null;
                 },
                 allSparepartSuggestions() {
                     const counts = new Map();
@@ -1757,6 +1801,9 @@
                     if (typeof val === 'object') return Object.values(val);
                     return [];
                 },
+                normalizeInvoice(str) {
+                    return String(str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                },
                 getVehicleModel(vehicleId) {
                     const car = this.vehicles.find(v => v.id === vehicleId || v.plate === vehicleId);
                     return car ? car.model : 'Kendaraan Operasional';
@@ -1799,14 +1846,14 @@
                     this.toast = { show: true, message: msg };
                     setTimeout(() => { this.toast.show = false; }, 3500);
                 },
-                askConfirmation(title, message, onConfirm) {
-                    this.confirmModal = { show: true, title, message, onConfirm };
+                askConfirmation(title, message, onConfirm, confirmText = 'Ya, Lanjutkan', cancelText = 'Batal') {
+                    this.confirmModal = { show: true, title, message, confirmText, cancelText, onConfirm };
                 },
                 closeConfirmModal(isConfirmed) {
                     if (isConfirmed && typeof this.confirmModal.onConfirm === 'function') {
                         this.confirmModal.onConfirm();
                     }
-                    this.confirmModal = { show: false, title: '', message: '', onConfirm: null };
+                    this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', onConfirm: null };
                 },
                 formatDateDisplay(dateStr) {
                     const d = this.parseLocalDate(dateStr);
@@ -1983,12 +2030,13 @@
                 openCreateLogModal() {
                     this.pendingUploadFile = null;
                     this.detectedPlateMatch = '';
+                    const initialCar = this.vehicles.length ? this.vehicles[0] : null;
                     this.logForm = {
                         id: null,
-                        vehicleId: this.vehicles.length ? this.vehicles[0].id : '',
+                        vehicleId: initialCar ? initialCar.id : '',
                         workshop: 'Nasmoco',
                         date: new Date().toISOString().substring(0, 10),
-                        km: 0,
+                        km: initialCar ? (Number(initialCar.currentKm) || 0) : 0,
                         invoiceNo: '',
                         isRoutine: true,
                         fileUrl: '',
@@ -1998,6 +2046,14 @@
                     };
                     this.scanStatusMessage = '';
                     this.modals.log = true;
+                },
+                onLogFormVehicleChange() {
+                    const selectedCar = (this.vehicles || []).find(v => v.id === this.logForm.vehicleId);
+                    if (selectedCar) {
+                        if (!this.logForm.km || Number(this.logForm.km) === 0) {
+                            this.logForm.km = Number(selectedCar.currentKm) || 0;
+                        }
+                    }
                 },
                 openEditLogModal(log) {
                     this.pendingUploadFile = null;
@@ -2426,6 +2482,12 @@ Ekstrak informasi berikut ke dalam format JSON:
                                             }
                                             if (parsed.km && Number(parsed.km) > 0) {
                                                 this.logForm.km = Number(parsed.km);
+                                            } else {
+                                                // Fallback otomatis ke Odometer saat pengajuan / Odometer terkini armada
+                                                const activeCar = (this.vehicles || []).find(v => v.id === this.logForm.vehicleId);
+                                                if (activeCar && Number(activeCar.currentKm) > 0) {
+                                                    this.logForm.km = Number(activeCar.currentKm);
+                                                }
                                             }
 
                                             // Smart License Plate Detection & Automatic Vehicle Selection
@@ -2497,15 +2559,15 @@ Ekstrak informasi berikut ke dalam format JSON:
                 },
 
                 checkForDuplicateInvoice() {
-                    const currentInvoice = String(this.logForm.invoiceNo || '').trim().toLowerCase();
+                    const currentInvoiceClean = this.normalizeInvoice(this.logForm.invoiceNo);
                     const currentVehicle = String(this.logForm.vehicleId || '').trim();
                     const currentDate = String(this.logForm.date || '').trim();
                     const currentCost = this.logFormTotalCost;
                     const currentId = this.logForm.id;
 
-                    const matchInvoice = currentInvoice ? (this.serviceLogs || []).find(l => 
+                    const matchInvoice = currentInvoiceClean ? (this.serviceLogs || []).find(l => 
                         l.id !== currentId && 
-                        String(l.invoiceNo || '').trim().toLowerCase() === currentInvoice
+                        this.normalizeInvoice(l.invoiceNo) === currentInvoiceClean
                     ) : null;
 
                     const matchTransaction = (this.serviceLogs || []).find(l => 
@@ -2519,7 +2581,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                         return {
                             type: 'INVOICE_NO',
                             duplicateLog: matchInvoice,
-                            message: `Nomor Invoice "${this.logForm.invoiceNo}" sudah pernah diinput pada transaksi kendaraan ${matchInvoice.vehicleId} tanggal ${this.formatDateDisplay(matchInvoice.date)}.`
+                            message: `Nomor Invoice "${this.logForm.invoiceNo}" sudah pernah diinput pada transaksi kendaraan ${matchInvoice.vehicleId} (Tanggal: ${this.formatDateDisplay(matchInvoice.date)}).\n\nApakah Anda ingin MEMPERBARUI (Menimpa) data invoice lama ini?`
                         };
                     }
 
@@ -2527,7 +2589,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                         return {
                             type: 'TRANSACTION_DETAILS',
                             duplicateLog: matchTransaction,
-                            message: `Transaksi identik terdeteksi! Kendaraan ${currentVehicle} pada tanggal ${this.formatDateDisplay(currentDate)} sejumlah Rp ${currentCost.toLocaleString('id-ID')} sudah tersimpan (Invoice: ${matchTransaction.invoiceNo || '-'}).`
+                            message: `Transaksi identik terdeteksi!\nKendaraan ${currentVehicle} pada tanggal ${this.formatDateDisplay(currentDate)} sejumlah Rp ${currentCost.toLocaleString('id-ID')} sudah tersimpan (Invoice: ${matchTransaction.invoiceNo || '-'}).\n\nApakah Anda ingin MEMPERBARUI (Menimpa) data ini?`
                         };
                     }
 
@@ -2540,10 +2602,14 @@ Ekstrak informasi berikut ke dalam format JSON:
                     if (duplicateInfo) {
                         this.askConfirmation(
                             '⚠️ Terdeteksi Invoice / Transaksi Ganda',
-                            `${duplicateInfo.message}\nApakah Anda yakin ingin melanjutkan dan menyimpan data ini?`,
+                            duplicateInfo.message,
                             async () => {
+                                // Re-use duplicate log ID to OVERWRITE existing record instead of stacking
+                                this.logForm.id = duplicateInfo.duplicateLog.id;
                                 await this.executeSaveLog();
-                            }
+                            },
+                            'Timpa Data Lama',
+                            'Batal / Ubah'
                         );
                         return;
                     }
@@ -2592,21 +2658,8 @@ Ekstrak informasi berikut ke dalam format JSON:
 
                     await set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), newLog);
 
-                    const car = this.vehicles.find(v => v.id === this.logForm.vehicleId);
-                    if (car) {
-                        car.isUnderService = false;
-                        car.targetWorkshop = '';
-                        car.inServiceNotes = '';
-                        
-                        if (this.logForm.km > (car.currentKm || 0)) car.currentKm = this.logForm.km;
-                        
-                        if (this.logForm.isRoutine !== false) {
-                            car.lastServiceKm = this.logForm.km;
-                            car.lastServiceDate = this.logForm.date;
-                        }
-
-                        await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
-                    }
+                    // Recalculate vehicle's last service info accurately from all logs
+                    await this.recalculateVehicleServiceStats(this.logForm.vehicleId);
 
                     if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
                         this.syncToGoogleSheets();
@@ -2616,6 +2669,39 @@ Ekstrak informasi berikut ke dalam format JSON:
                     this.detectedPlateMatch = '';
                     this.modals.log = false;
                     this.showToast('Log transaksi invoice berhasil disimpan!');
+                },
+
+                async recalculateVehicleServiceStats(vehicleId) {
+                    const car = this.vehicles.find(v => v.id === vehicleId || v.plate === vehicleId);
+                    if (!car) return;
+
+                    car.isUnderService = false;
+                    car.targetWorkshop = '';
+                    car.inServiceNotes = '';
+
+                    const vLogs = (this.serviceLogs || []).filter(l => (l.vehicleId === car.id || l.vehicleId === car.plate));
+                    
+                    // Highest Odometer overall
+                    const maxKm = vLogs.reduce((max, l) => Math.max(max, Number(l.km) || 0), Number(car.currentKm) || 0);
+                    car.currentKm = maxKm;
+
+                    // Routine services history
+                    const routineLogs = vLogs.filter(l => l.isRoutine !== false);
+                    if (routineLogs.length > 0) {
+                        const highestRoutineKm = Math.max(...routineLogs.map(l => Number(l.km) || 0));
+                        car.lastServiceKm = highestRoutineKm;
+
+                        const validDates = routineLogs.map(l => this.parseLocalDate(l.date)).filter(Boolean);
+                        if (validDates.length > 0) {
+                            const latestDate = new Date(Math.max(...validDates.map(d => d.getTime())));
+                            const y = latestDate.getFullYear();
+                            const m = String(latestDate.getMonth() + 1).padStart(2, '0');
+                            const d = String(latestDate.getDate()).padStart(2, '0');
+                            car.lastServiceDate = `${y}-${m}-${d}`;
+                        }
+                    }
+
+                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
                 },
 
                 openInvoiceModal(log) {
@@ -2630,11 +2716,17 @@ Ekstrak informasi berikut ke dalam format JSON:
                     this.showToast(`Pengajuan servis ${car.plate} dibatalkan.`);
                 },
                 confirmDeleteLogModal(logId) {
+                    const logToDelete = this.serviceLogs.find(l => l.id === logId);
+                    const vehicleId = logToDelete ? logToDelete.vehicleId : null;
+
                     this.askConfirmation(
                         'Hapus Log Transaksi',
                         'Apakah Anda yakin ingin menghapus catatan transaksi servis ini?',
                         async () => {
                             await remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
+                            if (vehicleId) {
+                                await this.recalculateVehicleServiceStats(vehicleId);
+                            }
                             this.showToast('Transaksi berhasil dihapus.');
                             if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
                                 this.syncToGoogleSheets();
@@ -3036,25 +3128,42 @@ function doPost(e) {
                         const data = new Uint8Array(evt.target.result);
                         const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                         const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                        let importedCount = 0;
+                        let updatedCount = 0;
+
                         rows.forEach((r, idx) => {
                             const plate = (r['Plat Nomor'] || r['Plat'] || '').toUpperCase().trim();
                             if (plate) {
-                                const logId = 'LOG-' + Date.now() + '-' + idx;
-                                const cost = Number(r['Total Biaya']) || 0;
+                                const rawInv = r['No Invoice'] || r['Invoice'] || '';
+                                const cleanInv = this.normalizeInvoice(rawInv);
+
+                                // Check if invoice already exists in database
+                                const existingLog = cleanInv ? (this.serviceLogs || []).find(l => 
+                                    this.normalizeInvoice(l.invoiceNo) === cleanInv
+                                ) : null;
+
+                                const logId = existingLog ? existingLog.id : ('LOG-' + Date.now() + '-' + idx);
+                                const cost = Number(r['Total Biaya'] || r['Biaya']) || 0;
                                 const log = {
                                     id: logId,
                                     vehicleId: plate,
                                     workshop: r['Bengkel'] || 'Nasmoco',
                                     date: r['Tanggal'] || new Date().toISOString().substring(0, 10),
                                     km: Number(r['Odometer']) || 0,
-                                    invoiceNo: r['No Invoice'] || '',
+                                    invoiceNo: rawInv,
+                                    isRoutine: true,
                                     items: [{ name: r['Rincian'] || 'Servis Maintenance', cost }],
                                     totalCost: cost
                                 };
+
                                 set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), log);
+                                this.recalculateVehicleServiceStats(plate);
+
+                                if (existingLog) updatedCount++;
+                                else importedCount++;
                             }
                         });
-                        this.showToast('Import Excel Transaksi Selesai!');
+                        this.showToast(`Import Excel Selesai! (${importedCount} baru, ${updatedCount} diperbarui)`);
                     };
                     reader.readAsArrayBuffer(file);
                 },
