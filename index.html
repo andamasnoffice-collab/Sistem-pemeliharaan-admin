@@ -1205,191 +1205,236 @@
 
         <!-- MODAL: CREATE / PROCESS SERVICE LOG -->
         <div v-if="modals.log" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-5 sm:p-6 space-y-4 my-auto max-h-[92vh] overflow-y-auto touch-scroll">
+            <div :class="previewSource ? 'md:max-w-5xl lg:max-w-6xl' : 'max-w-xl'" class="bg-slate-900 border border-slate-800 w-full rounded-2xl p-5 sm:p-6 space-y-4 my-auto max-h-[92vh] overflow-y-auto touch-scroll transition-all duration-300">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                     <h3 class="font-bold text-white text-base">{{ logForm.id ? 'Edit Catatan Invoice Servis' : 'Input Catatan Invoice Servis Baru' }}</h3>
                     <button @click="modals.log = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
 
-                <!-- AI Gemini Vision OCR & Google Drive Auto Save Banner -->
-                <div class="bg-slate-950 p-3 sm:p-3.5 rounded-xl border border-dashed border-sky-800/80 space-y-2">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-lg"></i>
-                            <div>
-                                <span class="text-xs text-slate-300 font-bold flex items-center gap-1.5 flex-wrap">
-                                    <span>AI Gemini Vision & Drive Upload</span>
-                                    <span class="bg-amber-950 text-amber-400 border-amber-800 text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
-                                        ⚡ Deferred Upload Saat Simpan
-                                    </span>
-                                </span>
-                                <span class="text-[10px] text-slate-400">Ekstraksi AI otomatis mendeteksi Plat Nomor & unggah ke Drive saat Simpan</span>
+                <!-- 2-Column Responsive Layout on Desktop -->
+                <div class="grid grid-cols-1" :class="{'md:grid-cols-12 md:gap-6': previewSource}">
+
+                    <!-- DESKTOP ONLY PREVIEW PANEL -->
+                    <div v-if="previewSource" class="hidden md:flex md:col-span-6 flex-col bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 max-h-[78vh] overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                            <span class="text-xs font-bold text-amber-400 flex items-center gap-2">
+                                <i class="fa-solid fa-eye text-sky-400"></i>
+                                <span>Preview Berkas Nota (Croscek AI)</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono truncate max-w-[180px] bg-slate-900 px-2 py-0.5 rounded border border-slate-800">{{ previewSource.name }}</span>
+                        </div>
+
+                        <div class="flex-1 flex items-center justify-center overflow-auto rounded-xl bg-slate-900/60 p-2 border border-slate-800/80 touch-scroll">
+                            <!-- Image Preview -->
+                            <img v-if="previewSource.type === 'image'" :src="previewSource.url" class="max-w-full max-h-[62vh] object-contain rounded-lg shadow-xl border border-slate-800" alt="Preview Foto Nota" />
+
+                            <!-- PDF Base64 Embed Preview -->
+                            <iframe v-else-if="previewSource.type === 'pdf'" :src="previewSource.url" class="w-full h-[62vh] rounded-lg border-0 bg-white"></iframe>
+
+                            <!-- Drive Embed Iframe Preview -->
+                            <iframe v-else-if="previewSource.type === 'iframe'" :src="previewSource.url" class="w-full h-[62vh] rounded-lg border-0 bg-slate-900" allow="autoplay"></iframe>
+
+                            <!-- Link Fallback -->
+                            <div v-else class="text-center p-6 space-y-3">
+                                <i class="fa-solid fa-file-pdf text-4xl text-emerald-400"></i>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-200">Berkas Terhubung di Google Drive</p>
+                                    <p class="text-[10px] text-slate-400">Klik tombol di bawah untuk melihat nota di tab terpisah</p>
+                                </div>
+                                <a :href="previewSource.url" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    <span>Buka Dokumen Drive</span>
+                                </a>
                             </div>
                         </div>
-                        <label :class="(isScanningInvoice || isUploadingToDrive) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95 min-h-[40px]">
-                            <i v-if="isScanningInvoice" class="fa-solid fa-circle-notch fa-spin"></i>
-                            <i v-else class="fa-solid fa-camera"></i>
-                            <span>{{ isScanningInvoice ? 'Scanning AI...' : 'Scan Foto / PDF Nota' }}</span>
-                            <input type="file" accept="image/*,application/pdf" @change="handleInvoiceScan" :disabled="isScanningInvoice || isUploadingToDrive" class="hidden">
-                        </label>
-                    </div>
-
-                    <div v-if="scanStatusMessage" class="text-[11px] font-mono px-2.5 py-1 bg-slate-900 border border-slate-800 text-sky-300 rounded-lg flex items-center justify-between gap-1.5">
-                        <span class="truncate"><i class="fa-solid fa-info-circle text-amber-400 mr-1"></i>{{ scanStatusMessage }}</span>
-                        <a v-if="logForm.fileUrl" :href="logForm.fileUrl" target="_blank" class="text-amber-400 hover:underline font-bold text-[10px] shrink-0">
-                            [Lihat Drive]
-                        </a>
-                    </div>
-                </div>
-
-                <form @submit.prevent="saveLog" class="space-y-3 text-xs">
-                    <!-- Manual Drive Attachment / Deferred Upload Row -->
-                    <div class="space-y-1 p-3 bg-slate-950 rounded-xl border border-slate-800/80">
-                        <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
-                            <span>Link Scan Nota (Google Drive URL):</span>
-                            <span v-if="pendingUploadFile" class="text-amber-400 font-mono text-[10px]">⏳ File lokal tersimpan (siap diunggah saat simpan)</span>
-                            <span v-else-if="logForm.fileUrl" class="text-emerald-400 font-mono text-[10px]">✓ Terhubung di Google Drive</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <input type="url" v-model="logForm.fileUrl" placeholder="https://drive.google.com/file/d/..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
-                            <label :class="isUploadingToDrive ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-emerald-600'" class="px-3 py-2.5 bg-emerald-700 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 active:scale-95 min-h-[40px]">
-                                <i class="fa-solid fa-file-arrow-up"></i>
-                                <span>{{ pendingUploadFile ? 'Ganti File' : 'Pilih File Nota' }}</span>
-                                <input type="file" accept="image/*,application/pdf" @change="manualDriveUpload" :disabled="isUploadingToDrive" class="hidden">
-                            </label>
+                        <div class="text-[10px] text-slate-400 text-center font-mono bg-slate-900/80 py-1 rounded-lg border border-slate-800/80">
+                            💡 Gunakan preview di sebelah kiri untuk mencocokkan data rincian nota dengan form
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
-                                <span>Armada Kendaraan *</span>
-                                <span v-if="detectedPlateMatch" class="text-[10px] text-amber-400 font-mono font-bold bg-amber-950 px-1.5 py-0.2 rounded border border-amber-800">
-                                    ✓ Deteksi AI: {{ detectedPlateMatch }}
-                                </span>
-                            </label>
-                            <select v-model="logForm.vehicleId" @change="onLogFormVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
-                                <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Bengkel Mitra *</label>
-                            <select v-model="logForm.workshop" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
-                                <option value="Nasmoco">Nasmoco</option>
-                                <option value="Montecarlo">Montecarlo</option>
-                                <option value="Zaini Auto">Zaini Auto</option>
-                                <option value="Rekanan">Rekanan</option>
-                                <option value="Bengkel Luar">Bengkel Luar</option>
-                            </select>
-                        </div>
-                    </div>
+                    <!-- FORM COLUMN -->
+                    <div :class="previewSource ? 'md:col-span-6' : ''" class="space-y-4">
+                        <!-- AI Gemini Vision OCR & Google Drive Auto Save Banner -->
+                        <div class="bg-slate-950 p-3 sm:p-3.5 rounded-xl border border-dashed border-sky-800/80 space-y-2">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-sky-400 text-lg"></i>
+                                    <div>
+                                        <span class="text-xs text-slate-300 font-bold flex items-center gap-1.5 flex-wrap">
+                                            <span>AI Gemini Vision & Drive Upload</span>
+                                            <span class="bg-amber-950 text-amber-400 border-amber-800 text-[9px] border px-1.5 py-0.2 rounded font-mono font-bold">
+                                                ⚡ Deferred Upload Saat Simpan
+                                            </span>
+                                        </span>
+                                        <span class="text-[10px] text-slate-400">Ekstraksi AI otomatis mendeteksi Plat Nomor & unggah ke Drive saat Simpan</span>
+                                    </div>
+                                </div>
+                                <label :class="(isScanningInvoice || isUploadingToDrive) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-sky-500'" class="w-full sm:w-auto px-3.5 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 shadow active:scale-95 min-h-[40px]">
+                                    <i v-if="isScanningInvoice" class="fa-solid fa-circle-notch fa-spin"></i>
+                                    <i v-else class="fa-solid fa-camera"></i>
+                                    <span>{{ isScanningInvoice ? 'Scanning AI...' : 'Scan Foto / PDF Nota' }}</span>
+                                    <input type="file" accept="image/*,application/pdf" @change="handleInvoiceScan" :disabled="isScanningInvoice || isUploadingToDrive" class="hidden">
+                                </label>
+                            </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Tanggal Servis *</label>
-                            <input type="date" v-model="logForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
+                            <div v-if="scanStatusMessage" class="text-[11px] font-mono px-2.5 py-1 bg-slate-900 border border-slate-800 text-sky-300 rounded-lg flex items-center justify-between gap-1.5">
+                                <span class="truncate"><i class="fa-solid fa-info-circle text-amber-400 mr-1"></i>{{ scanStatusMessage }}</span>
+                                <a v-if="logForm.fileUrl" :href="logForm.fileUrl" target="_blank" class="text-amber-400 hover:underline font-bold text-[10px] shrink-0">
+                                    [Lihat Drive]
+                                </a>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Odometer (KM) *</label>
-                            <input type="number" v-model.number="logForm.km" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
-                            <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1" v-if="getSelectedVehicleCurrentKm > 0">
-                                <i class="fa-solid fa-circle-info text-sky-400"></i>
-                                <span>Oddo pengajuan: <strong class="text-sky-300 font-mono">{{ getSelectedVehicleCurrentKm.toLocaleString('id-ID') }} KM</strong> (auto-fallback jika nota tak ada oddo)</span>
-                            </p>
-                        </div>
-                    </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">No. Invoice / Faktur</label>
-                            <input type="text" v-model="logForm.invoiceNo" placeholder="Contoh: INV-9002" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono">
-                            
-                            <!-- Realtime visual warning if invoice exists -->
-                            <div v-if="liveDuplicateWarning" class="mt-1.5 p-2 bg-amber-950/90 border border-amber-800 rounded-lg text-[10px] text-amber-300 flex items-start gap-1.5">
-                                <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
-                                <div>
-                                    <span class="font-bold block">Perhatian: No Invoice Sudah Ada!</span>
-                                    <span>Tercatat pada armada <strong>{{ liveDuplicateWarning.vehicleId }}</strong> tanggal {{ formatDateDisplay(liveDuplicateWarning.date) }}. Menyimpan akan mengonfirmasi pilihan untuk memperbarui data tersebut.</span>
+                        <form @submit.prevent="saveLog" class="space-y-3 text-xs">
+                            <!-- Manual Drive Attachment / Deferred Upload Row -->
+                            <div class="space-y-1 p-3 bg-slate-950 rounded-xl border border-slate-800/80">
+                                <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
+                                    <span>Link Scan Nota (Google Drive URL):</span>
+                                    <span v-if="pendingUploadFile" class="text-amber-400 font-mono text-[10px]">⏳ File lokal tersimpan (siap diunggah saat simpan)</span>
+                                    <span v-else-if="logForm.fileUrl" class="text-emerald-400 font-mono text-[10px]">✓ Terhubung di Google Drive</span>
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <input type="url" v-model="logForm.fileUrl" placeholder="https://drive.google.com/file/d/..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                                    <label :class="isUploadingToDrive ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-emerald-600'" class="px-3 py-2.5 bg-emerald-700 text-white rounded-xl text-xs font-bold transition shrink-0 flex items-center justify-center gap-1.5 active:scale-95 min-h-[40px]">
+                                        <i class="fa-solid fa-file-arrow-up"></i>
+                                        <span>{{ pendingUploadFile ? 'Ganti File' : 'Pilih File Nota' }}</span>
+                                        <input type="file" accept="image/*,application/pdf" @change="manualDriveUpload" :disabled="isUploadingToDrive" class="hidden">
+                                    </label>
                                 </div>
                             </div>
-                        </div>
 
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Kategori Jenis Servis *</label>
-                            <select v-model="logForm.isRoutine" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
-                                <option :value="true">🟢 Servis Berkala Rutin (Reset Status)</option>
-                                <option :value="false">🔵 Perbaikan Non-Rutin (Insidental)</option>
-                            </select>
-                        </div>
-                    </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
+                                        <span>Armada Kendaraan *</span>
+                                        <span v-if="detectedPlateMatch" class="text-[10px] text-amber-400 font-mono font-bold bg-amber-950 px-1.5 py-0.2 rounded border border-amber-800">
+                                            ✓ Deteksi AI: {{ detectedPlateMatch }}
+                                        </span>
+                                    </label>
+                                    <select v-model="logForm.vehicleId" @change="onLogFormVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                                        <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-slate-300 mb-1">Bengkel Mitra *</label>
+                                    <select v-model="logForm.workshop" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                                        <option value="Nasmoco">Nasmoco</option>
+                                        <option value="Montecarlo">Montecarlo</option>
+                                        <option value="Zaini Auto">Zaini Auto</option>
+                                        <option value="Rekanan">Rekanan</option>
+                                        <option value="Bengkel Luar">Bengkel Luar</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                    <div class="space-y-1.5 pt-2 border-t border-slate-800">
-                        <label class="block font-bold text-slate-300">Penggantian Komponen Vital:</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
-                                <input type="checkbox" value="filterOli" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
-                                <span class="text-[11px] text-slate-200">Filter Oli</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
-                                <input type="checkbox" value="aki" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
-                                <span class="text-[11px] text-slate-200">Aki / Battery</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
-                                <input type="checkbox" value="oliMatic" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
-                                <span class="text-[11px] text-slate-200">Oli Transmisi</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
-                                <input type="checkbox" value="ban" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
-                                <span class="text-[11px] text-slate-200">Ban / Tires</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
-                                <input type="checkbox" value="oliGardan" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
-                                <span class="text-[11px] text-slate-200">Oli Gardan</span>
-                            </label>
-                            <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
-                                <input type="checkbox" value="ac" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
-                                <span class="text-[11px] text-slate-200">Sistem AC</span>
-                            </label>
-                        </div>
-                    </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-bold text-slate-300 mb-1">Tanggal Servis *</label>
+                                    <input type="date" v-model="logForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-slate-300 mb-1">Odometer (KM) *</label>
+                                    <input type="number" v-model.number="logForm.km" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
+                                    <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1" v-if="getSelectedVehicleCurrentKm > 0">
+                                        <i class="fa-solid fa-circle-info text-sky-400"></i>
+                                        <span>Oddo pengajuan: <strong class="text-sky-300 font-mono">{{ getSelectedVehicleCurrentKm.toLocaleString('id-ID') }} KM</strong> (auto-fallback jika nota tak ada oddo)</span>
+                                    </p>
+                                </div>
+                            </div>
 
-                    <div class="space-y-2 pt-2 border-t border-slate-800">
-                        <div class="flex justify-between items-center">
-                            <label class="font-bold text-slate-300 flex items-center gap-2">
-                                <span>Rincian Sparepart & Biaya</span>
-                                <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded-lg border border-emerald-800/80 shadow-sm">
-                                    Total: Rp {{ logFormTotalCost.toLocaleString('id-ID') }}
-                                </span>
-                            </label>
-                            <button type="button" @click="addLogItem" class="text-sky-400 font-bold text-xs p-1">+ Tambah Item</button>
-                        </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-bold text-slate-300 mb-1">No. Invoice / Faktur</label>
+                                    <input type="text" v-model="logForm.invoiceNo" placeholder="Contoh: INV-9002" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono">
+                                    
+                                    <!-- Realtime visual warning if invoice exists -->
+                                    <div v-if="liveDuplicateWarning" class="mt-1.5 p-2 bg-amber-950/90 border border-amber-800 rounded-lg text-[10px] text-amber-300 flex items-start gap-1.5">
+                                        <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
+                                        <div>
+                                            <span class="font-bold block">Perhatian: No Invoice Sudah Ada!</span>
+                                            <span>Tercatat pada armada <strong>{{ liveDuplicateWarning.vehicleId }}</strong> tanggal {{ formatDateDisplay(liveDuplicateWarning.date) }}. Menyimpan akan mengonfirmasi pilihan untuk memperbarui data tersebut.</span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <datalist id="adminSparepartDatalist">
-                            <option v-for="sug in allSparepartSuggestions" :key="sug.name" :value="sug.name"></option>
-                        </datalist>
+                                <div>
+                                    <label class="block font-bold text-slate-300 mb-1">Kategori Jenis Servis *</label>
+                                    <select v-model="logForm.isRoutine" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                                        <option :value="true">🟢 Servis Berkala Rutin (Reset Status)</option>
+                                        <option :value="false">🔵 Perbaikan Non-Rutin (Insidental)</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                        <div class="flex flex-wrap gap-1 py-1">
-                            <span class="text-[10px] text-slate-400 self-center font-semibold">Saran:</span>
-                            <button type="button" v-for="sug in combinedQuickSuggestions.slice(0, 6)" :key="sug.name" @click="addQuickSparepart(sug)" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[10px] flex items-center gap-1 transition">
-                                + {{ sug.name }}
-                            </button>
-                        </div>
+                            <div class="space-y-1.5 pt-2 border-t border-slate-800">
+                                <label class="block font-bold text-slate-300">Penggantian Komponen Vital:</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                                        <input type="checkbox" value="filterOli" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
+                                        <span class="text-[11px] text-slate-200">Filter Oli</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                                        <input type="checkbox" value="aki" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
+                                        <span class="text-[11px] text-slate-200">Aki / Battery</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                                        <input type="checkbox" value="oliMatic" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
+                                        <span class="text-[11px] text-slate-200">Oli Transmisi</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                                        <input type="checkbox" value="ban" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
+                                        <span class="text-[11px] text-slate-200">Ban / Tires</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                                        <input type="checkbox" value="oliGardan" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
+                                        <span class="text-[11px] text-slate-200">Oli Gardan</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer">
+                                        <input type="checkbox" value="ac" v-model="logForm.replacedComponents" class="w-4 h-4 accent-amber-500 rounded">
+                                        <span class="text-[11px] text-slate-200">Sistem AC</span>
+                                    </label>
+                                </div>
+                            </div>
 
-                        <div v-for="(item, idx) in logForm.items" :key="idx" class="flex items-center gap-2">
-                            <input type="text" v-model="item.name" list="adminSparepartDatalist" placeholder="Nama sparepart..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-                            <input type="number" v-model.number="item.cost" placeholder="Rp..." required min="0" class="w-24 sm:w-28 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-emerald-400 font-bold">
-                            <button type="button" @click="removeLogItem(idx)" class="text-rose-400 p-2 min-w-[36px]"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
+                            <div class="space-y-2 pt-2 border-t border-slate-800">
+                                <div class="flex justify-between items-center">
+                                    <label class="font-bold text-slate-300 flex items-center gap-2">
+                                        <span>Rincian Sparepart & Biaya</span>
+                                        <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded-lg border border-emerald-800/80 shadow-sm">
+                                            Total: Rp {{ logFormTotalCost.toLocaleString('id-ID') }}
+                                        </span>
+                                    </label>
+                                    <button type="button" @click="addLogItem" class="text-sky-400 font-bold text-xs p-1">+ Tambah Item</button>
+                                </div>
 
-                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-800">
-                        <button type="button" @click="modals.log = false" :disabled="isUploadingToDrive" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
-                        <button type="submit" :disabled="isUploadingToDrive" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl min-h-[44px] flex items-center justify-center gap-2">
-                            <i v-if="isUploadingToDrive" class="fa-solid fa-spinner fa-spin"></i>
-                            <span>{{ isUploadingToDrive ? 'Mengunggah & Menyimpan...' : 'Simpan Log Servis' }}</span>
-                        </button>
-                    </div>
-                </form>
+                                <datalist id="adminSparepartDatalist">
+                                    <option v-for="sug in allSparepartSuggestions" :key="sug.name" :value="sug.name"></option>
+                                </datalist>
+
+                                <div class="flex flex-wrap gap-1 py-1">
+                                    <span class="text-[10px] text-slate-400 self-center font-semibold">Saran:</span>
+                                    <button type="button" v-for="sug in combinedQuickSuggestions.slice(0, 6)" :key="sug.name" @click="addQuickSparepart(sug)" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[10px] flex items-center gap-1 transition">
+                                        + {{ sug.name }}
+                                    </button>
+                                </div>
+
+                                <div v-for="(item, idx) in logForm.items" :key="idx" class="flex items-center gap-2">
+                                    <input type="text" v-model="item.name" list="adminSparepartDatalist" placeholder="Nama sparepart..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                                    <input type="number" v-model.number="item.cost" placeholder="Rp..." required min="0" class="w-24 sm:w-28 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-emerald-400 font-bold">
+                                    <button type="button" @click="removeLogItem(idx)" class="text-rose-400 p-2 min-w-[36px]"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-800">
+                                <button type="button" @click="modals.log = false" :disabled="isUploadingToDrive" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
+                                <button type="submit" :disabled="isUploadingToDrive" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl min-h-[44px] flex items-center justify-center gap-2">
+                                    <i v-if="isUploadingToDrive" class="fa-solid fa-spinner fa-spin"></i>
+                                    <span>{{ isUploadingToDrive ? 'Mengunggah & Menyimpan...' : 'Simpan Log Servis' }}</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div> <!-- End Form Column -->
+                </div> <!-- End Responsive Grid -->
             </div>
         </div>
 
@@ -1549,6 +1594,35 @@
                 logFormTotalCost() {
                     if (!this.logForm || !this.logForm.items || !Array.isArray(this.logForm.items)) return 0;
                     return this.logForm.items.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+                },
+                previewSource() {
+                    if (this.pendingUploadFile && this.pendingUploadFile.base64Data) {
+                        const mime = this.pendingUploadFile.mimeType || 'image/jpeg';
+                        return {
+                            type: mime.includes('pdf') ? 'pdf' : 'image',
+                            url: `data:${mime};base64,${this.pendingUploadFile.base64Data}`,
+                            name: this.pendingUploadFile.fileName || 'Nota Servis'
+                        };
+                    }
+                    if (this.logForm && this.logForm.fileUrl) {
+                        let url = String(this.logForm.fileUrl).trim();
+                        if (url.includes('drive.google.com') && url.includes('/file/d/')) {
+                            url = url.replace(/\/view.*$/, '/preview');
+                            return {
+                                type: 'iframe',
+                                url: url,
+                                name: 'Google Drive Document'
+                            };
+                        }
+                        if (url.startsWith('http://') || url.startsWith('https://')) {
+                            return {
+                                type: 'link',
+                                url: url,
+                                name: 'Tautan Google Drive'
+                            };
+                        }
+                    }
+                    return null;
                 },
                 getSelectedVehicleCurrentKm() {
                     const car = (this.vehicles || []).find(v => v.id === this.logForm?.vehicleId);
@@ -1780,6 +1854,9 @@
 
                 signInAnonymously(auth).then(() => {
                     this.initRealtimeSync();
+                }).catch(err => {
+                    console.error("Firebase Auth error:", err);
+                    this.cloudStatus = 'offline';
                 });
             },
 
@@ -1857,13 +1934,19 @@
                     if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
                     let s = String(dateStr).trim();
                     if (!s) return null;
-                    if (s.match(/^\d{2}-\d{2}-\d{4}$/)) {
-                        const parts = s.split('-');
+                    
+                    // Format DD-MM-YYYY or DD/MM/YYYY
+                    if (s.match(/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}$/)) {
+                        const parts = s.split(/[-\/]/);
                         return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
-                    } else if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        const parts = s.split('-');
+                    } 
+                    // Format YYYY-MM-DD or YYYY/MM/DD
+                    else if (s.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/)) {
+                        const cleanS = s.substring(0, 10);
+                        const parts = cleanS.split(/[-\/]/);
                         return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
                     }
+                    
                     const d = new Date(s);
                     return isNaN(d.getTime()) ? null : d;
                 },
@@ -2666,7 +2749,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                     this.showToast('Log transaksi invoice berhasil disimpan!');
                 },
 
-                async recalculateVehicleServiceStats(vehicleId) {
+                async recalculateVehicleServiceStats(vehicleId, excludeLogId = null) {
                     const car = this.vehicles.find(v => v.id === vehicleId || v.plate === vehicleId);
                     if (!car) return;
 
@@ -2674,11 +2757,13 @@ Ekstrak informasi berikut ke dalam format JSON:
                     car.targetWorkshop = '';
                     car.inServiceNotes = '';
 
-                    const vLogs = (this.serviceLogs || []).filter(l => (l.vehicleId === car.id || l.vehicleId === car.plate));
+                    const vLogs = (this.serviceLogs || []).filter(l => (l.vehicleId === car.id || l.vehicleId === car.plate) && l.id !== excludeLogId);
                     
                     // Highest Odometer overall
-                    const maxKm = vLogs.reduce((max, l) => Math.max(max, Number(l.km) || 0), Number(car.currentKm) || 0);
-                    car.currentKm = maxKm;
+                    const maxKm = vLogs.reduce((max, l) => Math.max(max, Number(l.km) || 0), 0);
+                    if (maxKm > Number(car.currentKm) || maxKm > 0) {
+                        car.currentKm = maxKm;
+                    }
 
                     // Routine services history
                     const routineLogs = vLogs.filter(l => l.isRoutine !== false);
@@ -2720,7 +2805,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                         async () => {
                             await remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
                             if (vehicleId) {
-                                await this.recalculateVehicleServiceStats(vehicleId);
+                                await this.recalculateVehicleServiceStats(vehicleId, logId);
                             }
                             this.showToast('Transaksi berhasil dihapus.');
                             if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
@@ -3095,27 +3180,31 @@ function doPost(e) {
                     if (!file) return;
                     const reader = new FileReader();
                     reader.onload = (evt) => {
-                        const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                        rows.forEach(r => {
-                            const plate = (r['Plat Nomor'] || r['Plat'] || '').toUpperCase().trim();
-                            if (plate) {
-                                const car = {
-                                    id: plate,
-                                    plate,
-                                    model: r['Model'] || r['Tipe'] || 'Mobil Dinas',
-                                    driver: r['Sopir'] || r['Pengemudi'] || '-',
-                                    category: r['Kategori'] || 'Operasional',
-                                    currentKm: Number(r['Odometer']) || 0,
-                                    isUnderService: false
-                                };
-                                set(ref(db, `artifacts/${appId}/public/data/vehicles/${plate}`), car);
-                            }
-                        });
-                        this.showToast('Import Excel Armada Selesai!');
+                        try {
+                            const data = new Uint8Array(evt.target.result);
+                            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                            rows.forEach(r => {
+                                const plate = (r['Plat Nomor'] || r['Plat'] || '').toUpperCase().trim();
+                                if (plate) {
+                                    const car = {
+                                        id: plate,
+                                        plate,
+                                        model: r['Model'] || r['Tipe'] || 'Mobil Dinas',
+                                        driver: r['Sopir'] || r['Pengemudi'] || '-',
+                                        category: r['Kategori'] || 'Operasional',
+                                        currentKm: Number(r['Odometer']) || 0,
+                                        isUnderService: false
+                                    };
+                                    set(ref(db, `artifacts/${appId}/public/data/vehicles/${plate}`), car);
+                                }
+                            });
+                            this.showToast('Import Excel Armada Selesai!');
+                        } catch(err) {
+                            this.showToast('Gagal impor Excel armada: ' + err.message);
+                        }
                     };
-                    reader.readAsBuffer(file);
+                    reader.readAsArrayBuffer(file);
                 },
                 triggerLogExcelImport() {
                     this.$refs.logExcelInput.click();
@@ -3125,45 +3214,61 @@ function doPost(e) {
                     if (!file) return;
                     const reader = new FileReader();
                     reader.onload = (evt) => {
-                        const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                        let importedCount = 0;
-                        let updatedCount = 0;
+                        try {
+                            const data = new Uint8Array(evt.target.result);
+                            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                            let importedCount = 0;
+                            let updatedCount = 0;
 
-                        rows.forEach((r, idx) => {
-                            const plate = (r['Plat Nomor'] || r['Plat'] || '').toUpperCase().trim();
-                            if (plate) {
-                                const rawInv = r['No Invoice'] || r['Invoice'] || '';
-                                const cleanInv = this.normalizeInvoice(rawInv);
+                            rows.forEach((r, idx) => {
+                                const plate = (r['Plat Nomor'] || r['Plat'] || '').toUpperCase().trim();
+                                if (plate) {
+                                    const rawInv = r['No Invoice'] || r['Invoice'] || '';
+                                    const cleanInv = this.normalizeInvoice(rawInv);
 
-                                // Check if invoice already exists in database
-                                const existingLog = cleanInv ? (this.serviceLogs || []).find(l => 
-                                    this.normalizeInvoice(l.invoiceNo) === cleanInv
-                                ) : null;
+                                    // Check if invoice already exists in database
+                                    const existingLog = cleanInv ? (this.serviceLogs || []).find(l => 
+                                        this.normalizeInvoice(l.invoiceNo) === cleanInv
+                                    ) : null;
 
-                                const logId = existingLog ? existingLog.id : ('LOG-' + Date.now() + '-' + idx);
-                                const cost = Number(r['Total Biaya'] || r['Biaya']) || 0;
-                                const log = {
-                                    id: logId,
-                                    vehicleId: plate,
-                                    workshop: r['Bengkel'] || 'Nasmoco',
-                                    date: r['Tanggal'] || new Date().toISOString().substring(0, 10),
-                                    km: Number(r['Odometer']) || 0,
-                                    invoiceNo: rawInv,
-                                    isRoutine: true,
-                                    items: [{ name: r['Rincian'] || 'Servis Maintenance', cost }],
-                                    totalCost: cost
-                                };
+                                    const logId = existingLog ? existingLog.id : ('LOG-' + Date.now() + '-' + idx);
+                                    const cost = Number(r['Total Biaya'] || r['Biaya']) || 0;
+                                    
+                                    let dateVal = r['Tanggal'];
+                                    if (dateVal) {
+                                        const parsedD = this.parseLocalDate(dateVal);
+                                        if (parsedD) {
+                                            const y = parsedD.getFullYear();
+                                            const m = String(parsedD.getMonth() + 1).padStart(2, '0');
+                                            const d = String(parsedD.getDate()).padStart(2, '0');
+                                            dateVal = `${y}-${m}-${d}`;
+                                        }
+                                    }
 
-                                set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), log);
-                                this.recalculateVehicleServiceStats(plate);
+                                    const log = {
+                                        id: logId,
+                                        vehicleId: plate,
+                                        workshop: r['Bengkel'] || 'Nasmoco',
+                                        date: dateVal || new Date().toISOString().substring(0, 10),
+                                        km: Number(r['Odometer']) || 0,
+                                        invoiceNo: rawInv,
+                                        isRoutine: true,
+                                        items: [{ name: r['Rincian'] || 'Servis Maintenance', cost }],
+                                        totalCost: cost
+                                    };
 
-                                if (existingLog) updatedCount++;
-                                else importedCount++;
-                            }
-                        });
-                        this.showToast(`Import Excel Selesai! (${importedCount} baru, ${updatedCount} diperbarui)`);
+                                    set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), log);
+                                    this.recalculateVehicleServiceStats(plate);
+
+                                    if (existingLog) updatedCount++;
+                                    else importedCount++;
+                                }
+                            });
+                            this.showToast(`Import Excel Selesai! (${importedCount} baru, ${updatedCount} diperbarui)`);
+                        } catch(err) {
+                            this.showToast('Gagal impor Excel transaksi: ' + err.message);
+                        }
                     };
                     reader.readAsArrayBuffer(file);
                 },
