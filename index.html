@@ -1301,17 +1301,6 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block font-bold text-slate-300 mb-1">Tanggal Servis *</label>
-                            <input type="date" v-model="logForm.date" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-300 mb-1">Odometer (KM) *</label>
-                            <input type="number" v-model.number="logForm.km" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
                             <label class="block font-bold text-slate-300 mb-1">No. Invoice / Faktur</label>
                             <input type="text" v-model="logForm.invoiceNo" placeholder="Contoh: INV-9002" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono">
                             
@@ -2231,7 +2220,8 @@
                 },
 
                 async uploadFileToGoogleDrive(base64Data, mimeType, fileName) {
-                    if (!this.settings.sheetsWebhookUrl) {
+                    const webhookUrl = String(this.settings.sheetsWebhookUrl || '').trim();
+                    if (!webhookUrl) {
                         this.showToast('⚠️ Webhook Google Apps Script belum diisi di Pengaturan.');
                         this.scanStatusMessage = 'URL Apps Script belum dikonfigurasi di Pengaturan.';
                         return null;
@@ -2252,7 +2242,7 @@
                             date: this.logForm.date || new Date().toISOString().substring(0, 10)
                         };
 
-                        const res = await fetch(this.settings.sheetsWebhookUrl, {
+                        const res = await fetch(webhookUrl, {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify(payload)
@@ -2619,23 +2609,28 @@ Ekstrak informasi berikut ke dalam format JSON:
 
                 async executeSaveLog() {
                     // Deferred Google Drive Upload on Save
-                    if (this.pendingUploadFile && this.settings.sheetsWebhookUrl) {
-                        this.isUploadingToDrive = true;
-                        this.scanStatusMessage = 'Mengunggah berkas nota ke Google Drive...';
-                        try {
-                            const driveUrl = await this.uploadFileToGoogleDrive(
-                                this.pendingUploadFile.base64Data,
-                                this.pendingUploadFile.mimeType,
-                                this.pendingUploadFile.fileName
-                            );
-                            if (driveUrl) {
-                                this.logForm.fileUrl = driveUrl;
+                    if (this.pendingUploadFile) {
+                        const webhookUrl = String(this.settings.sheetsWebhookUrl || '').trim();
+                        if (!webhookUrl) {
+                            this.showToast('⚠️ Webhook URL Apps Script belum diisi di Pengaturan! Berkas gagal diunggah ke Drive.');
+                        } else {
+                            this.isUploadingToDrive = true;
+                            this.scanStatusMessage = 'Mengunggah berkas nota ke Google Drive...';
+                            try {
+                                const driveUrl = await this.uploadFileToGoogleDrive(
+                                    this.pendingUploadFile.base64Data,
+                                    this.pendingUploadFile.mimeType,
+                                    this.pendingUploadFile.fileName
+                                );
+                                if (driveUrl) {
+                                    this.logForm.fileUrl = driveUrl;
+                                }
+                            } catch (err) {
+                                console.error("Gagal mengunggah ke Google Drive saat simpan:", err);
+                                this.showToast("⚠️ Gagal Upload ke Drive, data log tetap disimpan.");
+                            } finally {
+                                this.isUploadingToDrive = false;
                             }
-                        } catch (err) {
-                            console.error("Gagal mengunggah ke Google Drive saat simpan:", err);
-                            this.showToast("⚠️ Gagal Upload ke Drive, data log tetap disimpan.");
-                        } finally {
-                            this.isUploadingToDrive = false;
                         }
                     }
 
@@ -2883,7 +2878,12 @@ function doPost(e) {
       var safeName = (data.vehicleId ? data.vehicleId + "_" : "") + (data.invoiceNo ? data.invoiceNo + "_" : "") + (data.fileName || "nota.jpg");
       var blob = Utilities.newBlob(decoded, data.mimeType, safeName);
       var file = targetFolder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      
+      try {
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch(e) {
+        Logger.log("Sharing permission note: " + e.toString());
+      }
 
       return ContentService.createTextOutput(JSON.stringify({
         status: 'success',
@@ -3115,7 +3115,7 @@ function doPost(e) {
                         });
                         this.showToast('Import Excel Armada Selesai!');
                     };
-                    reader.readAsArrayBuffer(file);
+                    reader.readAsBuffer(file);
                 },
                 triggerLogExcelImport() {
                     this.$refs.logExcelInput.click();
