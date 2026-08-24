@@ -93,7 +93,6 @@
             </div>
         </header>
 
-        <!-- Unauthenticated Login View -->
         <div v-if="!isAuthenticated" class="flex-1 flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
                 <div class="text-center space-y-2">
@@ -179,7 +178,6 @@
             <!-- Main Content Container -->
             <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
-                <!-- Overview Tab -->
                 <section v-if="currentTab === 'overview'" class="space-y-4 sm:space-y-6">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
@@ -311,6 +309,164 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section v-if="currentTab === 'approvals'" class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-lg">
+                        <div>
+                            <h2 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400"></i>
+                                <span>Antrean Pengajuan Servis Pengemudi</span>
+                            </h2>
+                            <p class="text-xs text-slate-400">Verifikasi dan input invoice resmi untuk menyelesaikan proses pengajuan servis</p>
+                        </div>
+                        <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 border border-amber-800 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+                            {{ inServiceVehicles.length }} Antrean Aktif
+                        </span>
+                    </div>
+
+                    <div v-if="inServiceVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="car in inServiceVehicles" :key="car.id" class="bg-slate-900 border border-amber-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg">
+                            <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+                                <div>
+                                    <span class="px-2.5 py-1 bg-amber-950 border border-amber-800 text-amber-400 font-mono font-bold text-xs rounded-lg uppercase">
+                                        {{ car.plate }}
+                                    </span>
+                                    <h3 class="font-bold text-base text-white mt-1.5">{{ car.model }}</h3>
+                                    <p class="text-xs text-slate-400">Pengemudi: {{ car.driver || 'Pengemudi UNS' }}</p>
+                                </div>
+                                <span class="px-2 py-1 bg-sky-950 text-sky-400 border border-sky-800 text-[10px] font-bold rounded-full font-mono animate-pulse">
+                                    PENDING APPROVAL
+                                </span>
+                            </div>
+
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs font-mono">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Bengkel Tujuan:</span>
+                                    <span class="text-white font-bold">{{ car.targetWorkshop || 'Nasmoco' }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Tanggal Pengajuan:</span>
+                                    <span class="text-amber-400 font-bold">{{ formatDateDisplay(car.inServiceDate) || '-' }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Odometer Terbaca:</span>
+                                    <span class="text-sky-400 font-bold">{{ (car.currentKm || 0).toLocaleString('id-ID') }} KM</span>
+                                </div>
+                                <div class="flex justify-between border-t border-slate-800/80 pt-1.5">
+                                    <span class="text-slate-400">Tanggal Servis Terakhir:</span>
+                                    <span class="text-slate-200 font-bold">{{ getLastServiceDate(car) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Tenggat Odometer (+7.000 KM):</span>
+                                    <span class="text-emerald-400 font-bold">{{ getLastServiceKm(car) > 0 ? (getLastServiceKm(car) + 7000).toLocaleString('id-ID') + ' KM' : '7.000 KM' }}</span>
+                                </div>
+                                <div v-if="car.inServiceNotes" class="pt-1.5 border-t border-slate-800/80 text-slate-300 font-sans italic">
+                                    "{{ car.inServiceNotes }}"
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <button @click="openProcessInvoiceModal(car)" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[44px]">
+                                    <i class="fa-solid fa-file-circle-check"></i>
+                                    <span>Setujui & Input Invoice</span>
+                                </button>
+                                <button @click="rejectInService(car)" class="px-3 py-2.5 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 border border-slate-700 text-slate-300 font-bold rounded-xl text-xs transition active:scale-95 min-h-[44px]">
+                                    Batal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-12 text-center text-slate-500 space-y-2 shadow-xl">
+                        <i class="fa-solid fa-circle-check text-3xl text-emerald-500/50"></i>
+                        <p class="text-sm font-bold text-slate-300">Tidak ada pengajuan servis dalam antrean.</p>
+                        <p class="text-xs">Pengajuan baru dari aplikasi pengemudi akan otomatis muncul di sini secara real-time.</p>
+                    </div>
+                </section>
+
+                <section v-if="currentTab === 'vehicles'" class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-lg">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="text" v-model="searchVehicle" placeholder="Cari Plat, Tipe, Sopir..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:flex items-center gap-2">
+                            <button @click="openUpdateKmModal(null)" class="px-3 py-2.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[42px]">
+                                <i class="fa-solid fa-gauge-high"></i> <span>Update Odometer</span>
+                            </button>
+                            <button @click="triggerVehicleExcelImport" class="px-3 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[42px]">
+                                <i class="fa-solid fa-file-excel"></i> <span>Import Excel</span>
+                            </button>
+                            <input type="file" ref="vehicleExcelInput" accept=".xlsx, .xls" @change="importVehiclesExcel" class="hidden">
+
+                            <button @click="openAddVehicleModal" class="col-span-2 sm:col-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[42px]">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Tambah Armada</span>
+                            </button>
+                            <button @click="exportVehiclesExcel" class="col-span-2 sm:col-auto px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-xl text-xs transition flex items-center justify-center active:scale-95 min-h-[42px]">
+                                <i class="fa-solid fa-file-excel text-emerald-400 mr-1"></i> Export Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                        <div class="overflow-x-auto touch-scroll">
+                            <table class="w-full text-left text-xs text-slate-300 min-w-[650px]">
+                                <thead class="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3">Plat Nomor</th>
+                                        <th class="p-3">Model Armada</th>
+                                        <th class="p-3">Kategori</th>
+                                        <th class="p-3">Pengemudi</th>
+                                        <th class="p-3">Odometer Terkini</th>
+                                        <th class="p-3">Status Maintenance</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody v-if="filteredVehiclesList.length > 0" class="divide-y divide-slate-800 font-medium">
+                                    <tr v-for="car in filteredVehiclesList" :key="car.id" class="hover:bg-slate-800/40 transition">
+                                        <td class="p-3 font-mono font-extrabold text-amber-400 whitespace-nowrap">{{ car.plate }}</td>
+                                        <td class="p-3 font-bold text-white whitespace-nowrap">{{ car.model }}</td>
+                                        <td class="p-3 whitespace-nowrap"><span class="px-2 py-0.5 bg-slate-950 border border-slate-800 rounded text-[10px] font-bold text-sky-400">{{ car.category || 'Operasional' }}</span></td>
+                                        <td class="p-3 text-slate-300 whitespace-nowrap">{{ car.driver || '-' }}</td>
+                                        <td class="p-3 font-mono text-sky-400 font-bold whitespace-nowrap">
+                                            <button @click="openUpdateKmModal(car)" class="hover:underline flex items-center gap-1" title="Klik untuk update Odometer">
+                                                <span>{{ (Number(car.currentKm) || 0).toLocaleString('id-ID') }} KM</span>
+                                                <i class="fa-solid fa-pen-to-square text-[10px] text-slate-500"></i>
+                                            </button>
+                                        </td>
+                                        <td class="p-3 whitespace-nowrap">
+                                            <span v-if="car.isUnderService" class="px-2 py-0.5 bg-sky-950 text-sky-400 border border-sky-800 rounded-full text-[10px] font-bold animate-pulse">
+                                                SEDANG SERVIS
+                                            </span>
+                                            <span v-else class="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full text-[10px] font-bold">
+                                                NORMAL
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-center whitespace-nowrap">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <button @click="editVehicle(car)" class="p-2 text-amber-400 hover:text-amber-300 active:scale-95 min-w-[36px] min-h-[36px]" title="Edit">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button @click="confirmDeleteVehicleModal(car)" class="p-2 text-rose-400 hover:text-rose-300 active:scale-95 min-w-[36px] min-h-[36px]" title="Hapus">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tbody v-else>
+                                    <tr>
+                                        <td colspan="7" class="p-8 text-center text-slate-500 font-medium">
+                                            Tidak ada data armada yang sesuai filter.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -463,7 +619,7 @@
                         </div>
                     </div>
 
-                    <!-- MOBILE CARD LIST VIEW -->
+                    <!-- MOBILE CARD LIST VIEW WITH PAGINATION -->
                     <div class="block md:hidden space-y-3">
                         <div v-if="filteredServiceLogs.length > 0" class="space-y-3">
                             <div v-for="(log, idx) in paginatedServiceLogs" :key="log.id || idx" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
@@ -532,7 +688,6 @@
                     </div>
                 </section>
 
-                <!-- Monthly Recap Tab -->
                 <section v-if="currentTab === 'recap'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-2">
                         <div>
@@ -589,7 +744,6 @@
                     </div>
                 </section>
 
-                <!-- SPJ Tab -->
                 <section v-if="currentTab === 'spj'" class="space-y-4 sm:space-y-6">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
@@ -646,7 +800,6 @@
                     </div>
                 </section>
 
-                <!-- Settings Tab -->
                 <section v-if="currentTab === 'settings'" class="space-y-4 sm:space-y-6 max-w-3xl">
                     <!-- Gemini Vision Keys & Health Monitor -->
                     <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4 sm:space-y-5">
@@ -818,7 +971,6 @@
             </main>
         </div>
 
-        <!-- MODAL: ADD / EDIT VEHICLE -->
         <div v-if="modals.vehicle" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -859,7 +1011,6 @@
             </div>
         </div>
 
-        <!-- MODAL: UPDATE ODOMETER -->
         <div v-if="modals.updateKm" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -885,7 +1036,6 @@
             </div>
         </div>
 
-        <!-- MODAL: DIGITAL INVOICE VIEWER -->
         <div v-if="modals.invoice && selectedLog" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll shadow-2xl">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -953,7 +1103,6 @@
             </div>
         </div>
 
-        <!-- MODAL: INTERACTIVE WORKSHOP BREAKDOWN -->
         <div v-if="modals.workshopDetail && selectedWorkshopDetail" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll shadow-2xl">
                 <div class="flex justify-between items-start border-b border-slate-800 pb-3">
@@ -1047,7 +1196,6 @@
             </div>
         </div>
 
-        <!-- MODAL: CREATE / PROCESS SERVICE LOG -->
         <div v-if="modals.log" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
             <div :class="previewSource ? 'md:max-w-5xl lg:max-w-6xl' : 'max-w-xl'" class="bg-slate-900 border border-slate-800 w-full rounded-2xl p-4 sm:p-6 space-y-4 my-auto max-h-[92vh] overflow-y-auto touch-scroll transition-all duration-300">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1058,7 +1206,7 @@
                     <button @click="modals.log = false" class="text-slate-400 hover:text-white p-2 active:scale-95"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
 
-                <!-- 2-Column Responsive Layout: Desktop Preview Panel & Mobile Preview Card -->
+                <!-- 2-Column Responsive Layout -->
                 <div class="grid grid-cols-1" :class="{'md:grid-cols-12 md:gap-6': previewSource}">
 
                     <!-- DESKTOP PREVIEW PANEL -->
@@ -1306,7 +1454,6 @@
             </div>
         </div>
 
-        <!-- Confirm Modal -->
         <div v-if="confirmModal.show" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl">
                 <div class="text-center space-y-2">
@@ -1327,7 +1474,7 @@
             </div>
         </div>
 
-        <!-- Floating Toast -->
+        <!-- Floating Toast Notification -->
         <div v-if="toast.show" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-50 bg-amber-500 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 max-w-md mx-auto sm:mx-0">
             <i class="fa-solid fa-circle-check text-base"></i>
             <span>{{ toast.message }}</span>
@@ -1335,7 +1482,6 @@
 
     </div> <!-- END OF #app -->
 
-    <!-- Scripts placed STRICTLY outside #app -->
     <script type="module">
         import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.esm-browser.prod.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1537,19 +1683,19 @@
                     return [...this.allSparepartSuggestions].sort((a, b) => b.count - a.count).slice(0, 12);
                 },
                 pendingApprovalsCount() {
-                    return this.vehicles.filter(v => v.isUnderService).length;
+                    return (this.vehicles || []).filter(v => v.isUnderService).length;
                 },
                 inServiceVehicles() {
-                    return this.vehicles.filter(v => v.isUnderService);
+                    return (this.vehicles || []).filter(v => v.isUnderService);
                 },
                 expiredCount() {
-                    return this.vehicles.filter(v => {
+                    return (this.vehicles || []).filter(v => {
                         const diff = (Number(v.currentKm) || 0) - (Number(v.lastServiceKm) || 0);
                         return diff >= 7000;
                     }).length;
                 },
                 totalSpending() {
-                    return this.serviceLogs.reduce((sum, l) => sum + (Number(l.totalCost) || 0), 0);
+                    return (this.serviceLogs || []).reduce((sum, l) => sum + (Number(l.totalCost) || 0), 0);
                 },
                 filteredServiceLogs() {
                     let logs = [...(this.serviceLogs || [])];
@@ -1605,9 +1751,9 @@
                     return this.filteredServiceLogs.reduce((acc, curr) => acc + (Number(curr.totalCost) || 0), 0);
                 },
                 filteredVehiclesList() {
-                    if (!this.searchVehicle) return this.vehicles;
+                    if (!this.searchVehicle) return this.vehicles || [];
                     const q = this.searchVehicle.toLowerCase();
-                    return this.vehicles.filter(v => 
+                    return (this.vehicles || []).filter(v => 
                         (v.plate && v.plate.toLowerCase().includes(q)) ||
                         (v.model && v.model.toLowerCase().includes(q)) ||
                         (v.driver && v.driver.toLowerCase().includes(q))
@@ -1615,7 +1761,7 @@
                 },
                 workshopDistribution() {
                     const map = {};
-                    this.serviceLogs.forEach(l => {
+                    (this.serviceLogs || []).forEach(l => {
                         const ws = l.workshop || 'Bengkel Luar';
                         if (!map[ws]) map[ws] = { name: ws, count: 0, total: 0 };
                         map[ws].count++;
@@ -1625,10 +1771,10 @@
                 },
                 topSpendVehicles() {
                     const map = {};
-                    this.vehicles.forEach(v => {
+                    (this.vehicles || []).forEach(v => {
                         map[v.id] = { plate: v.plate, model: v.model, driver: v.driver, totalCost: 0 };
                     });
-                    this.serviceLogs.forEach(l => {
+                    (this.serviceLogs || []).forEach(l => {
                         if (map[l.vehicleId]) {
                             map[l.vehicleId].totalCost += (Number(l.totalCost) || 0);
                         }
@@ -1658,7 +1804,7 @@
                     return this.totalSpjPkp + this.totalSpjNonPkp;
                 },
                 upcomingPeriodicServices() {
-                    return this.vehicles.map(v => {
+                    return (this.vehicles || []).map(v => {
                         let lastDate = v.lastServiceDate || '';
                         
                         const routineLogs = (this.serviceLogs || []).filter(l => 
@@ -1793,11 +1939,11 @@
                     return String(str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                 },
                 getVehicleModel(vehicleId) {
-                    const car = this.vehicles.find(v => v.id === vehicleId || v.plate === vehicleId);
+                    const car = (this.vehicles || []).find(v => v.id === vehicleId || v.plate === vehicleId);
                     return car ? car.model : 'Kendaraan Operasional';
                 },
                 getVehicleDriver(vehicleId) {
-                    const car = this.vehicles.find(v => v.id === vehicleId || v.plate === vehicleId);
+                    const car = (this.vehicles || []).find(v => v.id === vehicleId || v.plate === vehicleId);
                     return car && car.driver ? car.driver : 'Pengemudi UNS';
                 },
                 getLastServiceDate(car) {
@@ -1870,6 +2016,7 @@
                     const d = new Date(s);
                     return isNaN(d.getTime()) ? null : d;
                 },
+
                 initRealtimeSync() {
                     const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
                     const lRef = ref(db, `artifacts/${appId}/public/data/logs`);
@@ -1921,7 +2068,7 @@
                         currentKm: Number(this.vehicleForm.currentKm) || 0,
                         isUnderService: false
                     };
-                    const existing = this.vehicles.find(v => v.id === vehicleId);
+                    const existing = (this.vehicles || []).find(v => v.id === vehicleId);
                     if (existing) {
                         vehicleData.lastServiceKm = existing.lastServiceKm || 0;
                         vehicleData.lastServiceDate = existing.lastServiceDate || '';
@@ -1955,7 +2102,7 @@
                     if (car) {
                         this.updateKmForm.vehicleId = car.id;
                         this.updateKmForm.newKm = Number(car.currentKm) || 0;
-                    } else if (this.vehicles.length > 0) {
+                    } else if (this.vehicles && this.vehicles.length > 0) {
                         this.updateKmForm.vehicleId = this.vehicles[0].id;
                         this.updateKmForm.newKm = Number(this.vehicles[0].currentKm) || 0;
                     } else {
@@ -1965,13 +2112,13 @@
                     this.modals.updateKm = true;
                 },
                 onUpdateKmCarChange() {
-                    const car = this.vehicles.find(v => v.id === this.updateKmForm.vehicleId);
+                    const car = (this.vehicles || []).find(v => v.id === this.updateKmForm.vehicleId);
                     if (car) {
                         this.updateKmForm.newKm = Number(car.currentKm) || 0;
                     }
                 },
                 async saveUpdateKm() {
-                    const car = this.vehicles.find(v => v.id === this.updateKmForm.vehicleId);
+                    const car = (this.vehicles || []).find(v => v.id === this.updateKmForm.vehicleId);
                     if (car) {
                         car.currentKm = Number(this.updateKmForm.newKm) || 0;
                         await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
@@ -1982,6 +2129,7 @@
                     }
                     this.modals.updateKm = false;
                 },
+
                 getComponentNameLabel(key) {
                     if (!key) return '';
                     const map = { filterOli: 'Filter Oli', aki: 'Aki / Battery', oliMatic: 'Oli Transmisi', ban: 'Ban', oliGardan: 'Oli Gardan', ac: 'Sistem AC' };
@@ -2009,7 +2157,7 @@
                 openCreateLogModal() {
                     this.pendingUploadFile = null;
                     this.detectedPlateMatch = '';
-                    const initialCar = this.vehicles.length ? this.vehicles[0] : null;
+                    const initialCar = (this.vehicles && this.vehicles.length) ? this.vehicles[0] : null;
                     this.logForm = {
                         id: null,
                         vehicleId: initialCar ? initialCar.id : '',
@@ -2092,6 +2240,7 @@
                     }
                     this.logForm.items.push({ name: sug.name, cost: Number(sug.cost) || 0 });
                 },
+
                 getGeminiKeys() {
                     const raw = this.settings.geminiApiKey || '';
                     if (!raw.trim()) return [];
@@ -2484,7 +2633,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                                             let matchedVehicleName = '';
                                             if (parsed.plate) {
                                                 const rawPlateClean = String(parsed.plate).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-                                                const matchedCar = this.vehicles.find(v => {
+                                                const matchedCar = (this.vehicles || []).find(v => {
                                                     const pClean = String(v.plate || v.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
                                                     return pClean && rawPlateClean && (pClean === rawPlateClean || pClean.includes(rawPlateClean) || rawPlateClean.includes(pClean));
                                                 });
@@ -2659,7 +2808,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                 },
 
                 async recalculateVehicleServiceStats(vehicleId, excludeLogId = null) {
-                    const car = this.vehicles.find(v => v.id === vehicleId || v.plate === vehicleId);
+                    const car = (this.vehicles || []).find(v => v.id === vehicleId || v.plate === vehicleId);
                     if (!car) return;
 
                     car.isUnderService = false;
@@ -2703,7 +2852,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                     this.showToast(`Pengajuan servis ${car.plate} dibatalkan.`);
                 },
                 confirmDeleteLogModal(logId) {
-                    const logToDelete = this.serviceLogs.find(l => l.id === logId);
+                    const logToDelete = (this.serviceLogs || []).find(l => l.id === logId);
                     const vehicleId = logToDelete ? logToDelete.vehicleId : null;
 
                     this.askConfirmation(
@@ -2721,6 +2870,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                         }
                     );
                 },
+
                 getMonthName(m) {
                     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
                     return months[m - 1];
@@ -2946,8 +3096,8 @@ function doPost(e) {
                             action: 'SYNC_LOGS',
                             timestamp: new Date().toISOString(),
                             totalSpending: this.totalSpending,
-                            vehiclesCount: this.vehicles.length,
-                            logsCount: this.serviceLogs.length,
+                            vehiclesCount: (this.vehicles || []).length,
+                            logsCount: (this.serviceLogs || []).length,
                             vehicles: this.vehicles,
                             logs: this.serviceLogs
                         };
@@ -3109,13 +3259,13 @@ function doPost(e) {
                     reader.readAsArrayBuffer(file);
                 },
                 exportVehiclesExcel() {
-                    const ws = XLSX.utils.json_to_sheet(this.vehicles);
+                    const ws = XLSX.utils.json_to_sheet(this.vehicles || []);
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "Armada");
                     XLSX.writeFile(wb, "Master_Armada_Admin.xlsx");
                 },
                 exportLogsExcel() {
-                    const ws = XLSX.utils.json_to_sheet(this.serviceLogs);
+                    const ws = XLSX.utils.json_to_sheet(this.serviceLogs || []);
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "MasterLogs");
                     XLSX.writeFile(wb, "Master_Transaksi_Admin.xlsx");
