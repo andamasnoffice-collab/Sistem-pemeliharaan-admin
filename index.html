@@ -82,7 +82,7 @@
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                 <div class="flex items-center gap-2 bg-slate-950 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] sm:text-xs font-mono">
                     <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="cloudStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'"></span>
-                    <span class="text-slate-300 hidden sm:inline">{{ cloudStatus === 'connected' ? 'Firebase Cloud Active' : 'Offline / Reconnecting' }}</span>
+                    <span class="text-slate-300 hidden sm:inline">{{ cloudStatus === 'connected' ? 'Firebase Cloud Active' : 'Offline / Menghubungkan' }}</span>
                     <span class="text-slate-300 sm:hidden">{{ cloudStatus === 'connected' ? 'Cloud' : 'Offline' }}</span>
                 </div>
 
@@ -93,6 +93,7 @@
             </div>
         </header>
 
+        <!-- Authentication Container -->
         <div v-if="!isAuthenticated" class="flex-1 flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
                 <div class="text-center space-y-2">
@@ -178,6 +179,7 @@
             <!-- Main Content Container -->
             <main class="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
 
+                <!-- OVERVIEW TAB -->
                 <section v-if="currentTab === 'overview'" class="space-y-4 sm:space-y-6">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
@@ -313,6 +315,7 @@
                     </div>
                 </section>
 
+                <!-- APPROVALS TAB -->
                 <section v-if="currentTab === 'approvals'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-lg">
                         <div>
@@ -387,6 +390,7 @@
                     </div>
                 </section>
 
+                <!-- VEHICLES TAB -->
                 <section v-if="currentTab === 'vehicles'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-lg">
                         <div class="relative flex-1">
@@ -471,6 +475,7 @@
                     </div>
                 </section>
 
+                <!-- LOGS TAB -->
                 <section v-if="currentTab === 'logs'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-3">
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -688,6 +693,7 @@
                     </div>
                 </section>
 
+                <!-- RECAP TAB -->
                 <section v-if="currentTab === 'recap'" class="space-y-4">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex items-center justify-between gap-2">
                         <div>
@@ -744,6 +750,7 @@
                     </div>
                 </section>
 
+                <!-- SPJ TAB -->
                 <section v-if="currentTab === 'spj'" class="space-y-4 sm:space-y-6">
                     <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
@@ -800,6 +807,7 @@
                     </div>
                 </section>
 
+                <!-- SETTINGS TAB -->
                 <section v-if="currentTab === 'settings'" class="space-y-4 sm:space-y-6 max-w-3xl">
                     <!-- Gemini Vision Keys & Health Monitor -->
                     <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4 sm:space-y-5">
@@ -813,20 +821,20 @@
                             </div>
                             <span class="text-[10px] font-mono bg-sky-950 text-sky-400 border border-sky-800 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5">
                                 <i class="fa-solid fa-server text-[9px]"></i>
-                                {{ getGeminiKeys().length }} Keys Terpasang
+                                {{ getGeminiKeys().length > 0 ? getGeminiKeys().length + ' Keys Terpasang' : 'Default AI Terpasang' }}
                             </span>
                         </div>
 
                         <div class="space-y-3 text-xs">
                             <div>
                                 <label class="block font-bold text-slate-300 mb-1 flex items-center justify-between">
-                                    <span>Daftar Gemini API Keys / GCP Tokens:</span>
-                                    <span class="text-[10px] text-amber-400 font-mono">1 Key Per Baris (AQ..., AIzaSy...)</span>
+                                    <span>Daftar Gemini API Keys (Opsional Tambahan Key):</span>
+                                    <span class="text-[10px] text-amber-400 font-mono">1 Key Per Baris (AIzaSy...)</span>
                                 </label>
-                                <textarea v-model="settings.geminiApiKey" rows="3" placeholder="AIzaSy... atau AQ.Ab8RN6... (API Key Utama)&#10;AQ... (API Key Backup 1)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-sky-500 leading-relaxed"></textarea>
+                                <textarea v-model="settings.geminiApiKey" rows="3" placeholder="AIzaSy... (API Key Pribadi / Tambahan)&#10;AIzaSy... (API Key Backup)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-sky-500 leading-relaxed"></textarea>
                                 <p class="text-[11px] text-amber-400/90 mt-1 flex items-center gap-1.5">
                                     <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                                    <span>Mendukung API Key AI Studio (<code class="bg-amber-950 px-1 py-0.5 rounded border border-amber-800 text-amber-300 font-mono">AIzaSy...</code>) maupun Google Cloud Token (<code class="bg-amber-950 px-1 py-0.5 rounded border border-amber-800 text-amber-300 font-mono">AQ...</code>). Buat API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold text-sky-400 hover:text-sky-300">Google AI Studio</a>.</span>
+                                    <span>Bisa dikosongkan untuk memakai AI bawaan Canvas, atau buat API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold text-sky-400 hover:text-sky-300">Google AI Studio</a>.</span>
                                 </p>
                             </div>
 
@@ -901,44 +909,23 @@
                                 <input type="url" v-model="settings.sheetsWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
                             </div>
 
-                            <div class="bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 space-y-2 text-xs">
-                                <span class="font-bold text-amber-400 block text-xs flex items-center gap-1.5">
-                                    <i class="fa-solid fa-circle-exclamation"></i>
-                                    <span>Petunjuk Penting Deployment Google Apps Script (Solusi Eror createFolder):</span>
-                                </span>
-                                <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
-                                    <li>Buka <a href="https://script.google.com" target="_blank" class="text-sky-400 underline font-bold">Google Apps Script</a> dan buka proyek skrip Anda.</li>
-                                    <li>Klik tombol <strong>"Salin Kode Apps Script"</strong> di bawah lalu ganti seluruh isi kode lama dengan kode baru.</li>
-                                    <li class="text-amber-300 font-bold bg-amber-950/40 p-2 rounded border border-amber-800/50 my-1 space-y-1">
-                                        <p class="text-amber-400 font-extrabold"><i class="fa-solid fa-key mr-1"></i> LANGKAH WAJIB MEMBERIKAN IZIN CREATE FOLDER:</p>
-                                        <p class="font-normal text-slate-200">a. Di baris tombol atas Apps Script, ganti pilihan fungsi dari <code class="bg-slate-900 px-1 text-slate-300 font-mono">doGet</code> menjadi <code class="bg-slate-900 px-1 text-emerald-400 font-mono font-bold">testPermissions</code>.</p>
-                                        <p class="font-normal text-slate-200">b. Klik tombol <strong>▶ RUN (Jalankan)</strong>.</p>
-                                        <p class="font-normal text-slate-200">c. Pop-up izin Google akan muncul: Klik <strong>Review Permissions</strong> &rarr; Pilih Akun Google &rarr; Klik <strong>Advanced</strong> &rarr; Klik <strong>Go to Project (unsafe)</strong> &rarr; Klik <strong>Allow (Izinkan)</strong>.</p>
-                                        <p class="font-normal text-emerald-300">d. Langkah ini memberikan otorisasi <code class="font-mono">https://www.googleapis.com/auth/drive</code> (Full Drive Write Access).</p>
-                                    </li>
-                                    <li>Setelah di-Run, klik tombol <strong>Deploy</strong> di pojok kanan atas &rarr; pilih <strong>New deployment</strong>.</li>
-                                    <li>Pilih jenis <strong>Web app</strong>, atur <strong>Execute as:</strong> <code class="bg-slate-900 px-1 text-amber-300 font-mono">Me (Saya)</code>, dan <strong>Who has access:</strong> <code class="bg-amber-950 px-1.5 py-0.5 text-amber-300 border border-amber-800 rounded font-mono font-bold">Anyone (Siapa saja)</code>.</li>
-                                    <li>Klik <strong>Deploy</strong>, lalu salin Web App URL baru (<code class="text-sky-400">/exec</code>) ke kolom Webhook URL di atas.</li>
-                                </ol>
-                            </div>
-
                             <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="font-bold text-slate-200 block text-xs">📜 Kode Backend Apps Script (Drive Upload Folder Bulan/Tahun & Sheets Auto-Write Logs)</span>
+                                    <span class="font-bold text-slate-200 block text-xs">📜 Kode Backend Apps Script (Drive Upload & Sheets Auto-Write Logs)</span>
                                     <button @click="copyAppsScriptCode" class="px-2.5 py-1.5 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 rounded-lg text-[10px] font-bold transition flex items-center gap-1 active:scale-95">
                                         <i class="fa-solid fa-copy"></i>
                                         <span>Salin Kode Apps Script</span>
                                     </button>
                                 </div>
                                 <p class="text-[10px] text-slate-400 leading-relaxed">
-                                    Kode ini membuat/memperbarui tab <code class="bg-slate-900 text-emerald-300 px-1 rounded">Riwayat_Servis_Logs</code> dan <code class="bg-slate-900 text-amber-300 px-1 rounded">Master_Armada</code> di Google Sheets, serta menyimpan nota secara rapi di folder Google Drive <code class="bg-slate-900 text-sky-300 px-1 rounded">AUTOMAN_Nota_Servis / [Tahun] / [Bulan]</code>.
+                                    Menyimpan rekaman transaksi di tab <code class="bg-slate-900 text-emerald-300 px-1 rounded">Riwayat_Servis_Logs</code> serta arsip berkas di folder Drive <code class="bg-slate-900 text-sky-300 px-1 rounded">AUTOMAN_Nota_Servis / [Tahun] / [Bulan]</code>.
                                 </p>
                             </div>
 
                             <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
                                 <div>
                                     <span class="font-bold text-slate-200 block">Auto-Write Laporan Realtime</span>
-                                    <span class="text-[10px] text-slate-400">Otomatis kirim/perbarui data log ke tab Riwayat_Servis_Logs di Google Sheets setiap ada penyimpanan transaksi</span>
+                                    <span class="text-[10px] text-slate-400">Otomatis sync ke Google Sheets setiap ada transaksi yang disimpan</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" v-model="settings.autoSyncSheets" class="sr-only peer">
@@ -952,17 +939,12 @@
                                 </button>
                                 <button @click="syncToGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-up'"></i>
-                                    <span>{{ isSheetsSyncing ? 'Mengirim...' : 'Tulis / Sync Riwayat_Servis_Logs' }}</span>
+                                    <span>{{ isSheetsSyncing ? 'Mengirim...' : 'Sync Riwayat_Servis_Logs' }}</span>
                                 </button>
                                 <button @click="readFromGoogleSheets" :disabled="isSheetsSyncing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold rounded-xl transition flex items-center gap-1.5 active:scale-95 min-h-[40px]">
                                     <i :class="isSheetsSyncing ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-down'"></i>
                                     <span>Tes Auto-Read Sheets</span>
                                 </button>
-                            </div>
-
-                            <div v-if="sheetsReadResult" class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-slate-300 space-y-1">
-                                <div class="text-amber-400 font-bold">Hasil Auto-Read Google Sheets:</div>
-                                <pre class="text-[10px] overflow-x-auto text-emerald-400 max-h-32 touch-scroll">{{ JSON.stringify(sheetsReadResult, null, 2) }}</pre>
                             </div>
                         </div>
                     </div>
@@ -971,6 +953,7 @@
             </main>
         </div>
 
+        <!-- MODAL VEHICLE -->
         <div v-if="modals.vehicle" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1011,6 +994,7 @@
             </div>
         </div>
 
+        <!-- MODAL UPDATE KM -->
         <div v-if="modals.updateKm" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1036,6 +1020,7 @@
             </div>
         </div>
 
+        <!-- MODAL INVOICE -->
         <div v-if="modals.invoice && selectedLog" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll shadow-2xl">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1103,6 +1088,7 @@
             </div>
         </div>
 
+        <!-- MODAL WORKSHOP DETAIL -->
         <div v-if="modals.workshopDetail && selectedWorkshopDetail" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll shadow-2xl">
                 <div class="flex justify-between items-start border-b border-slate-800 pb-3">
@@ -1196,6 +1182,7 @@
             </div>
         </div>
 
+        <!-- MODAL LOG (INPUT & EDIT TRANSAKSI) -->
         <div v-if="modals.log" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
             <div :class="previewSource ? 'md:max-w-5xl lg:max-w-6xl' : 'max-w-xl'" class="bg-slate-900 border border-slate-800 w-full rounded-2xl p-4 sm:p-6 space-y-4 my-auto max-h-[92vh] overflow-y-auto touch-scroll transition-all duration-300">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1329,6 +1316,7 @@
                                         </span>
                                     </label>
                                     <select v-model="logForm.vehicleId" @change="onLogFormVehicleChange" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold">
+                                        <option value="" disabled>-- Pilih Armada --</option>
                                         <option v-for="car in vehicles" :key="car.id" :value="car.id">{{ car.plate }} - {{ car.model }}</option>
                                     </select>
                                 </div>
@@ -1354,7 +1342,7 @@
                                     <input type="number" v-model.number="logForm.km" required min="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono font-bold text-sky-400">
                                     <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1" v-if="getSelectedVehicleCurrentKm > 0">
                                         <i class="fa-solid fa-circle-info text-sky-400"></i>
-                                        <span>Oddo pengajuan: <strong class="text-sky-300 font-mono">{{ getSelectedVehicleCurrentKm.toLocaleString('id-ID') }} KM</strong></span>
+                                        <span>Oddo tercatat: <strong class="text-sky-300 font-mono">{{ getSelectedVehicleCurrentKm.toLocaleString('id-ID') }} KM</strong></span>
                                     </p>
                                 </div>
                             </div>
@@ -1362,13 +1350,13 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block font-bold text-slate-300 mb-1">No. Invoice / Faktur</label>
-                                    <input type="text" v-model="logForm.invoiceNo" placeholder="Contoh: INV-9002" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono">
+                                    <input type="text" v-model="logForm.invoiceNo" placeholder="Contoh: 17794 atau INV-9002" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono">
                                     
                                     <div v-if="liveDuplicateWarning" class="mt-1.5 p-2 bg-amber-950/90 border border-amber-800 rounded-lg text-[10px] text-amber-300 flex items-start gap-1.5">
                                         <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
                                         <div>
                                             <span class="font-bold block">Perhatian: No Invoice Sudah Ada!</span>
-                                            <span>Tercatat pada armada <strong>{{ liveDuplicateWarning.vehicleId }}</strong> tanggal {{ formatDateDisplay(liveDuplicateWarning.date) }}. Menyimpan akan mengonfirmasi pilihan untuk memperbarui data tersebut.</span>
+                                            <span>Tercatat pada armada <strong>{{ liveDuplicateWarning.vehicleId }}</strong> tanggal {{ formatDateDisplay(liveDuplicateWarning.date) }}. Menyimpan akan memberikan opsi menimpa data atau simpan baru.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1428,24 +1416,25 @@
                                 </datalist>
 
                                 <div class="flex flex-wrap gap-1 py-1">
-                                    <span class="text-[10px] text-slate-400 self-center font-semibold">Saran:</span>
+                                    <span class="text-[10px] text-slate-400 self-center font-semibold">Saran Cepat:</span>
                                     <button type="button" v-for="sug in combinedQuickSuggestions.slice(0, 6)" :key="sug.name" @click="addQuickSparepart(sug)" class="px-2 py-1 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-[10px] flex items-center gap-1 transition">
                                         + {{ sug.name }}
                                     </button>
                                 </div>
 
                                 <div v-for="(item, idx) in logForm.items" :key="idx" class="flex items-center gap-2">
-                                    <input type="text" v-model="item.name" list="adminSparepartDatalist" placeholder="Nama sparepart..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
-                                    <input type="number" v-model.number="item.cost" placeholder="Rp..." required min="0" class="w-24 sm:w-28 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-emerald-400 font-bold">
-                                    <button type="button" @click="removeLogItem(idx)" class="text-rose-400 p-2 min-w-[36px]"><i class="fa-solid fa-trash-can"></i></button>
+                                    <input type="text" v-model="item.name" list="adminSparepartDatalist" placeholder="Nama sparepart / jasa..." required class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                                    <input type="number" v-model.number="item.cost" placeholder="Rp..." required min="0" class="w-28 sm:w-32 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white font-mono text-emerald-400 font-bold">
+                                    <button type="button" @click="removeLogItem(idx)" class="text-rose-400 p-2 min-w-[36px]" title="Hapus Baris"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
 
                             <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-800">
-                                <button type="button" @click="modals.log = false" :disabled="isUploadingToDrive" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
-                                <button type="submit" :disabled="isUploadingToDrive" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl min-h-[44px] flex items-center justify-center gap-2">
-                                    <i v-if="isUploadingToDrive" class="fa-solid fa-spinner fa-spin"></i>
-                                    <span>{{ isUploadingToDrive ? 'Mengunggah & Menyimpan...' : 'Simpan Log Servis' }}</span>
+                                <button type="button" @click="modals.log = false" :disabled="isUploadingToDrive || isSavingLog" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
+                                <button type="submit" :disabled="isUploadingToDrive || isSavingLog" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl min-h-[44px] flex items-center justify-center gap-2 shadow-lg shadow-emerald-950 active:scale-95">
+                                    <i v-if="isUploadingToDrive || isSavingLog" class="fa-solid fa-spinner fa-spin"></i>
+                                    <i v-else class="fa-solid fa-floppy-disk"></i>
+                                    <span>{{ isSavingLog ? 'Menyimpan...' : (isUploadingToDrive ? 'Mengunggah & Menyimpan...' : 'Simpan Log Servis') }}</span>
                                 </button>
                             </div>
                         </form>
@@ -1454,20 +1443,24 @@
             </div>
         </div>
 
-        <div v-if="confirmModal.show" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl">
+        <!-- MODAL KONFIRMASI (Z-[70] ALWAYS ON TOP) -->
+        <div v-if="confirmModal.show" class="fixed inset-0 z-[70] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl">
                 <div class="text-center space-y-2">
-                    <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl flex items-center justify-center mx-auto text-xl border border-rose-500/20">
+                    <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-xl border border-amber-500/20 shadow-inner">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                     <h3 class="font-bold text-white text-base">{{ confirmModal.title }}</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed whitespace-pre-line">{{ confirmModal.message }}</p>
+                    <p class="text-xs text-slate-300 leading-relaxed whitespace-pre-line text-left bg-slate-950 p-3 rounded-xl border border-slate-800">{{ confirmModal.message }}</p>
                 </div>
-                <div class="flex items-center gap-2 pt-2">
-                    <button @click="closeConfirmModal(false)" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">
+                <div class="flex flex-col sm:flex-row items-center gap-2 pt-2">
+                    <button @click="closeConfirmModal(false)" class="w-full sm:flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">
                         {{ confirmModal.cancelText || 'Batal' }}
                     </button>
-                    <button @click="closeConfirmModal(true)" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition min-h-[42px]">
+                    <button v-if="confirmModal.extraAction" @click="triggerExtraConfirmAction" class="w-full sm:flex-1 py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition min-h-[42px]">
+                        {{ confirmModal.extraText || 'Simpan Baru' }}
+                    </button>
+                    <button @click="closeConfirmModal(true)" class="w-full sm:flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition min-h-[42px]">
                         {{ confirmModal.confirmText || 'Ya, Lanjutkan' }}
                     </button>
                 </div>
@@ -1475,13 +1468,14 @@
         </div>
 
         <!-- Floating Toast Notification -->
-        <div v-if="toast.show" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-50 bg-amber-500 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 max-w-md mx-auto sm:mx-0">
+        <div v-if="toast.show" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-[80] bg-amber-500 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-2xl flex items-center gap-2 max-w-md mx-auto sm:mx-0">
             <i class="fa-solid fa-circle-check text-base"></i>
             <span>{{ toast.message }}</span>
         </div>
 
     </div> <!-- END OF #app -->
 
+    <!-- JAVASCRIPT LOGIC & FIREBASE INTEGRATION -->
     <script type="module">
         import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.esm-browser.prod.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1516,6 +1510,7 @@
                     emailInput: '',
                     passwordInput: '',
                     isLoggingIn: false,
+                    isSavingLog: false,
                     currentTab: 'overview',
                     cloudStatus: 'loading',
                     searchVehicle: '',
@@ -1568,7 +1563,9 @@
                         message: '',
                         confirmText: 'Ya, Lanjutkan',
                         cancelText: 'Batal',
-                        onConfirm: null
+                        extraText: '',
+                        onConfirm: null,
+                        onExtra: null
                     },
                     modals: {
                         vehicle: false,
@@ -1640,7 +1637,7 @@
                     return null;
                 },
                 getSelectedVehicleCurrentKm() {
-                    const car = (this.vehicles || []).find(v => v.id === this.logForm?.vehicleId);
+                    const car = (this.vehicles || []).find(v => v.id === this.logForm?.vehicleId || v.plate === this.logForm?.vehicleId);
                     return car ? (Number(car.currentKm) || 0) : 0;
                 },
                 liveDuplicateWarning() {
@@ -1980,14 +1977,20 @@
                     this.toast = { show: true, message: msg };
                     setTimeout(() => { this.toast.show = false; }, 3500);
                 },
-                askConfirmation(title, message, onConfirm, confirmText = 'Ya, Lanjutkan', cancelText = 'Batal') {
-                    this.confirmModal = { show: true, title, message, confirmText, cancelText, onConfirm };
+                askConfirmation(title, message, onConfirm, confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', onExtra = null, extraText = '') {
+                    this.confirmModal = { show: true, title, message, confirmText, cancelText, extraText, onConfirm, onExtra };
                 },
                 closeConfirmModal(isConfirmed) {
                     if (isConfirmed && typeof this.confirmModal.onConfirm === 'function') {
                         this.confirmModal.onConfirm();
                     }
-                    this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', onConfirm: null };
+                    this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', extraText: '', onConfirm: null, onExtra: null };
+                },
+                triggerExtraConfirmAction() {
+                    if (typeof this.confirmModal.onExtra === 'function') {
+                        this.confirmModal.onExtra();
+                    }
+                    this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', extraText: '', onConfirm: null, onExtra: null };
                 },
                 formatDateDisplay(dateStr) {
                     const d = this.parseLocalDate(dateStr);
@@ -1997,21 +2000,43 @@
                     const year = d.getFullYear();
                     return `${day}-${month}-${year}`;
                 },
+                formatStandardIsoDate(dateStr) {
+                    const d = this.parseLocalDate(dateStr);
+                    if (!d) return new Date().toISOString().substring(0, 10);
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}`;
+                },
                 parseLocalDate(dateStr) {
                     if (!dateStr) return null;
                     if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
                     let s = String(dateStr).trim();
                     if (!s) return null;
                     
-                    if (s.match(/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}$/)) {
-                        const parts = s.split(/[-\/]/);
-                        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
-                    } 
-                    else if (s.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/)) {
+                    // Format YYYY-MM-DD
+                    if (s.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}/)) {
                         const cleanS = s.substring(0, 10);
                         const parts = cleanS.split(/[-\/]/);
                         return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
                     }
+                    // Format MM/DD/YYYY (USA format)
+                    if (s.match(/^\d{1,2}[\/]\d{1,2}[\/]\d{4}$/)) {
+                        const parts = s.split(/[\/]/);
+                        const p0 = Number(parts[0]);
+                        const p1 = Number(parts[1]);
+                        const p2 = Number(parts[2]);
+                        if (p0 > 12 && p1 <= 12) { // DD/MM/YYYY
+                            return new Date(p2, p1 - 1, p0);
+                        } else { // MM/DD/YYYY
+                            return new Date(p2, p0 - 1, p1);
+                        }
+                    }
+                    // Format DD-MM-YYYY
+                    if (s.match(/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}$/)) {
+                        const parts = s.split(/[-\/]/);
+                        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+                    } 
                     
                     const d = new Date(s);
                     return isNaN(d.getTime()) ? null : d;
@@ -2068,7 +2093,7 @@
                         currentKm: Number(this.vehicleForm.currentKm) || 0,
                         isUnderService: false
                     };
-                    const existing = (this.vehicles || []).find(v => v.id === vehicleId);
+                    const existing = (this.vehicles || []).find(v => v.id === vehicleId || v.plate === plateUpper);
                     if (existing) {
                         vehicleData.lastServiceKm = existing.lastServiceKm || 0;
                         vehicleData.lastServiceDate = existing.lastServiceDate || '';
@@ -2142,14 +2167,14 @@
                         id: null,
                         vehicleId: car.id,
                         workshop: car.targetWorkshop || 'Nasmoco',
-                        date: car.inServiceDate || new Date().toISOString().substring(0, 10),
-                        km: car.currentKm || 0,
-                        invoiceNo: 'INV-' + Math.floor(Math.random() * 90000 + 10000),
+                        date: this.formatStandardIsoDate(car.inServiceDate || new Date()),
+                        km: Number(car.currentKm) || 0,
+                        invoiceNo: '',
                         isRoutine: true,
                         fileUrl: '',
                         fileName: '',
                         replacedComponents: [],
-                        items: [{ name: car.inServiceNotes || 'Servis Berkala', cost: 500000 }]
+                        items: [{ name: car.inServiceNotes || 'Servis Berkala & Maintenance', cost: 0 }]
                     };
                     this.scanStatusMessage = '';
                     this.modals.log = true;
@@ -2189,10 +2214,10 @@
                     const rawComponents = this.normalizeArray(log.replacedComponents);
                     this.logForm = {
                         id: log.id,
-                        vehicleId: log.vehicleId,
+                        vehicleId: log.vehicleId || '',
                         workshop: log.workshop || 'Nasmoco',
-                        date: log.date || new Date().toISOString().substring(0, 10),
-                        km: log.km || 0,
+                        date: this.formatStandardIsoDate(log.date || new Date()),
+                        km: Number(log.km) || 0,
                         invoiceNo: log.invoiceNo || '',
                         isRoutine: log.isRoutine !== false,
                         fileUrl: log.fileUrl || '',
@@ -2277,6 +2302,7 @@
                     return 'fa-circle-question';
                 },
                 recordKeyUsage(key, tokens = 180, status = 'HEALTHY') {
+                    if (!key) return;
                     if (!this.keyUsageStats[key]) {
                         this.keyUsageStats[key] = { callsToday: 0, totalTokens: 0, status: 'UNTESTED' };
                     }
@@ -2307,10 +2333,7 @@
                                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
                                 const res = await fetch(apiUrl, {
                                     method: 'POST',
-                                    headers: { 
-                                        'Content-Type': 'application/json',
-                                        'x-goog-api-key': cleanKey
-                                    },
+                                    headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         contents: [{ parts: [{ text: "ping" }] }],
                                         generationConfig: { maxOutputTokens: 1 }
@@ -2331,7 +2354,7 @@
                             } catch (err) {
                                 console.warn(`Test model ${modelName} failed for key #${index + 1}`, err);
                             }
-                            await sleep(800);
+                            await sleep(500);
                         }
 
                         if (!testedOk) {
@@ -2361,8 +2384,6 @@
                 async uploadFileToGoogleDrive(base64Data, mimeType, fileName) {
                     const webhookUrl = String(this.settings.sheetsWebhookUrl || '').trim();
                     if (!webhookUrl) {
-                        this.showToast('⚠️ Webhook Google Apps Script belum diisi di Pengaturan.');
-                        this.scanStatusMessage = 'URL Apps Script belum dikonfigurasi di Pengaturan.';
                         return null;
                     }
 
@@ -2400,20 +2421,14 @@
                                 this.logForm.fileUrl = data.fileUrl;
                                 this.logForm.fileName = fileName;
                                 this.scanStatusMessage = '✅ Berkas tersimpan di Google Drive!';
-                                this.showToast('📁 Berkas nota berhasil diunggah ke Google Drive!');
                                 return data.fileUrl;
                             } else if (data.message) {
                                 throw new Error(data.message);
-                            } else {
-                                throw new Error('Respon Apps Script tidak mengembalikan URL file.');
                             }
-                        } else {
-                            throw new Error(`HTTP Status Error: ${res.status}`);
                         }
                     } catch (err) {
                         console.error("Gagal mengunggah ke Google Drive:", err);
                         this.scanStatusMessage = `⚠️ Gagal Upload Drive: ${err.message}`;
-                        this.showToast(`⚠️ Gagal Upload Google Drive: ${err.message}`);
                     } finally {
                         this.isUploadingToDrive = false;
                     }
@@ -2425,22 +2440,29 @@
                     if (!file) return;
 
                     try {
-                        const base64Data = await new Promise((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                                const res = reader.result;
-                                const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
-                                resolve(b64);
-                            };
-                            reader.onerror = error => reject(error);
-                            reader.readAsDataURL(file);
-                        });
+                        let base64Data = '';
+                        let mimeType = file.type || 'image/jpeg';
 
-                        let mimeType = file.type;
-                        if (!mimeType || mimeType === '') {
-                            if (file.name.toLowerCase().endsWith('.pdf')) mimeType = 'application/pdf';
-                            else if (file.name.toLowerCase().endsWith('.png')) mimeType = 'image/png';
-                            else mimeType = 'image/jpeg';
+                        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                            mimeType = 'application/pdf';
+                            const arrayBuffer = await file.arrayBuffer();
+                            const bytes = new Uint8Array(arrayBuffer);
+                            let binary = '';
+                            for (let i = 0; i < bytes.byteLength; i++) {
+                                binary += String.fromCharCode(bytes[i]);
+                            }
+                            base64Data = btoa(binary);
+                        } else {
+                            base64Data = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                    const res = reader.result;
+                                    const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
+                                    resolve(b64);
+                                };
+                                reader.onerror = error => reject(error);
+                                reader.readAsDataURL(file);
+                            });
                         }
 
                         this.pendingUploadFile = {
@@ -2450,12 +2472,12 @@
                         };
                         this.logForm.fileName = file.name;
 
-                        // Auto Upload to Google Drive immediately if Webhook URL is set
+                        // Auto Upload to Google Drive if configured
                         if (this.settings.sheetsWebhookUrl) {
                             await this.uploadFileToGoogleDrive(base64Data, mimeType, file.name);
                         } else {
-                            this.scanStatusMessage = `📁 File "${file.name}" terpilih (akan diunggah ke Drive saat Simpan Log).`;
-                            this.showToast('📁 File terpilih! Berkas akan diunggah ke Drive saat disimpan.');
+                            this.scanStatusMessage = `📁 File "${file.name}" terpilih.`;
+                            this.showToast('📁 File berhasil dipilih!');
                         }
                     } catch (e) {
                         this.showToast('Gagal membaca file: ' + e.message);
@@ -2468,37 +2490,53 @@
                     const file = event.target.files[0];
                     if (!file) return;
 
-                    const apiKeys = this.getGeminiKeys();
-                    if (apiKeys.length === 0) {
-                        this.showToast('Isi setidaknya 1 Gemini API Key di menu Pengaturan!');
-                        return;
-                    }
-
                     this.isScanningInvoice = true;
-                    this.scanStatusMessage = 'Membaca berkas & menyiapkan AI Gemini Vision...';
+                    this.scanStatusMessage = 'Membaca berkas & menyiapkan AI OCR Vision...';
                     this.detectedPlateMatch = '';
 
                     try {
-                        const base64Data = await new Promise((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                                const res = reader.result;
-                                const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
-                                resolve(b64);
-                            };
-                            reader.onerror = error => reject(error);
-                            reader.readAsDataURL(file);
-                        });
+                        let base64Data = '';
+                        let mimeType = file.type || 'image/jpeg';
+                        let isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-                        let mimeType = file.type;
-                        if (!mimeType || mimeType === '') {
-                            if (file.name.toLowerCase().endsWith('.pdf')) {
-                                mimeType = 'application/pdf';
-                            } else if (file.name.toLowerCase().endsWith('.png')) {
-                                mimeType = 'image/png';
-                            } else {
+                        // Convert PDF first page to JPEG Image via PDF.js for 100% reliable Vision OCR
+                        if (isPdf && window.pdfjsLib) {
+                            try {
+                                this.scanStatusMessage = 'Mengonversi halaman PDF nota ke gambar presisi tinggi...';
+                                const arrayBuffer = await file.arrayBuffer();
+                                const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                                const page = await pdf.getPage(1);
+                                const viewport = page.getViewport({ scale: 2.0 });
+                                const canvas = document.createElement('canvas');
+                                canvas.width = viewport.width;
+                                canvas.height = viewport.height;
+                                const ctx = canvas.getContext('2d');
+                                await page.render({ canvasContext: ctx, viewport }).promise;
+                                const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                                base64Data = dataUrl.split(',')[1];
                                 mimeType = 'image/jpeg';
+                            } catch (pdfErr) {
+                                console.warn("PDF render fallback to direct base64:", pdfErr);
+                                const arrayBuffer = await file.arrayBuffer();
+                                const bytes = new Uint8Array(arrayBuffer);
+                                let binary = '';
+                                for (let i = 0; i < bytes.byteLength; i++) {
+                                    binary += String.fromCharCode(bytes[i]);
+                                }
+                                base64Data = btoa(binary);
+                                mimeType = 'application/pdf';
                             }
+                        } else {
+                            base64Data = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                    const res = reader.result;
+                                    const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
+                                    resolve(b64);
+                                };
+                                reader.onerror = error => reject(error);
+                                reader.readAsDataURL(file);
+                            });
                         }
 
                         this.pendingUploadFile = {
@@ -2508,26 +2546,25 @@
                         };
                         this.logForm.fileName = file.name;
 
-                        // Automatic background Drive upload
                         if (this.settings.sheetsWebhookUrl) {
                             this.uploadFileToGoogleDrive(base64Data, mimeType, file.name).catch(err => {
                                 console.warn("Background drive upload note:", err);
                             });
                         }
 
-                        const systemPrompt = "Anda adalah AI OCR Vision berpengalaman khusus mengekstrak data dari dokumen PDF atau foto nota/invoice/faktur/kwitansi perbaikan dan pemeliharaan kendaraan bengkel (mobil/motor). Analisis berkas dengan teliti, baca seluruh baris item, harga, tanggal, nomor nota, dan nama bengkel.";
+                        const systemPrompt = "Anda adalah AI OCR Vision bengkel profesional. Analisis foto/dokumen nota atau invoice dengan sangat teliti dan ekstrak seluruh baris data ke format JSON murni terstruktur.";
 
                         const knownPlatesStr = (this.vehicles || []).map(v => `${v.plate || v.id} (${v.model || ''})`).join(', ');
 
-                        const userPrompt = `Analisis foto atau dokumen PDF nota/kwitansi bengkel ini secara detail.
+                        const userPrompt = `Analisis foto atau dokumen nota/kwitansi bengkel ini secara detail.
 Ekstrak informasi berikut ke dalam format JSON:
-1. invoiceNo: Nomor invoice/faktur/nota (string, e.g. "INV-1234"). Kosongkan jika tidak ada.
-2. workshop: Nama bengkel (pilih paling sesuai dari: "Nasmoco", "Montecarlo", "Zaini Auto", "Rekanan", atau "Bengkel Luar").
-3. date: Tanggal transaksi dalam format "YYYY-MM-DD" (string). Jika hanya ada tanggal biasa, konversi ke format standar YYYY-MM-DD.
-4. km: Odometer/Kilometer kendaraan yang tercatat di nota (number, e.g. 45000). Set 0 jika tidak tertera.
-5. items: Array dari seluruh sparepart, oli, bahan, atau jasa perbaikan yang tercantum pada nota. Setiap item memiliki objek { "name": string, "cost": number }. Pastikan cost dalam satuan Rupiah angka murni tanpa titik/koma.
-6. replacedComponents: Array string komponen vital yang diganti. Pilih HANYA dari kunci berikut yang teridentifikasi diganti pada nota: "filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac".
-7. plate: Plat nomor / Nomor Polisi kendaraan yang tertera di nota (string, e.g. "AD 8075 XA", "AD 1001 ZA"). Daftar armada terdaftar di sistem: [${knownPlatesStr}]. Utamakan pencocokan dengan daftar armada tersebut jika tertera.`;
+1. invoiceNo: Nomor invoice/faktur/nota (string, e.g. "INV-1234", "17794"). Kosongkan jika tidak ada.
+2. workshop: Nama bengkel (pilih paling cocok: "Nasmoco", "Montecarlo", "Zaini Auto", "Rekanan", atau "Bengkel Luar").
+3. date: Tanggal transaksi (format "YYYY-MM-DD", e.g. "2026-08-27").
+4. km: Odometer/Kilometer kendaraan yang tercatat di nota (number). Set 0 jika tidak ada.
+5. items: Array dari seluruh sparepart, oli, bahan, atau jasa perbaikan yang tercantum pada nota. Format { "name": string, "cost": number }. Pastikan cost dalam angka murni tanpa koma/titik.
+6. replacedComponents: Array string komponen vital yang diganti. Pilih HANYA dari: ["filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac"].
+7. plate: Plat nomor kendaraan yang tertera di nota (string, e.g. "AD 1214 XU"). Daftar armada terdaftar di sistem: [${knownPlatesStr}].`;
 
                         const payload = {
                             contents: [{
@@ -2546,55 +2583,30 @@ Ekstrak informasi berikut ke dalam format JSON:
                                 parts: [{ text: systemPrompt }]
                             },
                             generationConfig: {
-                                responseMimeType: "application/json",
-                                responseSchema: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        invoiceNo: { type: "STRING" },
-                                        workshop: { type: "STRING" },
-                                        date: { type: "STRING" },
-                                        km: { type: "NUMBER" },
-                                        plate: { type: "STRING" },
-                                        items: {
-                                            type: "ARRAY",
-                                            items: {
-                                                type: "OBJECT",
-                                                properties: {
-                                                    name: { type: "STRING" },
-                                                    cost: { type: "NUMBER" }
-                                                },
-                                                propertyOrdering: ["name", "cost"]
-                                            }
-                                        },
-                                        replacedComponents: {
-                                            type: "ARRAY",
-                                            items: { type: "STRING" }
-                                        }
-                                    },
-                                    propertyOrdering: ["invoiceNo", "workshop", "date", "km", "plate", "items", "replacedComponents"]
-                                }
+                                responseMimeType: "application/json"
                             }
                         };
 
-                        let scanSuccess = false;
-                        let lastErrorMessage = '';
+                        // Collect API Keys (user keys or default empty key which Canvas runtime handles)
+                        const userKeys = this.getGeminiKeys();
+                        const keySequence = userKeys.length > 0 ? userKeys : [""];
                         const modelsToTry = this.getGeminiModelSequence();
 
-                        for (let i = 0; i < apiKeys.length; i++) {
-                            const currentKey = apiKeys[i];
-                            const keyLabel = i === 0 ? 'Primary Key' : `Backup Key #${i}`;
+                        let scanSuccess = false;
+                        let lastErrorMessage = '';
+
+                        for (let i = 0; i < keySequence.length; i++) {
+                            const currentKey = keySequence[i];
+                            const keyLabel = userKeys.length > 0 ? (i === 0 ? 'Primary Key' : `Backup Key #${i}`) : 'Default Model';
 
                             for (const modelName of modelsToTry) {
-                                this.scanStatusMessage = `Mengekstrak nota (${keyLabel}) via ${modelName}...`;
+                                this.scanStatusMessage = `Mengekstrak nota via ${modelName} (${keyLabel})...`;
 
                                 try {
                                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${currentKey}`;
                                     const res = await fetch(apiUrl, {
                                         method: 'POST',
-                                        headers: { 
-                                            'Content-Type': 'application/json',
-                                            'x-goog-api-key': currentKey
-                                        },
+                                        headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify(payload)
                                     });
 
@@ -2603,28 +2615,28 @@ Ekstrak informasi berikut ke dalam format JSON:
                                         let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (jsonText) {
                                             jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
-                                            const parsed = JSON.parse(jsonText);
+                                            
+                                            const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+                                            const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : jsonText);
 
-                                            if (parsed.invoiceNo) this.logForm.invoiceNo = parsed.invoiceNo;
+                                            if (parsed.invoiceNo) this.logForm.invoiceNo = String(parsed.invoiceNo).trim();
                                             if (parsed.workshop) {
                                                 const wsList = ['Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', 'Bengkel Luar'];
                                                 const matched = wsList.find(w => w.toLowerCase() === String(parsed.workshop).toLowerCase());
                                                 if (matched) this.logForm.workshop = matched;
+                                                else if (String(parsed.workshop).toLowerCase().includes('zaini')) this.logForm.workshop = 'Zaini Auto';
                                                 else this.logForm.workshop = String(parsed.workshop);
                                             }
+                                            
+                                            // Format date cleanly to YYYY-MM-DD
                                             if (parsed.date) {
-                                                const parsedD = this.parseLocalDate(parsed.date);
-                                                if (parsedD) {
-                                                    const y = parsedD.getFullYear();
-                                                    const m = String(parsedD.getMonth() + 1).padStart(2, '0');
-                                                    const d = String(parsedD.getDate()).padStart(2, '0');
-                                                    this.logForm.date = `${y}-${m}-${d}`;
-                                                }
+                                                this.logForm.date = this.formatStandardIsoDate(parsed.date);
                                             }
+
                                             if (parsed.km && Number(parsed.km) > 0) {
                                                 this.logForm.km = Number(parsed.km);
                                             } else {
-                                                const activeCar = (this.vehicles || []).find(v => v.id === this.logForm.vehicleId);
+                                                const activeCar = (this.vehicles || []).find(v => v.id === this.logForm.vehicleId || v.plate === this.logForm.vehicleId);
                                                 if (activeCar && Number(activeCar.currentKm) > 0) {
                                                     this.logForm.km = Number(activeCar.currentKm);
                                                 }
@@ -2656,28 +2668,27 @@ Ekstrak informasi berikut ke dalam format JSON:
                                             }
 
                                             scanSuccess = true;
-                                            this.recordKeyUsage(currentKey, 180, 'HEALTHY');
+                                            if (currentKey) this.recordKeyUsage(currentKey, 180, 'HEALTHY');
                                             const plateInfo = matchedVehicleName ? ` • Plat Armada Terdeteksi: ${matchedVehicleName}` : '';
                                             this.showToast(`✨ AI OCR Scan Berhasil!${plateInfo}`);
-                                            this.scanStatusMessage = `✅ Terestrak. ${matchedVehicleName ? 'Armada cocok: ' + matchedVehicleName + '.' : ''} File diunggah ke Google Drive.`;
+                                            this.scanStatusMessage = `✅ Terestrak. ${matchedVehicleName ? 'Armada cocok: ' + matchedVehicleName + '.' : ''}`;
                                             break;
                                         }
                                     } else {
                                         const errBody = await res.json().catch(() => ({}));
                                         lastErrorMessage = errBody?.error?.message || `HTTP ${res.status}`;
-                                        if (res.status === 429) {
+                                        if (res.status === 429 && currentKey) {
                                             this.recordKeyUsage(currentKey, 0, 'LIMITED');
-                                            this.showToast(`Key #${i + 1} limit (${modelName}). Beralih ke cadangan...`);
-                                        } else {
+                                        } else if (currentKey) {
                                             this.recordKeyUsage(currentKey, 0, 'INVALID');
                                         }
                                     }
                                 } catch (fetchErr) {
-                                    console.warn(`Fetch error for Key #${i + 1} (${modelName}):`, fetchErr);
+                                    console.warn(`Fetch error for model ${modelName}:`, fetchErr);
                                     lastErrorMessage = fetchErr.message;
                                 }
 
-                                await sleep(1000);
+                                await sleep(400);
                             }
 
                             if (scanSuccess) break;
@@ -2685,7 +2696,7 @@ Ekstrak informasi berikut ke dalam format JSON:
 
                         if (!scanSuccess) {
                             this.scanStatusMessage = `Gagal scan: ${lastErrorMessage || 'Gagal mengekstrak nota'}`;
-                            this.showToast(`Gagal AI Scan: ${lastErrorMessage}`);
+                            this.showToast(`Gagal AI Scan: ${lastErrorMessage || 'Periksa koneksi atau API Key'}`);
                         }
 
                     } catch (e) {
@@ -2719,7 +2730,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                         return {
                             type: 'INVOICE_NO',
                             duplicateLog: matchInvoice,
-                            message: `Nomor Invoice "${this.logForm.invoiceNo}" sudah pernah diinput pada transaksi kendaraan ${matchInvoice.vehicleId} (Tanggal: ${this.formatDateDisplay(matchInvoice.date)}).\n\nApakah Anda ingin MEMPERBARUI (Menimpa) data invoice lama ini?`
+                            message: `Nomor Invoice "${this.logForm.invoiceNo}" sudah tercatat pada armada ${matchInvoice.vehicleId} (Tanggal: ${this.formatDateDisplay(matchInvoice.date)}).\n\nPilih "Perbarui Data Lama" untuk menimpa, atau "Simpan Baru" untuk membuat ID transaksi baru.`
                         };
                     }
 
@@ -2727,7 +2738,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                         return {
                             type: 'TRANSACTION_DETAILS',
                             duplicateLog: matchTransaction,
-                            message: `Transaksi identik terdeteksi!\nKendaraan ${currentVehicle} pada tanggal ${this.formatDateDisplay(currentDate)} sejumlah Rp ${currentCost.toLocaleString('id-ID')} sudah tersimpan (Invoice: ${matchTransaction.invoiceNo || '-'}).\n\nApakah Anda ingin MEMPERBARUI (Menimpa) data ini?`
+                            message: `Transaksi identik terdeteksi!\nKendaraan ${currentVehicle} pada tanggal ${this.formatDateDisplay(currentDate)} sejumlah Rp ${currentCost.toLocaleString('id-ID')} sudah tersimpan (Invoice: ${matchTransaction.invoiceNo || '-'}).\n\nPilih "Perbarui Data Lama" untuk menimpa, atau "Simpan Baru" untuk membuat ID transaksi baru.`
                         };
                     }
 
@@ -2735,17 +2746,36 @@ Ekstrak informasi berikut ke dalam format JSON:
                 },
 
                 async saveLog() {
+                    // Validasi form dasar
+                    if (!this.logForm.vehicleId) {
+                        this.showToast('Silakan pilih Armada Kendaraan terlebih dahulu!');
+                        return;
+                    }
+                    if (!this.logForm.date) {
+                        this.logForm.date = new Date().toISOString().substring(0, 10);
+                    } else {
+                        this.logForm.date = this.formatStandardIsoDate(this.logForm.date);
+                    }
+
+                    // Check duplicate invoice info
                     const duplicateInfo = this.checkForDuplicateInvoice();
-                    if (duplicateInfo) {
+                    if (duplicateInfo && !this.logForm.id) {
                         this.askConfirmation(
                             '⚠️ Terdeteksi Invoice / Transaksi Ganda',
                             duplicateInfo.message,
                             async () => {
+                                // Timpa data lama
                                 this.logForm.id = duplicateInfo.duplicateLog.id;
                                 await this.executeSaveLog();
                             },
-                            'Timpa Data Lama',
-                            'Batal / Ubah'
+                            'Perbarui Data Lama',
+                            'Batal',
+                            async () => {
+                                // Simpan sebagai transaksi baru
+                                this.logForm.id = 'LOG-' + Date.now();
+                                await this.executeSaveLog();
+                            },
+                            'Simpan Baru'
                         );
                         return;
                     }
@@ -2754,60 +2784,73 @@ Ekstrak informasi berikut ke dalam format JSON:
                 },
 
                 async executeSaveLog() {
-                    if (this.pendingUploadFile && !this.logForm.fileUrl) {
-                        const webhookUrl = String(this.settings.sheetsWebhookUrl || '').trim();
-                        if (webhookUrl) {
-                            this.isUploadingToDrive = true;
-                            this.scanStatusMessage = 'Mengunggah berkas nota ke Google Drive...';
-                            try {
-                                const driveUrl = await this.uploadFileToGoogleDrive(
-                                    this.pendingUploadFile.base64Data,
-                                    this.pendingUploadFile.mimeType,
-                                    this.pendingUploadFile.fileName
-                                );
-                                if (driveUrl) {
-                                    this.logForm.fileUrl = driveUrl;
+                    this.isSavingLog = true;
+                    try {
+                        if (this.pendingUploadFile && !this.logForm.fileUrl) {
+                            const webhookUrl = String(this.settings.sheetsWebhookUrl || '').trim();
+                            if (webhookUrl) {
+                                try {
+                                    const driveUrl = await this.uploadFileToGoogleDrive(
+                                        this.pendingUploadFile.base64Data,
+                                        this.pendingUploadFile.mimeType,
+                                        this.pendingUploadFile.fileName
+                                    );
+                                    if (driveUrl) {
+                                        this.logForm.fileUrl = driveUrl;
+                                    }
+                                } catch (err) {
+                                    console.warn("Upload drive error handled silently:", err);
                                 }
-                            } catch (err) {
-                                console.error("Gagal mengunggah ke Google Drive saat simpan:", err);
-                                this.showToast("⚠️ Gagal Upload ke Drive, data log tetap disimpan.");
-                            } finally {
-                                this.isUploadingToDrive = false;
                             }
                         }
+
+                        const cleanItems = (this.logForm.items || []).map(it => ({
+                            name: String(it?.name || 'Perbaikan / Maintenance').trim(),
+                            cost: Number(it?.cost) || 0
+                        }));
+
+                        const totalCost = cleanItems.reduce((s, i) => s + (Number(i?.cost) || 0), 0);
+                        const logId = this.logForm.id || ('LOG-' + Date.now());
+                        
+                        const newLog = {
+                            id: String(logId),
+                            vehicleId: String(this.logForm.vehicleId || '').trim(),
+                            workshop: String(this.logForm.workshop || 'Bengkel Luar').trim(),
+                            date: this.formatStandardIsoDate(this.logForm.date || new Date()),
+                            km: Number(this.logForm.km) || 0,
+                            invoiceNo: String(this.logForm.invoiceNo || '').trim(),
+                            isRoutine: Boolean(this.logForm.isRoutine),
+                            fileUrl: String(this.logForm.fileUrl || '').trim(),
+                            fileName: String(this.logForm.fileName || '').trim(),
+                            replacedComponents: Array.isArray(this.logForm.replacedComponents) ? this.logForm.replacedComponents : [],
+                            items: cleanItems,
+                            totalCost: Number(totalCost) || 0
+                        };
+
+                        // Simpan ke Firebase Realtime Database
+                        await set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), newLog);
+                        
+                        // Perbarui status armada
+                        await this.recalculateVehicleServiceStats(newLog.vehicleId);
+
+                        if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                            this.syncToGoogleSheets().catch(err => console.warn(err));
+                        }
+
+                        this.pendingUploadFile = null;
+                        this.detectedPlateMatch = '';
+                        this.modals.log = false;
+                        this.showToast('✅ Log transaksi invoice berhasil disimpan!');
+                    } catch (error) {
+                        console.error("Gagal simpan log:", error);
+                        this.showToast('❌ Gagal menyimpan log: ' + error.message);
+                    } finally {
+                        this.isSavingLog = false;
                     }
-
-                    const totalCost = this.logForm.items.reduce((s, i) => s + (Number(i?.cost) || 0), 0);
-                    const logId = this.logForm.id || ('LOG-' + Date.now());
-                    const newLog = {
-                        id: logId,
-                        vehicleId: this.logForm.vehicleId,
-                        workshop: this.logForm.workshop,
-                        date: this.logForm.date,
-                        km: Number(this.logForm.km) || 0,
-                        invoiceNo: this.logForm.invoiceNo,
-                        isRoutine: Boolean(this.logForm.isRoutine),
-                        fileUrl: this.logForm.fileUrl || '',
-                        fileName: this.logForm.fileName || '',
-                        replacedComponents: this.logForm.replacedComponents || [],
-                        items: this.logForm.items,
-                        totalCost
-                    };
-
-                    await set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), newLog);
-                    await this.recalculateVehicleServiceStats(this.logForm.vehicleId);
-
-                    if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
-                        this.syncToGoogleSheets();
-                    }
-
-                    this.pendingUploadFile = null;
-                    this.detectedPlateMatch = '';
-                    this.modals.log = false;
-                    this.showToast('Log transaksi invoice berhasil disimpan!');
                 },
 
                 async recalculateVehicleServiceStats(vehicleId, excludeLogId = null) {
+                    if (!vehicleId) return;
                     const car = (this.vehicles || []).find(v => v.id === vehicleId || v.plate === vehicleId);
                     if (!car) return;
 
@@ -2837,7 +2880,21 @@ Ekstrak informasi berikut ke dalam format JSON:
                         }
                     }
 
-                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
+                    const sanitizedCar = {
+                        id: String(car.id || car.plate),
+                        plate: String(car.plate || car.id),
+                        model: String(car.model || 'Mobil Dinas'),
+                        driver: String(car.driver || '-'),
+                        category: String(car.category || 'Operasional'),
+                        currentKm: Number(car.currentKm) || 0,
+                        lastServiceKm: Number(car.lastServiceKm) || 0,
+                        lastServiceDate: String(car.lastServiceDate || ''),
+                        isUnderService: Boolean(car.isUnderService),
+                        targetWorkshop: String(car.targetWorkshop || ''),
+                        inServiceNotes: String(car.inServiceNotes || '')
+                    };
+
+                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${sanitizedCar.id}`), sanitizedCar);
                 },
 
                 openInvoiceModal(log) {
@@ -2933,24 +2990,15 @@ Ekstrak informasi berikut ke dalam format JSON:
                     this.showToast(`Excel SPJ ${monthName} ${this.spjYear} Berhasil Di-export!`);
                 },
                 async saveIntegrations() {
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/geminiApiKey`), this.settings.geminiApiKey);
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/telegramBotToken`), this.settings.telegramBotToken);
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/telegramChatId`), this.settings.telegramChatId);
+                    await set(ref(db, `artifacts/${appId}/public/data/settings/geminiApiKey`), this.settings.geminiApiKey || '');
+                    await set(ref(db, `artifacts/${appId}/public/data/settings/telegramBotToken`), this.settings.telegramBotToken || '');
+                    await set(ref(db, `artifacts/${appId}/public/data/settings/telegramChatId`), this.settings.telegramChatId || '');
                     await set(ref(db, `artifacts/${appId}/public/data/settings/sheetsWebhookUrl`), this.settings.sheetsWebhookUrl || '');
                     await set(ref(db, `artifacts/${appId}/public/data/settings/autoSyncSheets`), Boolean(this.settings.autoSyncSheets));
                     this.showToast('Pengaturan integrasi & API Keys berhasil disimpan!');
                 },
                 copyAppsScriptCode() {
-                    const scriptCode = `function testPermissions() {
-  var mainFolderName = "AUTOMAN_Nota_Servis";
-  var mainFolders = DriveApp.getFoldersByName(mainFolderName);
-  var mainFolder = mainFolders.hasNext() ? mainFolders.next() : DriveApp.createFolder(mainFolderName);
-  var tempFolder = DriveApp.createFolder("AUTOMAN_TEMP_TEST_PERMISSIONS");
-  tempFolder.setTrashed(true);
-  Logger.log("✅ Izin Full Access Google Drive Berhasil Disetujui!");
-}
-
-function doGet(e) {
+                    const scriptCode = `function doGet(e) {
   try {
     var action = e ? e.parameter.action : '';
     if (action === 'read') {
@@ -3223,13 +3271,7 @@ function doPost(e) {
                                     
                                     let dateVal = r['Tanggal'];
                                     if (dateVal) {
-                                        const parsedD = this.parseLocalDate(dateVal);
-                                        if (parsedD) {
-                                            const y = parsedD.getFullYear();
-                                            const m = String(parsedD.getMonth() + 1).padStart(2, '0');
-                                            const d = String(parsedD.getDate()).padStart(2, '0');
-                                            dateVal = `${y}-${m}-${d}`;
-                                        }
+                                        dateVal = this.formatStandardIsoDate(dateVal);
                                     }
 
                                     const log = {
