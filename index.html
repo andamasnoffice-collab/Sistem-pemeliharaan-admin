@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AUTOMAN UNS - Portal Admin Terpusat & Command Center Armada</title>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome Icons -->
@@ -17,7 +17,7 @@
     <!-- PDF.js for PDF Conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/3.11.174/pdf.min.js"></script>
 
-    <!-- Custom Fonts -->
+    <!-- Custom Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -55,6 +55,59 @@
         @media (max-width: 640px) {
             input, select, textarea {
                 font-size: 16px !important;
+            }
+        }
+
+        /* PRINT MEDIA STYLES - DEDICATED FOR OFFICIAL KWITANSI & SPBY UNS */
+        @media print {
+            @page {
+                size: legal portrait;
+                margin: 12mm 15mm 12mm 15mm;
+            }
+            html, body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            body * {
+                visibility: hidden !important;
+            }
+            #printableZainiDoc, #printableZainiDoc * {
+                visibility: visible !important;
+            }
+            #printableZainiDoc {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                display: block !important;
+            }
+            .print-page {
+                display: block !important;
+                width: 100% !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+            }
+            .print-page:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+            .legal-kuitansi-frame {
+                border: 2px solid #000000 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
             }
         }
     </style>
@@ -399,6 +452,9 @@
                         </div>
 
                         <div class="grid grid-cols-2 sm:flex items-center gap-2">
+                            <button v-if="hasEmptyVehicles" @click="cleanupEmptyVehicles" class="col-span-2 sm:col-auto px-3 py-2.5 bg-rose-950 hover:bg-rose-900 border border-rose-700 text-rose-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95 min-h-[42px] animate-pulse">
+                                <i class="fa-solid fa-broom"></i> <span>Bersihkan ({{ (vehicles.filter(v => !v.plate || !v.plate.trim())).length }}) Data Kosong</span>
+                            </button>
                             <button @click="openUpdateKmModal(null)" class="px-3 py-2.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 active:scale-95 min-h-[42px]">
                                 <i class="fa-solid fa-gauge-high"></i> <span>Update Odometer</span>
                             </button>
@@ -432,9 +488,16 @@
                                     </tr>
                                 </thead>
                                 <tbody v-if="filteredVehiclesList.length > 0" class="divide-y divide-slate-800 font-medium">
-                                    <tr v-for="car in filteredVehiclesList" :key="car.id" class="hover:bg-slate-800/40 transition">
-                                        <td class="p-3 font-mono font-extrabold text-amber-400 whitespace-nowrap">{{ car.plate }}</td>
-                                        <td class="p-3 font-bold text-white whitespace-nowrap">{{ car.model }}</td>
+                                    <tr v-for="car in filteredVehiclesList" :key="car._fbKey || car.id" class="hover:bg-slate-800/40 transition">
+                                        <td class="p-3 font-mono font-extrabold whitespace-nowrap">
+                                            <span v-if="car.plate && car.plate.trim()" class="text-amber-400">{{ car.plate }}</span>
+                                            <span v-else class="text-rose-400 italic text-[11px] bg-rose-950/80 px-2 py-0.5 rounded border border-rose-800">
+                                                (Plat Kosong / ID: {{ car._fbKey || car.id }})
+                                            </span>
+                                        </td>
+                                        <td class="p-3 font-bold whitespace-nowrap">
+                                            <span :class="car.model ? 'text-white' : 'text-slate-500 italic'">{{ car.model || '(Model Tidak Terisi)' }}</span>
+                                        </td>
                                         <td class="p-3 whitespace-nowrap"><span class="px-2 py-0.5 bg-slate-950 border border-slate-800 rounded text-[10px] font-bold text-sky-400">{{ car.category || 'Operasional' }}</span></td>
                                         <td class="p-3 text-slate-300 whitespace-nowrap">{{ car.driver || '-' }}</td>
                                         <td class="p-3 font-mono text-sky-400 font-bold whitespace-nowrap">
@@ -803,6 +866,82 @@
                             </div>
                             <p class="text-lg sm:text-2xl font-black text-amber-400 font-mono">Rp {{ totalSpjNonPkp.toLocaleString('id-ID') }}</p>
                             <span class="text-[10px] text-slate-400 font-mono">{{ spjNonPkpLogs.length }} Transaksi (Zaini Auto & Luar)</span>
+                        </div>
+                    </div>
+
+                    <!-- SPBY & KWITANSI KHUSUS BENGKEL ZAINI GENERATOR CARD -->
+                    <div class="bg-slate-900 border border-amber-500/30 p-4 sm:p-6 rounded-2xl space-y-4 shadow-xl">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 bg-amber-950 border border-amber-800 text-amber-400 font-mono font-bold text-xs rounded-lg uppercase">
+                                        Bengkel Zaini Auto
+                                    </span>
+                                    <h3 class="font-extrabold text-white text-base">Kuitansi & SPBY Resmi UNS (Maks. 10 Juta)</h3>
+                                </div>
+                                <p class="text-xs text-slate-400">Pilih kombinasi faktur Bengkel Zaini untuk membuat berkas resmi Kuitansi & Surat Perintah Bayar standar Kantor Pusat II UNS.</p>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button @click="autoSelectZainiCombo" class="px-3.5 py-2.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-700 text-indigo-300 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow active:scale-95">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                                    <span>Pilihkan Kombinasi (Mendekati 10 Juta)</span>
+                                </button>
+                                <button @click="openZainiOfficialDocumentModal" :disabled="selectedZainiLogs.length === 0" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-extrabold rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-95">
+                                    <i class="fa-solid fa-print"></i>
+                                    <span>Cetak Kuitansi & SPBy ({{ selectedZainiLogs.length }})</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Info & Table Invoices -->
+                        <div class="space-y-2.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400">Total Invoice Terpilih:</span>
+                                    <span class="font-mono font-bold text-emerald-400 text-sm sm:text-base">Rp {{ selectedZainiTotalCost.toLocaleString('id-ID') }}</span>
+                                    <span class="text-[10px] text-slate-500">/ Maks. Rp 10.000.000</span>
+                                </div>
+                                <div class="flex items-center gap-2 font-mono text-[11px]">
+                                    <span :class="selectedZainiTotalCost > 10000000 ? 'text-rose-400 font-bold' : 'text-slate-400'">
+                                        {{ selectedZainiTotalCost > 10000000 ? '⚠️ Melebihi Batas 10 Juta!' : `Sisa Kuota: Rp ${(10000000 - selectedZainiTotalCost).toLocaleString('id-ID')}` }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div v-if="zainiLogsForSpj.length > 0" class="overflow-x-auto touch-scroll border border-slate-800 rounded-xl">
+                                <table class="w-full text-left text-xs text-slate-300 min-w-[600px]">
+                                    <thead class="bg-slate-950 text-slate-400 uppercase font-mono text-[10px]">
+                                        <tr>
+                                            <th class="p-3 text-center w-12">Pilih</th>
+                                            <th class="p-3">Tanggal</th>
+                                            <th class="p-3">Plat Armada</th>
+                                            <th class="p-3">No. Invoice</th>
+                                            <th class="p-3">Rincian Pekerjaan</th>
+                                            <th class="p-3 text-right">Biaya (Rp)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800 font-medium">
+                                        <tr v-for="log in zainiLogsForSpj" :key="log.id" :class="isZainiLogSelected(log.id) ? 'bg-amber-950/20' : 'hover:bg-slate-800/40'" class="transition">
+                                            <td class="p-3 text-center">
+                                                <input type="checkbox" :value="log.id" v-model="selectedZainiLogIds" class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+                                            </td>
+                                            <td class="p-3 font-mono text-slate-400 whitespace-nowrap">{{ formatDateDisplay(log.date) }}</td>
+                                            <td class="p-3 font-mono font-bold text-amber-400 whitespace-nowrap">{{ log.vehicleId }}</td>
+                                            <td class="p-3 font-mono text-slate-300 whitespace-nowrap">{{ log.invoiceNo || '-' }}</td>
+                                            <td class="p-3 max-w-xs truncate text-slate-300">
+                                                {{ (normalizeArray(log.items).map(i => typeof i === 'object' ? i.name : i)).join(', ') || 'Servis & Perbaikan' }}
+                                            </td>
+                                            <td class="p-3 text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
+                                                Rp {{ (Number(log.totalCost) || 0).toLocaleString('id-ID') }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div v-else class="text-center py-6 text-slate-500 text-xs bg-slate-950 rounded-xl border border-slate-800">
+                                Tidak ada data transaksi Bengkel Zaini pada {{ getMonthName(spjMonth) }} {{ spjYear }}.
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -1443,6 +1582,344 @@
             </div>
         </div>
 
+        <!-- MODAL KWITANSI & SPBY RESMI UNS KHUSUS BENGKEL ZAINI -->
+        <div v-if="modals.zainiDoc" class="fixed inset-0 z-[60] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-900 border border-slate-800 w-full max-w-5xl rounded-2xl p-4 sm:p-6 space-y-4 my-auto max-h-[96vh] overflow-y-auto touch-scroll shadow-2xl">
+                <!-- Modal Header & Actions -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-lg border border-amber-500/20">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base sm:text-lg">Pratinjau Kuitansi & SPBy Resmi UNS</h3>
+                            <p class="text-[11px] text-slate-400">Format standar Kuitansi & Surat Perintah Bayar Kuasa Pengguna Anggaran Kantor Pusat II UNS</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 self-end sm:self-auto">
+                        <button @click="printZainiDocument" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95">
+                            <i class="fa-solid fa-print"></i>
+                            <span>Cetak / Simpan PDF</span>
+                        </button>
+                        <button @click="modals.zainiDoc = false" class="text-slate-400 hover:text-white p-2 text-lg active:scale-95"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+
+                <!-- Form Konfigurasi Pejabat & Penandatangan -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 text-xs">
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                        <span class="font-bold text-sky-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-pen"></i>
+                            <span>Atur Nama Pejabat & Penandatangan Dokumen</span>
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-mono">Tahun Anggaran: {{ officialDocConfig.ta }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kasubdit Umum</label>
+                            <input type="text" v-model="officialSignees.kasubdit.name" placeholder="Nama Kasubdit..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white font-semibold">
+                            <input type="text" v-model="officialSignees.kasubdit.nip" placeholder="NIP Kasubdit..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono mt-1">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Yang Menerima (Zaini Auto)</label>
+                            <input type="text" v-model="officialSignees.receiver.name" placeholder="Nama Penerima..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white font-semibold">
+                            <input type="text" v-model="officialSignees.receiver.nik" placeholder="NIK / NIP Penerima..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono mt-1">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">PPK Kantor Pusat II UNS</label>
+                            <input type="text" v-model="officialSignees.ppk.name" placeholder="Nama PPK..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white font-semibold">
+                            <input type="text" v-model="officialSignees.ppk.nip" placeholder="NIP PPK..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono mt-1">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bendahara Pengeluaran Pembantu</label>
+                            <input type="text" v-model="officialSignees.bendahara.name" placeholder="Nama Bendahara..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white font-semibold">
+                            <input type="text" v-model="officialSignees.bendahara.nip" placeholder="NIP Bendahara..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono mt-1">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Pemeriksa Barang / Pekerjaan</label>
+                            <input type="text" v-model="officialSignees.penerimaBarang.name" placeholder="Nama Pemeriksa..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white font-semibold">
+                            <input type="text" v-model="officialSignees.penerimaBarang.nip" placeholder="NIP Pemeriksa..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono mt-1">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tanggal Dokumen & Mata Anggaran</label>
+                            <input type="text" v-model="officialDocConfig.dateFormatted" placeholder="Contoh: 31 Agustus 2026" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white font-mono">
+                            <div class="grid grid-cols-2 gap-1 mt-1">
+                                <input type="text" v-model="officialDocConfig.mataAnggaran" placeholder="Mata Anggaran" class="bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono">
+                                <input type="text" v-model="officialDocConfig.nomorBukti" placeholder="No Bukti" class="bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOKUMEN PRINTABLE PREVIEW (2 HALAMAN RESMI STANDAR LEGAL) -->
+            <div class="bg-slate-950 p-2 sm:p-4 rounded-xl border border-slate-800 overflow-x-auto touch-scroll">
+                <div id="printableZainiDoc" class="bg-white text-black p-4 sm:p-8 w-[210mm] max-w-full mx-auto shadow-2xl text-[12px] leading-snug font-sans">
+                    
+                    <!-- HALAMAN 1: KUITANSI RESMI UNS -->
+                    <div class="print-page legal-kuitansi-frame border-2 border-black mb-8 bg-white" style="box-sizing: border-box;">
+                        <!-- Top Section: Header, Title, & Rincian -->
+                        <div class="p-4 sm:p-6 pb-4">
+                            <!-- Header Atas Kanan: TA, Nomor Bukti, Mata Anggaran -->
+                            <div class="flex justify-end mb-2">
+                                <div class="w-44 sm:w-48 text-[11px] font-sans pr-0">
+                                    <div class="flex"><span class="w-24 font-normal">TA</span><span class="mr-1">:</span><span>{{ officialDocConfig.ta || '2026' }}</span></div>
+                                    <div class="flex"><span class="w-24 font-normal">Nomor Bukti</span><span class="mr-1">:</span><span>{{ officialDocConfig.nomorBukti || '' }}</span></div>
+                                    <div class="flex"><span class="w-24 font-normal">Mata Anggaran</span><span class="mr-1">:</span><span>{{ officialDocConfig.mataAnggaran || '523111' }}</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Judul Dokumen -->
+                            <div class="text-center my-2">
+                                <h1 class="text-base sm:text-lg font-bold tracking-wider underline uppercase">KUITANSI</h1>
+                            </div>
+
+                            <!-- Rincian Kuitansi -->
+                            <div class="space-y-2.5 my-3 text-[12px]">
+                                <div class="flex items-start">
+                                    <div class="w-28 sm:w-32 shrink-0 font-normal">Sudah terima dari</div>
+                                    <div class="mr-2">:</div>
+                                    <div class="font-bold uppercase tracking-tight">PEJABAT PEMBUAT KOMITMEN UNIVERSITAS SEBELAS MARET</div>
+                                </div>
+
+                                <div class="flex items-baseline">
+                                    <div class="w-28 sm:w-32 shrink-0 font-normal">Jumlah uang</div>
+                                    <div class="mr-2">:</div>
+                                    <div class="text-sm font-bold flex items-baseline gap-2">
+                                        <span>Rp</span>
+                                        <span class="text-base font-extrabold">{{ selectedZainiTotalCost.toLocaleString('id-ID') }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start">
+                                    <div class="w-28 sm:w-32 shrink-0 font-normal">Terbilang</div>
+                                    <div class="mr-2">:</div>
+                                    <div class="font-bold italic">{{ getTerbilang(selectedZainiTotalCost) }} Rupiah</div>
+                                </div>
+
+                                <div class="flex items-start">
+                                    <div class="w-28 sm:w-32 shrink-0 font-normal">Untuk pembayaran</div>
+                                    <div class="mr-2">:</div>
+                                    <div class="flex-1 space-y-2">
+                                        <p class="leading-relaxed">
+                                            Biaya pemeliharaan/service Mobil Dinas Kantor Pusat Universitas Sebelas Maret Nopol<br>
+                                            {{ getZainiPlatesText() }}, dengan perincian sebagai berikut :
+                                        </p>
+
+                                        <!-- Tabel Perincian Armada (Digeser ke Kiri / Kompak) -->
+                                        <div class="my-1.5 inline-block w-full max-w-[475px]">
+                                            <div v-for="(log, idx) in selectedZainiLogs" :key="log.id" class="flex items-center justify-between py-0.5 text-[11px]">
+                                                <div class="flex gap-2 pr-4">
+                                                    <span class="w-4 text-right">{{ idx + 1 }}</span>
+                                                    <span>Service Mobil Dinas Kantor Pusat Nopol {{ log.vehicleId }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-1.5 shrink-0">
+                                                    <span class="w-8 text-left">= Rp</span>
+                                                    <span class="font-mono text-right w-24">{{ (Number(log.totalCost) || 0).toLocaleString('id-ID') }}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Baris Jumlah Total dengan garis pemisah atas -->
+                                            <div class="flex items-center justify-between font-bold pt-1 mt-1 border-t border-black text-[12px]">
+                                                <span class="pl-6">Jumlah</span>
+                                                <div class="flex items-center gap-1.5 shrink-0 font-mono">
+                                                    <span class="w-8 text-left font-sans">Rp</span>
+                                                    <span class="text-right w-24 font-extrabold">{{ selectedZainiTotalCost.toLocaleString('id-ID') }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tanda Tangan Seksi 1: Kasubdit Umum & Penerima -->
+                        <div class="border-t border-black p-4 sm:p-6 py-3.5 grid grid-cols-2 gap-4 text-[11px] leading-tight">
+                            <div class="flex flex-col justify-between h-36 pt-3.5">
+                                <div>
+                                    <p class="font-normal">Kasubdit Umum</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold uppercase underline">{{ officialSignees.kasubdit.name }}</p>
+                                    <p>NIP. {{ officialSignees.kasubdit.nip }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-between h-36 pl-12 sm:pl-20">
+                                <div>
+                                    <p>Surakarta, {{ officialDocConfig.dateFormatted }}</p>
+                                    <p class="font-normal">Yang Menerima</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold uppercase underline">{{ officialSignees.receiver.name }}</p>
+                                    <p>NIK. {{ officialSignees.receiver.nik }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tanda Tangan Seksi 2: PPK & Bendahara -->
+                        <div class="border-t border-black p-4 sm:p-6 py-3.5 grid grid-cols-2 gap-4 text-[11px] leading-tight">
+                            <div class="flex flex-col justify-between h-36">
+                                <div class="space-y-0.5">
+                                    <p>Setuju dibebankan pada MA berkenaan,</p>
+                                    <p>a.n. Kuasa Pengguna Anggaran</p>
+                                    <p>Pejabat Pembuat Komitmen</p>
+                                    <p>Kantor Pusat II UNS</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold uppercase underline">{{ officialSignees.ppk.name }}</p>
+                                    <p>NIP. {{ officialSignees.ppk.nip }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-between h-36 pl-12 sm:pl-20 pt-3.5">
+                                <div class="space-y-0.5">
+                                    <p>Setuju/lunas dibayar</p>
+                                    <p>Bendahara Pengeluaran Pembantu</p>
+                                    <p>Kantor Pusat II UNS</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold uppercase underline">{{ officialSignees.bendahara.name }}</p>
+                                    <p>NIP. {{ officialSignees.bendahara.nip }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tanda Tangan Seksi 3: Pemeriksa Barang / Pekerjaan (Border Bawah Menutup Pas di Bawah Tulisan) -->
+                        <div class="border-t border-black p-4 sm:p-6 py-3.5 text-[11px] leading-tight">
+                            <div class="flex flex-col justify-between h-36 max-w-sm">
+                                <div class="space-y-0.5">
+                                    <p>Barang/pekerjaan tersebut telah diterima/</p>
+                                    <p>diselesaikan dengan lengkap dan baik</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold uppercase underline">{{ officialSignees.penerimaBarang.name }}</p>
+                                    <p>NIP. {{ officialSignees.penerimaBarang.nip }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HALAMAN 2: SURAT PERINTAH BAYAR (SPBY) -->
+                    <div class="print-page legal-kuitansi-frame border-2 border-black bg-white" style="box-sizing: border-box;">
+                        <div>
+                            <!-- Header Instansi & Narasi -->
+                            <div class="p-4 sm:p-6 pb-2">
+                                <div class="text-center border-b-2 border-black pb-2.5 mb-3 space-y-0.5">
+                                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wide">KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</h2>
+                                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider">UNIVERSITAS SEBELAS MARET</h2>
+                                </div>
+
+                                <!-- Judul Dokumen SPBY -->
+                                <div class="text-center my-2">
+                                    <h1 class="text-sm sm:text-base font-bold underline tracking-wider uppercase">SURAT PERINTAH BAYAR</h1>
+                                </div>
+
+                                <!-- Baris Tanggal & Nomor -->
+                                <div class="grid grid-cols-2 gap-4 my-3 text-[11px] font-sans">
+                                    <div class="flex items-center pl-24 sm:pl-32">
+                                        <span class="w-16 font-normal">Tanggal</span>
+                                        <span class="mr-1">:</span>
+                                        <span>{{ officialDocConfig.dateFormatted }}</span>
+                                    </div>
+                                    <div class="flex items-center pl-6 sm:pl-10">
+                                        <span class="w-14 font-normal">Nomor</span>
+                                        <span class="mr-1">:</span>
+                                        <span>{{ officialDocConfig.nomorSpby || '' }}/{{ officialDocConfig.ta || '2026' }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Perintah Bayar -->
+                                <div class="space-y-1.5 mt-3 text-[11px] leading-relaxed">
+                                    <p>
+                                        Saya yang bertanda tangan di bawah ini selaku Pejabat Pembuat Komitmen memerintahkan Bendahara Pengeluaran Pembantu agar melakukan pembayaran sejumlah :
+                                    </p>
+                                    <div class="pt-1.5 pb-0.5 flex items-baseline gap-3">
+                                        <span class="font-bold text-xs">Rp</span>
+                                        <span class="font-extrabold text-sm sm:text-base font-mono">{{ selectedZainiTotalCost.toLocaleString('id-ID') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Box Terbilang Garis Penuh Menyambung Ke Tepi Frame -->
+                            <div class="border-t border-b border-black py-1.5 px-4 text-center font-bold italic text-[11px] bg-slate-50/50">
+                                {{ getTerbilang(selectedZainiTotalCost) }} Rupiah
+                            </div>
+
+                            <!-- Detail Penerima & Pembayaran -->
+                        <div class="p-4 sm:p-6 py-2.5 space-y-2 text-[11px]">
+                            <div class="flex pt-0.5">
+                                <div class="w-32 font-normal">Kepada</div>
+                                <div class="mr-2">:</div>
+                                <div class="font-bold">Zaini Auto Motor</div>
+                            </div>
+
+                            <div class="flex">
+                                <div class="w-32 font-normal">Untuk Pembayaran</div>
+                                <div class="mr-2">:</div>
+                                <div class="flex-1 leading-relaxed">
+                                    Biaya pemeliharaan/service Mobil Dinas Kantor Pusat Universitas Sebelas Maret Nopol {{ getZainiPlatesText() }}.
+                                </div>
+                            </div>
+
+                            <div class="pt-2">
+                                <p class="font-normal">Atas dasar</p>
+                                <p class="mt-0.5">Kuitansi/bukti pembelian :</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Kolom Tanda Tangan SPBY - Perfectly Aligned Baseline & Consistent Spacing -->
+                    <div class="border-t border-black p-4 sm:p-6 py-3.5 grid grid-cols-3 gap-3 text-[10.5px] leading-tight">
+                        <!-- Kolom 1: Bendahara (Sejajar dengan baris ke-2 a.n. Kuasa Pengguna Anggaran) -->
+                        <div class="flex flex-col justify-between h-36">
+                            <div class="space-y-0.5 pt-3.5">
+                                <p>Setuju/lunas dibayar</p>
+                                <p>Bendahara Pengeluaran Pembantu</p>
+                                <p>Kantor Pusat II UNS</p>
+                            </div>
+                            <div>
+                                <p class="font-bold uppercase underline">{{ officialSignees.bendahara.name }}</p>
+                                <p>NIP. {{ officialSignees.bendahara.nip }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Kolom 2: Penerima Uang (Sejajar dengan baris ke-2) -->
+                        <div class="flex flex-col justify-between h-36">
+                            <div class="space-y-0.5 pt-3.5">
+                                <p>Diterima tanggal</p>
+                                <p>Penerima Uang/Uang Muka Kerja</p>
+                            </div>
+                            <div>
+                                <p class="font-bold uppercase underline">{{ officialSignees.receiver.name }}</p>
+                                <p>NIK. {{ officialSignees.receiver.nik }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Kolom 3: PPK (Surakarta naik 1 spasi di baris paling atas) -->
+                        <div class="flex flex-col justify-between h-36">
+                            <div class="space-y-0.5 pt-0">
+                                <p>Surakarta, {{ officialDocConfig.dateFormatted }}</p>
+                                <p>a.n. Kuasa Pengguna Anggaran</p>
+                                <p>Pejabat Pembuat Komitmen</p>
+                                <p>Kantor Pusat II UNS</p>
+                            </div>
+                            <div>
+                                <p class="font-bold uppercase underline">{{ officialSignees.ppk.name }}</p>
+                                <p>NIP. {{ officialSignees.ppk.nip }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <!-- MODAL KONFIRMASI (Z-[70] ALWAYS ON TOP) -->
         <div v-if="confirmModal.show" class="fixed inset-0 z-[70] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl">
@@ -1532,6 +2009,21 @@
                     logYearFilter: 'ALL',
                     logSortOption: 'DATE_DESC',
                     mobileDisplayLimit: 15,
+                    selectedZainiLogIds: [],
+                    officialDocConfig: {
+                        ta: '2026',
+                        nomorBukti: '',
+                        mataAnggaran: '523111',
+                        nomorSpby: '',
+                        dateFormatted: ''
+                    },
+                    officialSignees: {
+                        kasubdit: { name: 'WIDYO AGUNG NUGROHO, S.Kom', nip: '198110212008121001' },
+                        receiver: { name: 'HIMAWAN ADI NUGROHO', nik: '3313152704910001' },
+                        ppk: { name: 'MARSILIA DIKA PRAMESTI, S.E.', nip: '198608222008122001' },
+                        bendahara: { name: 'RITA HINDRAWATI, S.S.', nip: '198203102009102001' },
+                        penerimaBarang: { name: 'ENDRI WIYANTO, S.Kom', nip: '1986122920150401' }
+                    },
                     quickSparepartSuggestions: [
                         { name: 'Oli Mesin 0W-20 TGO Full Synthetic', cost: 450000 },
                         { name: 'Oli Mesin 5W-30 Synthetic', cost: 400000 },
@@ -1572,7 +2064,8 @@
                         updateKm: false,
                         log: false,
                         invoice: false,
-                        workshopDetail: false
+                        workshopDetail: false,
+                        zainiDoc: false
                     },
                     vehicleForm: {
                         id: null,
@@ -1603,6 +2096,9 @@
             },
 
             computed: {
+                hasEmptyVehicles() {
+                    return (this.vehicles || []).some(v => !v.plate || !String(v.plate).trim() || v.plate === 'undefined' || v.plate === 'null');
+                },
                 logFormTotalCost() {
                     if (!this.logForm || !this.logForm.items || !Array.isArray(this.logForm.items)) return 0;
                     return this.logForm.items.reduce((sum, item) => sum + (Number(item?.cost) || 0), 0);
@@ -1799,6 +2295,18 @@
                 },
                 totalSpjAll() {
                     return this.totalSpjPkp + this.totalSpjNonPkp;
+                },
+                zainiLogsForSpj() {
+                    return this.spjFilteredLogs.filter(l => {
+                        const name = String(l.workshop || '').toLowerCase().trim();
+                        return name.includes('zaini');
+                    });
+                },
+                selectedZainiLogs() {
+                    return this.zainiLogsForSpj.filter(l => this.selectedZainiLogIds.includes(l.id));
+                },
+                selectedZainiTotalCost() {
+                    return this.selectedZainiLogs.reduce((sum, l) => sum + (Number(l.totalCost) || 0), 0);
                 },
                 upcomingPeriodicServices() {
                     return (this.vehicles || []).map(v => {
@@ -2020,15 +2528,15 @@
                         const parts = cleanS.split(/[-\/]/);
                         return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
                     }
-                    // Format MM/DD/YYYY (USA format)
+                    // Format MM/DD/YYYY
                     if (s.match(/^\d{1,2}[\/]\d{1,2}[\/]\d{4}$/)) {
                         const parts = s.split(/[\/]/);
                         const p0 = Number(parts[0]);
                         const p1 = Number(parts[1]);
                         const p2 = Number(parts[2]);
-                        if (p0 > 12 && p1 <= 12) { // DD/MM/YYYY
+                        if (p0 > 12 && p1 <= 12) {
                             return new Date(p2, p1 - 1, p0);
-                        } else { // MM/DD/YYYY
+                        } else {
                             return new Date(p2, p0 - 1, p1);
                         }
                     }
@@ -2050,12 +2558,49 @@
                     onValue(vRef, (snap) => {
                         this.cloudStatus = 'connected';
                         const data = snap.val();
-                        this.vehicles = data ? Object.values(data) : [];
+                        if (!data) {
+                            this.vehicles = [];
+                            return;
+                        }
+                        // Pastikan setiap record menyimpan _fbKey asli dan memulihkan plat jika tersimpan di key
+                        this.vehicles = Object.entries(data).map(([key, val]) => {
+                            if (typeof val === 'object' && val !== null) {
+                                let detectedPlate = val.plate;
+                                if (!detectedPlate && val.id && !val.id.startsWith('-') && !val.id.startsWith('LOG')) {
+                                    detectedPlate = val.id;
+                                }
+                                if (!detectedPlate && key && !key.startsWith('-') && !key.startsWith('LOG')) {
+                                    detectedPlate = key;
+                                }
+
+                                return {
+                                    ...val,
+                                    id: val.id || key,
+                                    _fbKey: key,
+                                    plate: detectedPlate ? String(detectedPlate).trim() : '',
+                                    model: val.model || (detectedPlate ? 'Mobil Dinas Operasional' : '')
+                                };
+                            }
+                            return { id: key, _fbKey: key, plate: String(val || key), model: 'Mobil Dinas Operasional' };
+                        });
                     });
 
                     onValue(lRef, (snap) => {
                         const data = snap.val();
-                        this.serviceLogs = data ? Object.values(data) : [];
+                        if (!data) {
+                            this.serviceLogs = [];
+                            return;
+                        }
+                        this.serviceLogs = Object.entries(data).map(([key, val]) => {
+                            if (typeof val === 'object' && val !== null) {
+                                return {
+                                    ...val,
+                                    id: val.id || key,
+                                    _fbKey: key
+                                };
+                            }
+                            return { id: key, _fbKey: key };
+                        });
                     });
 
                     onValue(sRef, (snap) => {
@@ -2111,16 +2656,100 @@
                     }
                 },
                 confirmDeleteVehicleModal(car) {
+                    const keyToDelete = car._fbKey || car.id || car.plate;
+                    const displayName = (car.plate && car.plate.trim()) 
+                        ? `${car.plate} (${car.model || 'Tanpa Model'})` 
+                        : `Data Kosong (Kunci: ${keyToDelete})`;
+
                     this.askConfirmation(
                         'Hapus Data Armada',
-                        `Apakah Anda yakin ingin menghapus armada ${car.plate} (${car.model})?`,
+                        `Apakah Anda yakin ingin menghapus armada: ${displayName}?`,
                         async () => {
-                            await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`));
-                            this.showToast(`Armada ${car.plate} berhasil dihapus.`);
-                            if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
-                                this.syncToGoogleSheets();
+                            try {
+                                const keysToTry = [car._fbKey, car.id, car.plate].filter(Boolean);
+                                for (const k of keysToTry) {
+                                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`), null);
+                                    await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`)).catch(() => {});
+                                }
+                                // Optimistic local state update
+                                this.vehicles = this.vehicles.filter(v => v !== car && v._fbKey !== car._fbKey && v.id !== car.id);
+                                this.showToast(`Data armada ${displayName} berhasil dihapus.`);
+                                if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                                    this.syncToGoogleSheets().catch(() => {});
+                                }
+                            } catch (err) {
+                                console.error("Gagal hapus armada:", err);
+                                this.showToast(`Gagal menghapus: ${err.message}`);
                             }
                         }
+                    );
+                },
+                async cleanupEmptyVehicles() {
+                    const emptyList = (this.vehicles || []).filter(v => !v.plate || !String(v.plate).trim() || v.plate === 'undefined' || v.plate === 'null');
+                    if (emptyList.length === 0) {
+                        this.showToast('Tidak ada data armada kosong.');
+                        return;
+                    }
+
+                    const sampleIds = emptyList.map(e => e.id || e._fbKey).join(', ');
+
+                    this.askConfirmation(
+                        'Kelola Data Armada Tanpa Plat',
+                        `Ditemukan ${emptyList.length} data armada tanpa kolom Plat Nomor:\n(${sampleIds})\n\nPilih "Perbaiki Otomatis" untuk melengkapi data plat dari ID, atau "Hapus Permanen" untuk menghapus data ini.`,
+                        async () => {
+                            // Hapus Permanen
+                            try {
+                                let deleted = 0;
+                                for (const item of emptyList) {
+                                    const keys = [item._fbKey, item.id, item.plate].filter(Boolean);
+                                    for (const k of keys) {
+                                        await set(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`), null);
+                                        await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`)).catch(() => {});
+                                    }
+                                    deleted++;
+                                }
+                                this.vehicles = this.vehicles.filter(v => v.plate && String(v.plate).trim() && v.plate !== 'undefined' && v.plate !== 'null');
+                                this.showToast(`Berhasil membersihkan ${deleted} data armada.`);
+                                if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                                    this.syncToGoogleSheets().catch(() => {});
+                                }
+                            } catch (err) {
+                                console.error("Gagal membersihkan data kosong:", err);
+                                this.showToast(`Gagal membersihkan: ${err.message}`);
+                            }
+                        },
+                        'Hapus Permanen',
+                        'Batal',
+                        async () => {
+                            // Perbaiki Otomatis
+                            try {
+                                let repaired = 0;
+                                for (const v of emptyList) {
+                                    const fallbackPlate = v.id || v._fbKey;
+                                    if (fallbackPlate && !fallbackPlate.startsWith('-') && !fallbackPlate.startsWith('LOG')) {
+                                        const plateUpper = String(fallbackPlate).toUpperCase().trim();
+                                        const repairedCar = {
+                                            id: plateUpper,
+                                            plate: plateUpper,
+                                            model: v.model || 'Mobil Dinas Operasional',
+                                            driver: v.driver || '-',
+                                            category: v.category || 'Operasional',
+                                            currentKm: Number(v.currentKm) || 0,
+                                            lastServiceKm: Number(v.lastServiceKm) || 0,
+                                            lastServiceDate: v.lastServiceDate || '',
+                                            isUnderService: Boolean(v.isUnderService)
+                                        };
+                                        await set(ref(db, `artifacts/${appId}/public/data/vehicles/${plateUpper}`), repairedCar);
+                                        repaired++;
+                                    }
+                                }
+                                this.showToast(`✨ Berhasil memperbaiki ${repaired} data armada!`);
+                            } catch (err) {
+                                console.error("Gagal perbaiki:", err);
+                                this.showToast(`Gagal perbaiki: ${err.message}`);
+                            }
+                        },
+                        'Perbaiki Otomatis'
                     );
                 },
                 openUpdateKmModal(car) {
@@ -2160,6 +2789,145 @@
                     const map = { filterOli: 'Filter Oli', aki: 'Aki / Battery', oliMatic: 'Oli Transmisi', ban: 'Ban', oliGardan: 'Oli Gardan', ac: 'Sistem AC' };
                     return map[key] || String(key);
                 },
+                autoSelectZainiCombo() {
+                    const logs = this.zainiLogsForSpj;
+                    if (!logs || logs.length === 0) {
+                        this.showToast('Tidak ada transaksi Bengkel Zaini pada bulan terpilih.');
+                        return;
+                    }
+                    const MAX_TARGET = 10000000;
+                    let bestSum = 0;
+                    let bestSubset = [];
+
+                    const findCombo = (index, currentSum, currentSubset) => {
+                        if (currentSum > MAX_TARGET) return;
+                        if (currentSum > bestSum) {
+                            bestSum = currentSum;
+                            bestSubset = [...currentSubset];
+                        }
+                        if (index >= logs.length) return;
+                        findCombo(index + 1, currentSum + (Number(logs[index].totalCost) || 0), [...currentSubset, logs[index].id]);
+                        findCombo(index + 1, currentSum, currentSubset);
+                    };
+
+                    findCombo(0, 0, []);
+                    this.selectedZainiLogIds = bestSubset;
+                    this.showToast(`✨ Terpilih ${bestSubset.length} invoice Zaini Auto dengan total Rp ${bestSum.toLocaleString('id-ID')}`);
+                },
+                isZainiLogSelected(id) {
+                    return this.selectedZainiLogIds.includes(id);
+                },
+                getZainiPlatesText() {
+                    const plates = [...new Set(this.selectedZainiLogs.map(l => l.vehicleId))];
+                    if (plates.length === 0) return '-';
+                    if (plates.length === 1) return plates[0];
+                    if (plates.length === 2) return `${plates[0]} dan ${plates[1]}`;
+                    return plates.slice(0, -1).join(', ') + ' dan ' + plates[plates.length - 1];
+                },
+                openZainiOfficialDocumentModal() {
+                    if (this.selectedZainiLogs.length === 0) {
+                        this.showToast('Pilih setidaknya 1 invoice Bengkel Zaini terlebih dahulu!');
+                        return;
+                    }
+                    const now = new Date();
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const monthName = this.getMonthName(now.getMonth() + 1);
+                    const year = now.getFullYear();
+                    
+                    if (!this.officialDocConfig.dateFormatted) {
+                        this.officialDocConfig.dateFormatted = `${day} ${monthName} ${year}`;
+                    }
+                    this.officialDocConfig.ta = String(this.spjYear || year);
+                    this.modals.zainiDoc = true;
+                },
+                printZainiDocument() {
+                    const printContent = document.getElementById('printableZainiDoc')?.innerHTML;
+                    if (!printContent) {
+                        window.print();
+                        return;
+                    }
+                    
+                    const printWindow = window.open('', '_blank', 'width=950,height=1200');
+                    if (printWindow) {
+                        printWindow.document.open();
+                        printWindow.document.write(`
+                            <!DOCTYPE html>
+                            <html lang="id">
+                            <head>
+                                <meta charset="UTF-8">
+                                <title>Kwitansi & SPBY Resmi UNS - Bengkel Zaini Auto</title>
+                                <script src="https://cdn.tailwindcss.com"><\/script>
+                                <style>
+                                    @page {
+                                        size: legal portrait;
+                                        margin: 12mm 15mm 12mm 15mm;
+                                    }
+                                    html, body {
+                                        background: #ffffff !important;
+                                        color: #000000 !important;
+                                        font-family: Arial, Helvetica, sans-serif !important;
+                                        margin: 0 !important;
+                                        padding: 0 !important;
+                                    }
+                                    .print-page {
+                                        display: block !important;
+                                        width: 100% !important;
+                                        page-break-before: auto !important;
+                                        page-break-after: always !important;
+                                        break-after: page !important;
+                                        page-break-inside: avoid !important;
+                                        break-inside: avoid !important;
+                                        margin: 0 !important;
+                                        padding: 0 !important;
+                                    }
+                                    .print-page:last-child {
+                                        page-break-after: auto !important;
+                                        break-after: auto !important;
+                                    }
+                                    .legal-kuitansi-frame {
+                                        border: 2px solid #000000 !important;
+                                        width: 100% !important;
+                                        box-sizing: border-box !important;
+                                    }
+                                </style>
+                            </head>
+                            <body class="bg-white text-black p-0 m-0">
+                                ${printContent}
+                                <script>
+                                    window.onload = function() {
+                                        setTimeout(function() {
+                                            window.print();
+                                        }, 300);
+                                    };
+                                <\/script>
+                            </body>
+                            </html>
+                        `);
+                        printWindow.document.close();
+                    } else {
+                        window.print();
+                    }
+                },
+                getTerbilang(angka) {
+                    const bilangan = Number(angka) || 0;
+                    if (bilangan === 0) return 'Nol';
+                    const satuan = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+                    function konversi(n) {
+                        n = Math.floor(n);
+                        if (n < 12) return satuan[n];
+                        else if (n < 20) return konversi(n - 10) + ' Belas';
+                        else if (n < 100) return konversi(Math.floor(n / 10)) + ' Puluh ' + konversi(n % 10);
+                        else if (n < 200) return 'Seratus ' + konversi(n - 100);
+                        else if (n < 1000) return konversi(Math.floor(n / 100)) + ' Ratus ' + konversi(n % 100);
+                        else if (n < 2000) return 'Seribu ' + konversi(n - 1000);
+                        else if (n < 1000000) return konversi(Math.floor(n / 1000)) + ' Ribu ' + konversi(n % 1000);
+                        else if (n < 1000000000) return konversi(Math.floor(n / 1000000)) + ' Juta ' + konversi(n % 1000000);
+                        else if (n < 1000000000000) return konversi(Math.floor(n / 1000000000)) + ' Milyar ' + konversi(n % 1000000000);
+                        return '';
+                    }
+                    return konversi(bilangan).replace(/\s+/g, ' ').trim();
+                },
+
                 openProcessInvoiceModal(car) {
                     this.pendingUploadFile = null;
                     this.detectedPlateMatch = '';
@@ -2499,7 +3267,7 @@
                         let mimeType = file.type || 'image/jpeg';
                         let isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-                        // Convert PDF first page to JPEG Image via PDF.js for 100% reliable Vision OCR
+                        // Convert PDF first page to JPEG Image via PDF.js for Vision OCR
                         if (isPdf && window.pdfjsLib) {
                             try {
                                 this.scanStatusMessage = 'Mengonversi halaman PDF nota ke gambar presisi tinggi...';
@@ -2587,7 +3355,6 @@ Ekstrak informasi berikut ke dalam format JSON:
                             }
                         };
 
-                        // Collect API Keys (user keys or default empty key which Canvas runtime handles)
                         const userKeys = this.getGeminiKeys();
                         const keySequence = userKeys.length > 0 ? userKeys : [""];
                         const modelsToTry = this.getGeminiModelSequence();
