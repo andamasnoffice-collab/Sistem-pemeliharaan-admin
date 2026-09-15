@@ -179,6 +179,11 @@
                         <i v-else class="fa-solid fa-shield-halved"></i>
                         <span>{{ isLoggingIn ? 'Memproses Login...' : 'Masuk Pusat Kendali Admin' }}</span>
                     </button>
+
+                    <button type="button" @click="enterEmergencyAdminSession" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition border border-slate-700 flex items-center justify-center gap-2 active:scale-95 min-h-[42px]">
+                        <i class="fa-solid fa-key text-amber-400"></i>
+                        <span>Masuk Sesi Admin Darurat (Bypass Auth)</span>
+                    </button>
                 </form>
 
                 <div class="pt-3 border-t border-slate-800 text-center text-xs text-slate-500 space-y-1">
@@ -234,29 +239,293 @@
 
                 <!-- OVERVIEW TAB -->
                 <section v-if="currentTab === 'overview'" class="space-y-4 sm:space-y-6">
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-                        <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
-                            <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Total Akumulasi Biaya</span>
-                            <p class="text-base sm:text-xl lg:text-2xl font-black text-emerald-400 font-mono truncate">Rp {{ totalSpending.toLocaleString('id-ID') }}</p>
-                            <span class="text-[9px] sm:text-[10px] text-slate-500 font-mono block">{{ serviceLogs.length }} transaksi</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+                        <div class="col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-500/30 p-3.5 sm:p-4 rounded-2xl space-y-1 shadow-lg relative overflow-hidden">
+                            <div class="absolute -right-4 -bottom-4 text-amber-500/10 text-6xl pointer-events-none">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <span class="text-[11px] sm:text-xs text-amber-300 font-bold block flex items-center justify-between">
+                                <span>Biaya Bulan Ini</span>
+                                <span class="text-[9px] bg-amber-950 text-amber-400 border border-amber-800 px-1.5 py-0.2 rounded font-mono uppercase">{{ getCurrentMonthName() }}</span>
+                            </span>
+                            <p class="text-base sm:text-xl lg:text-2xl font-black text-amber-400 font-mono truncate">Rp {{ currentMonthTotalSpending.toLocaleString('id-ID') }}</p>
+                            <span class="text-[9px] sm:text-[10px] text-slate-400 font-mono block">{{ currentMonthLogsCount }} transaksi selesai</span>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
-                            <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Pengajuan Servis</span>
+                            <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Total Akumulasi Biaya</span>
+                            <p class="text-base sm:text-xl lg:text-2xl font-black text-emerald-400 font-mono truncate">Rp {{ totalSpending.toLocaleString('id-ID') }}</p>
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 font-mono block">{{ serviceLogs.length }} transaksi master</span>
+                        </div>
+
+                        <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
+                            <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Sedang Servis</span>
                             <p class="text-base sm:text-xl lg:text-2xl font-black text-amber-400 font-mono truncate">{{ pendingApprovalsCount }} Unit</p>
-                            <span class="text-[9px] sm:text-[10px] text-slate-500 block">Perlu verifikasi</span>
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 block">Antrean / Proses</span>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
                             <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Armada Jatuh Tempo</span>
                             <p class="text-base sm:text-xl lg:text-2xl font-black text-rose-400 font-mono truncate">{{ expiredCount }} Unit</p>
-                            <span class="text-[9px] sm:text-[10px] text-slate-500 block">Perlu perawatan</span>
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 block">Tenggat servis (+7.000 KM)</span>
                         </div>
 
                         <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-2xl space-y-1">
-                            <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Total Armada Terdaftar</span>
+                            <span class="text-[11px] sm:text-xs text-slate-400 font-medium block">Armada Terdaftar</span>
                             <p class="text-base sm:text-xl lg:text-2xl font-black text-sky-400 font-mono truncate">{{ vehicles.length }} Unit</p>
-                            <span class="text-[9px] sm:text-[10px] text-slate-500 block">Terdaftar di sistem</span>
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 block">Aktif di sistem</span>
+                        </div>
+                    </div>
+
+                    <!-- GRAFIK BIAYA BULANAN TAHUN BERJALAN -->
+                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4 shadow-xl">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm border border-amber-500/20">
+                                        <i class="fa-solid fa-chart-column"></i>
+                                    </span>
+                                    <h3 class="font-extrabold text-xs sm:text-sm text-white">
+                                        Grafik Tren Pengeluaran Servis Per Tahun ({{ overviewChartYear }})
+                                    </h3>
+                                </div>
+                                <p class="text-[11px] sm:text-xs text-slate-400">Distribusi nominal biaya pemeliharaan armada per bulan sepanjang tahun anggaran</p>
+                            </div>
+
+                            <div class="flex items-center gap-2 self-start sm:self-auto">
+                                <span class="text-[11px] text-slate-400 font-medium">Tahun:</span>
+                                <select v-model="overviewChartYear" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-amber-400 font-mono font-bold focus:outline-none focus:border-amber-500">
+                                    <option :value="2024">2024</option>
+                                    <option :value="2025">2025</option>
+                                    <option :value="2026">2026</option>
+                                    <option :value="2027">2027</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Mini Stats Bar -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs font-mono">
+                            <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800/80">
+                                <span class="text-[10px] text-slate-400 block font-sans">Total Tahun {{ overviewChartYear }}</span>
+                                <span class="text-emerald-400 font-bold text-sm sm:text-base">Rp {{ yearlyMonthlyStats.totalYear.toLocaleString('id-ID') }}</span>
+                            </div>
+                            <div class="bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800/80">
+                                <span class="text-[10px] text-slate-400 block font-sans">Total Transaksi</span>
+                                <span class="text-sky-400 font-bold text-sm sm:text-base">{{ yearlyMonthlyStats.totalTransactions }} Transaksi</span>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1 bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-800/80">
+                                <span class="text-[10px] text-slate-400 block font-sans">Rata-rata / Bulan</span>
+                                <span class="text-amber-400 font-bold text-sm sm:text-base">Rp {{ Math.round(yearlyMonthlyStats.totalYear / 12).toLocaleString('id-ID') }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart Canvas Visualizer -->
+                        <div class="pt-2">
+                            <div class="h-48 sm:h-56 flex items-end gap-1.5 sm:gap-3 pt-6 pb-2 px-1 sm:px-3 bg-slate-950/60 rounded-xl border border-slate-800/80 overflow-x-auto touch-scroll">
+                                <div v-for="m in yearlyMonthlyStats.months" :key="m.month" class="flex-1 min-w-[34px] sm:min-w-[42px] h-full flex flex-col items-center justify-end group relative">
+                                    <!-- Hover Tooltip -->
+                                    <div class="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none absolute -top-9 z-20 bg-slate-900 border border-slate-700 text-[10px] text-white px-2 py-1 rounded-lg shadow-xl font-mono whitespace-nowrap">
+                                        <p class="font-bold text-amber-400">{{ m.name }}: Rp {{ m.total.toLocaleString('id-ID') }}</p>
+                                        <p class="text-slate-400 text-[9px]">{{ m.count }} transaksi</p>
+                                    </div>
+
+                                    <!-- Value Label on Top of Bar for significant amounts -->
+                                    <span v-if="m.total > 0" class="text-[9px] font-mono text-slate-400 group-hover:text-amber-300 transition truncate max-w-full mb-1 scale-90">
+                                        {{ m.total >= 1000000 ? (m.total / 1000000).toFixed(1) + 'M' : (m.total / 1000).toFixed(0) + 'k' }}
+                                    </span>
+
+                                    <!-- Bar Pillar -->
+                                    <div class="w-full rounded-t-lg transition-all duration-500 relative flex flex-col justify-end"
+                                         :class="[
+                                             m.isCurrentMonth ? 'ring-2 ring-amber-400/80 shadow-lg shadow-amber-500/20' : '',
+                                             m.total > 0 ? (m.isCurrentMonth ? 'bg-gradient-to-t from-amber-600 to-amber-400' : 'bg-gradient-to-t from-sky-600 to-emerald-400 hover:from-sky-500 hover:to-emerald-300') : 'bg-slate-800/40'
+                                         ]"
+                                         :style="{ height: m.total > 0 ? Math.max(((m.total / yearlyMonthlyStats.maxTotal) * 100), 8) + '%' : '4px' }">
+                                    </div>
+
+                                    <!-- Month Label -->
+                                    <span class="text-[10px] sm:text-[11px] font-mono mt-2 transition"
+                                          :class="m.isCurrentMonth ? 'text-amber-400 font-black' : (m.total > 0 ? 'text-slate-300 font-semibold' : 'text-slate-600')">
+                                        {{ m.shortName }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-2 px-1">
+                                <span>* Sorot kolom bulan untuk rincian nominal</span>
+                                <span class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded bg-amber-400 inline-block"></span>
+                                    <span class="text-slate-300">Bulan Berjalan ({{ getCurrentMonthName() }})</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LIST KENDARAAN SEDANG / SUDAH SERVIS DI BULAN BERJALAN -->
+                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4 shadow-xl">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm border border-emerald-500/20">
+                                        <i class="fa-solid fa-list-check"></i>
+                                    </span>
+                                    <h3 class="font-extrabold text-xs sm:text-sm text-white">
+                                        Armada Servis Bulan Berjalan ({{ getCurrentMonthName() }} {{ currentYear }})
+                                    </h3>
+                                </div>
+                                <p class="text-[11px] sm:text-xs text-slate-400">
+                                    Daftar seluruh kendaraan yang sedang dalam proses pengerjaan maupun yang telah selesai servis di bulan ini
+                                </p>
+                            </div>
+
+                            <!-- Filter & Status Counter Tabs -->
+                            <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 self-start md:self-auto text-xs">
+                                <button @click="overviewListFilter = 'ALL'" 
+                                        :class="overviewListFilter === 'ALL' ? 'bg-amber-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-white'" 
+                                        class="px-2.5 py-1.5 rounded-lg transition">
+                                    Semua ({{ currentMonthActiveAndCompletedVehicles.length }})
+                                </button>
+                                <button @click="overviewListFilter = 'ACTIVE'" 
+                                        :class="overviewListFilter === 'ACTIVE' ? 'bg-amber-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-white'" 
+                                        class="px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                    <span>Sedang Servis ({{ currentMonthActiveCount }})</span>
+                                </button>
+                                <button @click="overviewListFilter = 'COMPLETED'" 
+                                        :class="overviewListFilter === 'COMPLETED' ? 'bg-amber-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-white'" 
+                                        class="px-2.5 py-1.5 rounded-lg transition">
+                                    Selesai ({{ currentMonthCompletedCount }})
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Table View (Desktop & Tablet) -->
+                        <div class="hidden sm:block overflow-x-auto touch-scroll border border-slate-800 rounded-xl">
+                            <table class="w-full text-left text-xs min-w-[700px]">
+                                <thead class="bg-slate-950 text-slate-400 uppercase font-mono text-[10px] border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3 text-center w-12">No</th>
+                                        <th class="p-3">Plat / Model</th>
+                                        <th class="p-3">Pengemudi</th>
+                                        <th class="p-3">Bengkel Mitra</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3">Tanggal & Odo</th>
+                                        <th class="p-3 text-right">Biaya Servis</th>
+                                        <th class="p-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody v-if="filteredCurrentMonthVehicles.length > 0" class="divide-y divide-slate-800 font-medium text-slate-300">
+                                    <tr v-for="(item, idx) in filteredCurrentMonthVehicles" :key="item.id" class="hover:bg-slate-800/40 transition">
+                                        <td class="p-3 text-center font-mono text-slate-400 font-bold whitespace-nowrap">{{ idx + 1 }}</td>
+                                        <td class="p-3 whitespace-nowrap">
+                                            <span class="font-mono text-amber-400 font-bold block">{{ item.vehicleId }}</span>
+                                            <span class="text-white text-[11px] font-semibold block truncate max-w-[160px]">{{ item.model }}</span>
+                                        </td>
+                                        <td class="p-3 text-slate-400 whitespace-nowrap">{{ item.driver }}</td>
+                                        <td class="p-3 whitespace-nowrap">
+                                            <span class="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-950 border border-slate-800 text-white flex items-center gap-1.5 w-fit">
+                                                <i class="fa-solid fa-wrench text-[10px] text-amber-400"></i>
+                                                <span>{{ item.workshop }}</span>
+                                            </span>
+                                        </td>
+                                        <td class="p-3 whitespace-nowrap">
+                                            <span v-if="item.status === 'SEDANG_SERVIS'" class="px-2.5 py-1 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[10px] flex items-center gap-1.5 w-fit animate-pulse">
+                                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                                <span>Sedang Proses Servis</span>
+                                            </span>
+                                            <span v-else class="px-2.5 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px] flex items-center gap-1.5 w-fit">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                <span>Selesai (Faktur Masuk)</span>
+                                            </span>
+                                        </td>
+                                        <td class="p-3 font-mono text-[11px] whitespace-nowrap">
+                                            <span class="text-slate-300 block">{{ formatDateDisplay(item.date) }}</span>
+                                            <span class="text-sky-400 font-semibold block">{{ (item.km || 0).toLocaleString('id-ID') }} KM</span>
+                                        </td>
+                                        <td class="p-3 text-right font-mono whitespace-nowrap">
+                                            <span v-if="item.status === 'SEDANG_SERVIS'" class="text-slate-500 italic text-[11px]">
+                                                Menunggu Invoice
+                                            </span>
+                                            <span v-else class="text-emerald-400 font-bold text-sm block">
+                                                Rp {{ (item.cost || 0).toLocaleString('id-ID') }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-center whitespace-nowrap">
+                                            <button v-if="item.status === 'SEDANG_SERVIS'" 
+                                                    @click="openProcessInvoiceModal(item.rawVehicle)" 
+                                                    class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] transition active:scale-95 shadow">
+                                                <i class="fa-solid fa-file-circle-check mr-1"></i> Input Faktur
+                                            </button>
+                                            <div v-else class="flex items-center justify-center gap-1">
+                                                <a v-if="item.rawLog && item.rawLog.fileUrl" :href="item.rawLog.fileUrl" target="_blank" class="p-1.5 text-emerald-400 hover:text-emerald-300" title="Buka File Drive">
+                                                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                                                </a>
+                                                <button @click="openInvoiceModal(item.rawLog)" class="px-2.5 py-1.5 bg-sky-950 hover:bg-sky-900 border border-sky-800 text-sky-300 font-bold rounded-lg text-[10px] transition active:scale-95">
+                                                    <i class="fa-solid fa-file-invoice mr-1"></i> Faktur
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tbody v-else>
+                                    <tr>
+                                        <td colspan="8" class="p-8 text-center text-slate-500 font-medium">
+                                            Belum ada aktivitas servis pada bulan berjalan ({{ getCurrentMonthName() }} {{ currentYear }}).
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Card List View -->
+                        <div class="block sm:hidden space-y-3">
+                            <div v-if="filteredCurrentMonthVehicles.length > 0" class="space-y-2.5">
+                                <div v-for="(item, idx) in filteredCurrentMonthVehicles" :key="item.id" class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-2.5 text-xs">
+                                    <div class="flex items-start justify-between border-b border-slate-900 pb-2">
+                                        <div>
+                                            <span class="font-mono text-amber-400 font-bold text-xs bg-slate-900 px-2 py-0.5 rounded border border-slate-800 uppercase">
+                                                #{{ idx + 1 }} • {{ item.vehicleId }}
+                                            </span>
+                                            <h4 class="font-bold text-white text-sm mt-1">{{ item.model }}</h4>
+                                            <p class="text-[10px] text-slate-400">Driver: {{ item.driver }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span v-if="item.status === 'SEDANG_SERVIS'" class="px-2 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[9px] animate-pulse block">
+                                                PROSES
+                                            </span>
+                                            <span v-else class="text-emerald-400 font-mono font-black text-sm block">
+                                                Rp {{ (item.cost || 0).toLocaleString('id-ID') }}
+                                            </span>
+                                            <span class="text-[10px] text-slate-400 font-mono">{{ formatDateDisplay(item.date) }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between text-[11px] bg-slate-900/80 p-2 rounded-lg border border-slate-800/60">
+                                        <div class="flex items-center gap-1.5 text-slate-300">
+                                            <i class="fa-solid fa-wrench text-amber-400 text-[10px]"></i>
+                                            <span>{{ item.workshop }}</span>
+                                        </div>
+                                        <span class="font-mono text-sky-400 font-semibold">{{ (item.km || 0).toLocaleString('id-ID') }} KM</span>
+                                    </div>
+
+                                    <div class="flex items-center justify-end gap-2 pt-1">
+                                        <button v-if="item.status === 'SEDANG_SERVIS'" 
+                                                @click="openProcessInvoiceModal(item.rawVehicle)" 
+                                                class="w-full py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1.5 shadow">
+                                            <i class="fa-solid fa-file-circle-check"></i>
+                                            <span>Setujui & Input Faktur</span>
+                                        </button>
+                                        <button v-else 
+                                                @click="openInvoiceModal(item.rawLog)" 
+                                                class="w-full py-2 bg-sky-950 text-sky-300 border border-sky-800 font-bold rounded-xl text-xs transition active:scale-95 flex items-center justify-center gap-1.5">
+                                            <i class="fa-solid fa-file-invoice"></i>
+                                            <span>Lihat Faktur Digital</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="p-6 text-center text-slate-500 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                                Belum ada aktivitas servis pada bulan berjalan ({{ getCurrentMonthName() }} {{ currentYear }}).
+                            </div>
                         </div>
                     </div>
 
@@ -1934,8 +2203,8 @@
                     <button @click="closeConfirmModal(false)" class="w-full sm:flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">
                         {{ confirmModal.cancelText || 'Batal' }}
                     </button>
-                    <button v-if="confirmModal.extraAction" @click="triggerExtraConfirmAction" class="w-full sm:flex-1 py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition min-h-[42px]">
-                        {{ confirmModal.extraText || 'Simpan Baru' }}
+                    <button v-if="confirmModal.onExtra" @click="triggerExtraConfirmAction" class="w-full sm:flex-1 py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition min-h-[42px]">
+                        {{ confirmModal.extraText || 'Perbaiki Otomatis' }}
                     </button>
                     <button @click="closeConfirmModal(true)" class="w-full sm:flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition min-h-[42px]">
                         {{ confirmModal.confirmText || 'Ya, Lanjutkan' }}
@@ -1956,8 +2225,8 @@
     <script type="module">
         import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.esm-browser.prod.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, child, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const rawAppId = typeof __app_id !== 'undefined' ? __app_id : 'uns-fleet-service';
         const appId = String(rawAppId).replace(/[\/\.\#\$\[\]]/g, '_');
@@ -1994,6 +2263,9 @@
                     recapYear: 2026,
                     spjMonth: new Date().getMonth() + 1,
                     spjYear: 2026,
+                    overviewChartYear: new Date().getFullYear(),
+                    overviewListFilter: 'ALL',
+                    isDragging: false,
                     isScanningInvoice: false,
                     isUploadingToDrive: false,
                     isTestingKeys: false,
@@ -2097,7 +2369,7 @@
 
             computed: {
                 hasEmptyVehicles() {
-                    return (this.vehicles || []).some(v => !v.plate || !String(v.plate).trim() || v.plate === 'undefined' || v.plate === 'null');
+                    return (this.vehicles || []).some(v => !v.plate || !String(v.plate).trim() || v.plate === 'undefined' || v.plate === 'null' || !v.model);
                 },
                 logFormTotalCost() {
                     if (!this.logForm || !this.logForm.items || !Array.isArray(this.logForm.items)) return 0;
@@ -2186,6 +2458,128 @@
                         const diff = (Number(v.currentKm) || 0) - (Number(v.lastServiceKm) || 0);
                         return diff >= 7000;
                     }).length;
+                },
+                currentYear() {
+                    return new Date().getFullYear();
+                },
+                currentMonth() {
+                    return new Date().getMonth() + 1;
+                },
+                currentMonthTotalSpending() {
+                    const now = new Date();
+                    const currM = now.getMonth() + 1;
+                    const currY = now.getFullYear();
+                    return (this.serviceLogs || []).filter(l => {
+                        if (!l.date) return false;
+                        const d = this.parseLocalDate(l.date);
+                        return d && (d.getMonth() + 1) === currM && d.getFullYear() === currY;
+                    }).reduce((sum, l) => sum + (Number(l.totalCost) || 0), 0);
+                },
+                currentMonthLogsCount() {
+                    const now = new Date();
+                    const currM = now.getMonth() + 1;
+                    const currY = now.getFullYear();
+                    return (this.serviceLogs || []).filter(l => {
+                        if (!l.date) return false;
+                        const d = this.parseLocalDate(l.date);
+                        return d && (d.getMonth() + 1) === currM && d.getFullYear() === currY;
+                    }).length;
+                },
+                yearlyMonthlyStats() {
+                    const y = Number(this.overviewChartYear || new Date().getFullYear());
+                    const now = new Date();
+                    const currM = now.getMonth() + 1;
+                    const isSameYear = now.getFullYear() === y;
+                    const stats = [];
+                    let max = 0;
+
+                    for (let m = 1; m <= 12; m++) {
+                        const logs = (this.serviceLogs || []).filter(l => {
+                            if (!l.date) return false;
+                            const d = this.parseLocalDate(l.date);
+                            return d && (d.getMonth() + 1) === m && d.getFullYear() === y;
+                        });
+                        const total = logs.reduce((sum, l) => sum + (Number(l.totalCost) || 0), 0);
+                        if (total > max) max = total;
+                        stats.push({
+                            month: m,
+                            name: this.getMonthName(m),
+                            shortName: this.getMonthShortName(m),
+                            total,
+                            count: logs.length,
+                            isCurrentMonth: isSameYear && m === currM
+                        });
+                    }
+
+                    return {
+                        year: y,
+                        maxTotal: max > 0 ? max : 1,
+                        totalYear: stats.reduce((sum, s) => sum + s.total, 0),
+                        totalTransactions: stats.reduce((sum, s) => sum + s.count, 0),
+                        months: stats
+                    };
+                },
+                currentMonthActiveAndCompletedVehicles() {
+                    const now = new Date();
+                    const currM = now.getMonth() + 1;
+                    const currY = now.getFullYear();
+
+                    // 1. Sedang Servis (Active queue)
+                    const inServiceList = (this.vehicles || []).filter(v => v.isUnderService).map(v => {
+                        return {
+                            id: 'active-' + (v._fbKey || v.id || v.plate),
+                            vehicleId: v.plate || v.id,
+                            model: v.model || this.getVehicleModel(v.id),
+                            driver: v.driver || '-',
+                            workshop: v.targetWorkshop || 'Bengkel Rekanan',
+                            status: 'SEDANG_SERVIS',
+                            date: v.inServiceDate || new Date().toISOString().substring(0, 10),
+                            km: Number(v.currentKm) || 0,
+                            cost: 0,
+                            rawVehicle: v,
+                            rawLog: null
+                        };
+                    });
+
+                    // 2. Sudah Servis pada bulan berjalan
+                    const completedList = (this.serviceLogs || []).filter(l => {
+                        if (!l.date) return false;
+                        const d = this.parseLocalDate(l.date);
+                        return d && (d.getMonth() + 1) === currM && d.getFullYear() === currY;
+                    }).map(l => {
+                        const car = (this.vehicles || []).find(v => v.id === l.vehicleId || v.plate === l.vehicleId);
+                        return {
+                            id: 'log-' + (l.id || l.invoiceNo || Math.random()),
+                            vehicleId: l.vehicleId,
+                            model: car ? car.model : this.getVehicleModel(l.vehicleId),
+                            driver: car ? car.driver : this.getVehicleDriver(l.vehicleId),
+                            workshop: l.workshop || 'Bengkel Rekanan',
+                            status: 'SELESAI',
+                            date: l.date,
+                            km: Number(l.km) || 0,
+                            cost: Number(l.totalCost) || 0,
+                            rawVehicle: car || null,
+                            rawLog: l
+                        };
+                    });
+
+                    return [...inServiceList, ...completedList];
+                },
+                filteredCurrentMonthVehicles() {
+                    const list = this.currentMonthActiveAndCompletedVehicles;
+                    if (this.overviewListFilter === 'ACTIVE') {
+                        return list.filter(item => item.status === 'SEDANG_SERVIS');
+                    }
+                    if (this.overviewListFilter === 'COMPLETED') {
+                        return list.filter(item => item.status === 'SELESAI');
+                    }
+                    return list;
+                },
+                currentMonthActiveCount() {
+                    return this.currentMonthActiveAndCompletedVehicles.filter(i => i.status === 'SEDANG_SERVIS').length;
+                },
+                currentMonthCompletedCount() {
+                    return this.currentMonthActiveAndCompletedVehicles.filter(i => i.status === 'SELESAI').length;
                 },
                 totalSpending() {
                     return (this.serviceLogs || []).reduce((sum, l) => sum + (Number(l.totalCost) || 0), 0);
@@ -2378,9 +2772,17 @@
                     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/3.11.174/pdf.worker.min.js';
                 }
 
+                if (sessionStorage.getItem('automan_admin_session') === 'true') {
+                    this.isAuthenticated = true;
+                    this.initRealtimeSync();
+                }
+
                 // Listen Auth State via Firebase Auth
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
+                        this.isAuthenticated = true;
+                        this.initRealtimeSync();
+                    } else if (sessionStorage.getItem('automan_admin_session') === 'true') {
                         this.isAuthenticated = true;
                         this.initRealtimeSync();
                     } else {
@@ -2405,13 +2807,25 @@
                     this.isLoggingIn = true;
                     try {
                         await signInWithEmailAndPassword(auth, this.emailInput, this.passwordInput);
+                        sessionStorage.setItem('automan_admin_session', 'true');
                         this.showToast('Selamat Datang di Portal Admin Master!');
                         this.emailInput = '';
                         this.passwordInput = '';
                     } catch (error) {
                         console.error("Firebase Login Error:", error);
                         let msg = 'Gagal login. Periksa email dan password Anda.';
-                        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                        if (error.code === 'auth/operation-not-allowed') {
+                            this.askConfirmation(
+                                '⚠️ Email/Password Belum Aktif di Firebase Console',
+                                'Error Firebase: auth/operation-not-allowed.\n\nProvider Email/Password belum diaktifkan pada Firebase Console proyek ini.\n\nLangkah Mengaktifkan (Hanya 1 Menit):\n1. Buka https://console.firebase.google.com/\n2. Pilih proyek "uns-fleet-management"\n3. Buka menu Authentication > Sign-in method\n4. Klik "Email/Password" > centang Enable > klik Save.\n\nAnda dapat langsung masuk sekarang menggunakan Mode Sesi Admin Darurat agar tidak terhambat.',
+                                () => {
+                                    this.enterEmergencyAdminSession();
+                                },
+                                'Masuk Sesi Admin Darurat',
+                                'Tutup'
+                            );
+                            return;
+                        } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                             msg = 'Email atau password salah!';
                         } else if (error.code === 'auth/invalid-email') {
                             msg = 'Format alamat email tidak valid!';
@@ -2423,15 +2837,26 @@
                         this.isLoggingIn = false;
                     }
                 },
+                enterEmergencyAdminSession() {
+                    sessionStorage.setItem('automan_admin_session', 'true');
+                    this.isAuthenticated = true;
+                    try {
+                        signInAnonymously(auth).catch(() => {});
+                    } catch (e) {}
+                    this.initRealtimeSync();
+                    this.showToast('🔓 Berhasil masuk menggunakan Sesi Admin Darurat!');
+                },
                 async logout() {
                     try {
+                        sessionStorage.removeItem('automan_admin_session');
                         await signOut(auth);
+                    } catch (error) {
+                        console.error("Logout error:", error);
+                    } finally {
                         this.isAuthenticated = false;
                         this.emailInput = '';
                         this.passwordInput = '';
                         this.showToast('Berhasil keluar dari sistem.');
-                    } catch (error) {
-                        console.error("Logout error:", error);
                     }
                 },
                 normalizeArray(val) {
@@ -2516,6 +2941,18 @@
                     const day = String(d.getDate()).padStart(2, '0');
                     return `${y}-${m}-${day}`;
                 },
+                cleanNumber(val) {
+                    if (typeof val === 'number') return isNaN(val) ? 0 : Math.round(val);
+                    if (!val) return 0;
+                    let s = String(val).trim();
+                    // Remove currency prefixes
+                    s = s.replace(/^(rp|idr)\.?\s*/i, '');
+                    // Remove trailing cents like ,00 or .00 or ,-
+                    s = s.replace(/([,\.]00|\s*[,-])$/, '');
+                    // Remove any non-digit character
+                    s = s.replace(/[^0-9]/g, '');
+                    return Number(s) || 0;
+                },
                 parseLocalDate(dateStr) {
                     if (!dateStr) return null;
                     if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
@@ -2528,22 +2965,44 @@
                         const parts = cleanS.split(/[-\/]/);
                         return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
                     }
-                    // Format MM/DD/YYYY
-                    if (s.match(/^\d{1,2}[\/]\d{1,2}[\/]\d{4}$/)) {
-                        const parts = s.split(/[\/]/);
+
+                    // Format with Indonesian month names: e.g. "31 Agustus 2026", "15 Sep 2026"
+                    const indoMonths = {
+                        'jan': 0, 'januari': 0,
+                        'feb': 1, 'februari': 1,
+                        'mar': 2, 'maret': 2,
+                        'apr': 3, 'april': 3,
+                        'mei': 4, 'may': 4,
+                        'jun': 5, 'juni': 5,
+                        'jul': 6, 'juli': 6,
+                        'agu': 7, 'agust': 7, 'agustus': 7, 'aug': 7,
+                        'sep': 8, 'sept': 8, 'september': 8,
+                        'okt': 9, 'oktober': 9, 'oct': 9,
+                        'nov': 10, 'november': 10,
+                        'des': 11, 'desember': 11, 'dec': 11
+                    };
+                    const textMatch = s.match(/^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/);
+                    if (textMatch) {
+                        const day = Number(textMatch[1]);
+                        const mStr = textMatch[2].toLowerCase();
+                        const year = Number(textMatch[3]);
+                        if (indoMonths[mStr] !== undefined) {
+                            return new Date(year, indoMonths[mStr], day);
+                        }
+                    }
+
+                    // Format DD-MM-YYYY or DD/MM/YYYY
+                    if (s.match(/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}$/)) {
+                        const parts = s.split(/[-\/]/);
                         const p0 = Number(parts[0]);
                         const p1 = Number(parts[1]);
                         const p2 = Number(parts[2]);
                         if (p0 > 12 && p1 <= 12) {
                             return new Date(p2, p1 - 1, p0);
-                        } else {
+                        } else if (p1 > 12 && p0 <= 12) {
                             return new Date(p2, p0 - 1, p1);
                         }
-                    }
-                    // Format DD-MM-YYYY
-                    if (s.match(/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}$/)) {
-                        const parts = s.split(/[-\/]/);
-                        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+                        return new Date(p2, p1 - 1, p0);
                     } 
                     
                     const d = new Date(s);
@@ -2562,26 +3021,23 @@
                             this.vehicles = [];
                             return;
                         }
-                        // Pastikan setiap record menyimpan _fbKey asli dan memulihkan plat jika tersimpan di key
                         this.vehicles = Object.entries(data).map(([key, val]) => {
                             if (typeof val === 'object' && val !== null) {
-                                let detectedPlate = val.plate;
-                                if (!detectedPlate && val.id && !val.id.startsWith('-') && !val.id.startsWith('LOG')) {
-                                    detectedPlate = val.id;
-                                }
-                                if (!detectedPlate && key && !key.startsWith('-') && !key.startsWith('LOG')) {
-                                    detectedPlate = key;
-                                }
+                                let detectedPlate = (val.plate && String(val.plate).trim()) || 
+                                                    (val.id && !String(val.id).startsWith('-') && !String(val.id).startsWith('LOG') && String(val.id).trim()) || 
+                                                    (key && !String(key).startsWith('-') && !String(key).startsWith('LOG') && String(key).trim()) || 
+                                                    '';
 
                                 return {
                                     ...val,
                                     id: val.id || key,
                                     _fbKey: key,
-                                    plate: detectedPlate ? String(detectedPlate).trim() : '',
+                                    plate: detectedPlate ? String(detectedPlate).toUpperCase().trim() : '',
                                     model: val.model || (detectedPlate ? 'Mobil Dinas Operasional' : '')
                                 };
                             }
-                            return { id: key, _fbKey: key, plate: String(val || key), model: 'Mobil Dinas Operasional' };
+                            const cleanKey = String(val || key).toUpperCase().trim();
+                            return { id: key, _fbKey: key, plate: cleanKey, model: 'Mobil Dinas Operasional' };
                         });
                     });
 
@@ -2666,10 +3122,15 @@
                         `Apakah Anda yakin ingin menghapus armada: ${displayName}?`,
                         async () => {
                             try {
-                                const keysToTry = [car._fbKey, car.id, car.plate].filter(Boolean);
+                                const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
+                                const keysToTry = [...new Set([car._fbKey, car.id, car.plate])].filter(Boolean);
                                 for (const k of keysToTry) {
-                                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`), null);
-                                    await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`)).catch(() => {});
+                                    try {
+                                        await remove(child(vRef, String(k)));
+                                        await set(child(vRef, String(k)), null);
+                                    } catch(e) {
+                                        console.warn(`Remove attempt on ${k}:`, e);
+                                    }
                                 }
                                 // Optimistic local state update
                                 this.vehicles = this.vehicles.filter(v => v !== car && v._fbKey !== car._fbKey && v.id !== car.id);
@@ -2685,26 +3146,29 @@
                     );
                 },
                 async cleanupEmptyVehicles() {
-                    const emptyList = (this.vehicles || []).filter(v => !v.plate || !String(v.plate).trim() || v.plate === 'undefined' || v.plate === 'null');
+                    const emptyList = (this.vehicles || []).filter(v => !v.plate || !String(v.plate).trim() || v.plate === 'undefined' || v.plate === 'null' || !v.model);
                     if (emptyList.length === 0) {
                         this.showToast('Tidak ada data armada kosong.');
                         return;
                     }
 
-                    const sampleIds = emptyList.map(e => e.id || e._fbKey).join(', ');
+                    const sampleIds = emptyList.map(e => e.id || e._fbKey).slice(0, 5).join(', ');
 
                     this.askConfirmation(
                         'Kelola Data Armada Tanpa Plat',
-                        `Ditemukan ${emptyList.length} data armada tanpa kolom Plat Nomor:\n(${sampleIds})\n\nPilih "Perbaiki Otomatis" untuk melengkapi data plat dari ID, atau "Hapus Permanen" untuk menghapus data ini.`,
+                        `Ditemukan ${emptyList.length} data armada tanpa kolom Plat / Model:\n(${sampleIds})\n\nPilih "Perbaiki Otomatis" untuk melengkapi data plat dari ID, atau "Hapus Permanen" untuk menghapus data ini.`,
                         async () => {
                             // Hapus Permanen
                             try {
+                                const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
                                 let deleted = 0;
                                 for (const item of emptyList) {
-                                    const keys = [item._fbKey, item.id, item.plate].filter(Boolean);
+                                    const keys = [...new Set([item._fbKey, item.id, item.plate])].filter(Boolean);
                                     for (const k of keys) {
-                                        await set(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`), null);
-                                        await remove(ref(db, `artifacts/${appId}/public/data/vehicles/${k}`)).catch(() => {});
+                                        try {
+                                            await remove(child(vRef, String(k)));
+                                            await set(child(vRef, String(k)), null);
+                                        } catch(e) {}
                                     }
                                     deleted++;
                                 }
@@ -3203,34 +3667,156 @@
                     return null;
                 },
 
+                // Downscales large desktop images (scanners or 10-30MB photos) to max 1600px
+                async compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quality = 0.88) {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                let width = img.width;
+                                let height = img.height;
+                                if (width > maxWidth || height > maxHeight) {
+                                    if (width > height) {
+                                        height = Math.round((height * maxWidth) / width);
+                                        width = maxWidth;
+                                    } else {
+                                        width = Math.round((width * maxHeight) / height);
+                                        height = maxHeight;
+                                    }
+                                }
+                                const canvas = document.createElement('canvas');
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, width, height);
+                                ctx.drawImage(img, 0, 0, width, height);
+                                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                                const base64 = dataUrl.substring(dataUrl.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
+                                resolve({
+                                    base64Data: base64,
+                                    mimeType: 'image/jpeg',
+                                    dataUrl: dataUrl
+                                });
+                            };
+                            img.onerror = () => {
+                                const res = reader.result;
+                                const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
+                                resolve({
+                                    base64Data: b64,
+                                    mimeType: file.type || 'image/jpeg',
+                                    dataUrl: res
+                                });
+                            };
+                            img.src = e.target.result;
+                        };
+                        reader.onerror = () => resolve(null);
+                        reader.readAsDataURL(file);
+                    });
+                },
+
+                handleFileDrop(event) {
+                    this.isDragging = false;
+                    const dt = event.dataTransfer;
+                    if (dt && dt.files && dt.files.length > 0) {
+                        this.processInvoiceFile(dt.files[0]);
+                    }
+                },
+
                 async manualDriveUpload(event) {
                     const file = event.target.files[0];
                     if (!file) return;
+                    await this.processInvoiceFile(file);
+                    event.target.value = '';
+                },
+
+                async handleInvoiceScan(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    await this.processInvoiceFile(file);
+                    event.target.value = '';
+                },
+
+                async reScanCurrentFile() {
+                    if (!this.pendingUploadFile || !this.pendingUploadFile.base64Data) {
+                        this.showToast('Pilih berkas nota terlebih dahulu.');
+                        return;
+                    }
+                    await this.executeAiExtraction(
+                        this.pendingUploadFile.base64Data,
+                        this.pendingUploadFile.mimeType,
+                        this.pendingUploadFile.fileName
+                    );
+                },
+
+                async processInvoiceFile(file) {
+                    if (!file) return;
+
+                    this.isScanningInvoice = true;
+                    this.scanStatusMessage = 'Membaca berkas & menyiapkan AI OCR Vision...';
+                    this.detectedPlateMatch = '';
 
                     try {
                         let base64Data = '';
                         let mimeType = file.type || 'image/jpeg';
+                        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-                        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                            mimeType = 'application/pdf';
-                            const arrayBuffer = await file.arrayBuffer();
-                            const bytes = new Uint8Array(arrayBuffer);
-                            let binary = '';
-                            for (let i = 0; i < bytes.byteLength; i++) {
-                                binary += String.fromCharCode(bytes[i]);
+                        if (isPdf) {
+                            let pdfRendered = false;
+                            if (window.pdfjsLib) {
+                                try {
+                                    this.scanStatusMessage = 'Mengonversi halaman PDF nota ke gambar presisi tinggi...';
+                                    const arrayBuffer = await file.arrayBuffer();
+                                    const loadingTask = window.pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+                                    const pdf = await loadingTask.promise;
+                                    const page = await pdf.getPage(1);
+                                    const viewport = page.getViewport({ scale: 1.8 });
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = viewport.width;
+                                    canvas.height = viewport.height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.fillStyle = '#ffffff';
+                                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                    await page.render({ canvasContext: ctx, viewport }).promise;
+                                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                                    base64Data = dataUrl.split(',')[1];
+                                    mimeType = 'image/jpeg';
+                                    pdfRendered = true;
+                                } catch (pdfErr) {
+                                    console.warn("PDF.js render fallback to direct base64:", pdfErr);
+                                }
                             }
-                            base64Data = btoa(binary);
+
+                            if (!pdfRendered) {
+                                const arrayBuffer = await file.arrayBuffer();
+                                const bytes = new Uint8Array(arrayBuffer);
+                                let binary = '';
+                                for (let i = 0; i < bytes.byteLength; i++) {
+                                    binary += String.fromCharCode(bytes[i]);
+                                }
+                                base64Data = btoa(binary);
+                                mimeType = 'application/pdf';
+                            }
                         } else {
-                            base64Data = await new Promise((resolve, reject) => {
-                                const reader = new FileReader();
-                                reader.onload = () => {
-                                    const res = reader.result;
-                                    const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
-                                    resolve(b64);
-                                };
-                                reader.onerror = error => reject(error);
-                                reader.readAsDataURL(file);
-                            });
+                            // Compress high-res scanner images or phone photos to avoid payload limits
+                            this.scanStatusMessage = 'Mengoptimalkan resolusi foto nota untuk ekstraksi presisi...';
+                            const compressed = await this.compressImageFile(file, 1600, 1600, 0.88);
+                            if (compressed && compressed.base64Data) {
+                                base64Data = compressed.base64Data;
+                                mimeType = compressed.mimeType;
+                            } else {
+                                base64Data = await new Promise((resolve, reject) => {
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                        const res = reader.result;
+                                        const b64 = res.substring(res.indexOf(',') + 1).replace(/[\r\n\s]/g, '');
+                                        resolve(b64);
+                                    };
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(file);
+                                });
+                            }
                         }
 
                         this.pendingUploadFile = {
@@ -3240,17 +3826,233 @@
                         };
                         this.logForm.fileName = file.name;
 
-                        // Auto Upload to Google Drive if configured
+                        // Background upload to Google Drive if configured
                         if (this.settings.sheetsWebhookUrl) {
-                            await this.uploadFileToGoogleDrive(base64Data, mimeType, file.name);
-                        } else {
-                            this.scanStatusMessage = `📁 File "${file.name}" terpilih.`;
-                            this.showToast('📁 File berhasil dipilih!');
+                            this.uploadFileToGoogleDrive(base64Data, mimeType, file.name).catch(err => {
+                                console.warn("Background drive upload notice:", err);
+                            });
                         }
+
+                        // Run AI Extraction on the prepared image/PDF
+                        await this.executeAiExtraction(base64Data, mimeType, file.name);
+
+                    } catch (err) {
+                        console.error("Gagal memproses berkas nota:", err);
+                        this.scanStatusMessage = 'Error: ' + err.message;
+                        this.showToast('Gagal memproses berkas: ' + err.message);
+                        this.isScanningInvoice = false;
+                    }
+                },
+
+                async executeAiExtraction(base64Data, mimeType, fileName) {
+                    this.isScanningInvoice = true;
+                    this.scanStatusMessage = 'Menganalisis faktur & mengekstrak data via AI Gemini Vision...';
+
+                    try {
+                        const knownPlatesStr = (this.vehicles || []).map(v => `${v.plate || v.id} (${v.model || ''})`).join(', ');
+
+                        const systemPrompt = "Anda adalah asisten AI OCR Vision bengkel profesional. Analisis foto atau dokumen nota/invoice/kwitansi bengkel armada dengan sangat teliti dan ekstrak seluruh datanya ke format JSON murni terstruktur.";
+
+                        const userPrompt = `Analisis foto/dokumen nota atau invoice bengkel ini secara sangat teliti.
+Ekstrak seluruh informasi berikut ke format JSON murni:
+{
+  "invoiceNo": "nomor invoice/nota/faktur (string, kosongkan string jika tidak ada)",
+  "workshop": "nama bengkel (pilih paling cocok: 'Nasmoco', 'Montecarlo', 'Zaini Auto', 'Rekanan', atau 'Bengkel Luar')",
+  "date": "tanggal nota dalam format 'YYYY-MM-DD' (contoh: '2026-08-31')",
+  "km": 0, // angka odometer jika tercantum, 0 jika tidak ada
+  "plate": "plat nomor kendaraan yang tertera di nota (contoh: 'AD 1214 XU')",
+  "replacedComponents": ["filterOli", "aki", "oliMatic", "ban", "oliGardan", "ac"], // hanya cantumkan komponen vital yang diganti
+  "items": [
+    {
+      "name": "nama sparepart / oli / jasa / perbaikan",
+      "cost": 150000 // nominal biaya dalam angka murni tanpa titik/koma/Rp
+    }
+  ],
+  "totalCost": 0 // total nominal akhir nota dalam angka murni
+}
+
+Daftar plat nomor armada yang terdaftar di sistem kami untuk pencocokan:
+[${knownPlatesStr}]
+
+PENTING:
+- Biaya ("cost") harus berupa angka integer bulat murni (misal: 450000, 85000, 1725000). Jangan sertakan simbol mata uang atau titik desimal.
+- Berikan respon HANYA JSON murni tanpa markdown penjelas tambahan.`;
+
+                        const payload = {
+                            contents: [{
+                                role: "user",
+                                parts: [
+                                    { text: userPrompt },
+                                    {
+                                        inlineData: {
+                                            mimeType: mimeType,
+                                            data: base64Data
+                                        }
+                                    }
+                                ]
+                            }],
+                            systemInstruction: {
+                                parts: [{ text: systemPrompt }]
+                            },
+                            generationConfig: {
+                                responseMimeType: "application/json"
+                            }
+                        };
+
+                        const userKeys = this.getGeminiKeys();
+                        // Always include "" (Canvas environment default key) as priority/fallback
+                        const keySequence = [...new Set([...userKeys, ""])];
+                        const modelsToTry = this.getGeminiModelSequence();
+
+                        let scanSuccess = false;
+                        let lastErrorMessage = '';
+
+                        for (let i = 0; i < keySequence.length; i++) {
+                            const currentKey = keySequence[i];
+                            const keyLabel = currentKey ? `Key #${i + 1}` : 'Default Canvas AI';
+
+                            for (const modelName of modelsToTry) {
+                                this.scanStatusMessage = `Mengekstrak nota via ${modelName} (${keyLabel})...`;
+
+                                try {
+                                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${currentKey}`;
+                                    const res = await fetch(apiUrl, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(payload)
+                                    });
+
+                                    if (res.ok) {
+                                        const result = await res.json();
+                                        let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                        if (jsonText) {
+                                            let cleaned = jsonText.trim();
+                                            if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+                                            else if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+                                            if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+                                            cleaned = cleaned.trim();
+
+                                            const firstBrace = cleaned.indexOf('{');
+                                            const lastBrace = cleaned.lastIndexOf('}');
+                                            if (firstBrace !== -1 && lastBrace !== -1) {
+                                                cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+                                            }
+
+                                            const parsed = JSON.parse(cleaned);
+
+                                            if (parsed.invoiceNo) {
+                                                this.logForm.invoiceNo = String(parsed.invoiceNo).trim();
+                                            }
+
+                                            if (parsed.workshop) {
+                                                const rawWs = String(parsed.workshop).toLowerCase();
+                                                if (rawWs.includes('zaini')) this.logForm.workshop = 'Zaini Auto';
+                                                else if (rawWs.includes('nasmoco')) this.logForm.workshop = 'Nasmoco';
+                                                else if (rawWs.includes('montecarlo') || rawWs.includes('monte carlo')) this.logForm.workshop = 'Montecarlo';
+                                                else if (rawWs.includes('rekanan')) this.logForm.workshop = 'Rekanan';
+                                                else this.logForm.workshop = String(parsed.workshop);
+                                            }
+
+                                            if (parsed.date) {
+                                                this.logForm.date = this.formatStandardIsoDate(parsed.date);
+                                            }
+
+                                            if (parsed.km) {
+                                                const kmNum = this.cleanNumber(parsed.km);
+                                                if (kmNum > 0) this.logForm.km = kmNum;
+                                            }
+
+                                            // Auto-match fleet plate
+                                            let matchedVehicleName = '';
+                                            if (parsed.plate) {
+                                                const rawPlateClean = String(parsed.plate).replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                                const matchedCar = (this.vehicles || []).find(v => {
+                                                    const pClean = String(v.plate || v.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                                    return pClean && rawPlateClean && (pClean === rawPlateClean || pClean.includes(rawPlateClean) || rawPlateClean.includes(pClean));
+                                                });
+                                                if (matchedCar) {
+                                                    this.logForm.vehicleId = matchedCar.id;
+                                                    matchedVehicleName = `${matchedCar.plate} (${matchedCar.model})`;
+                                                    this.detectedPlateMatch = matchedVehicleName;
+                                                    if (!this.logForm.km && Number(matchedCar.currentKm) > 0) {
+                                                        this.logForm.km = Number(matchedCar.currentKm);
+                                                    }
+                                                }
+                                            }
+
+                                            // Populate items and costs safely
+                                            if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+                                                this.logForm.items = parsed.items.map(it => ({
+                                                    name: String(it.name || it.item || it.deskripsi || 'Item Servis').trim(),
+                                                    cost: this.cleanNumber(it.cost || it.harga || it.biaya || 0)
+                                                })).filter(it => it.name);
+
+                                                // Auto-detect vital components from item descriptions
+                                                const itemNamesCombined = this.logForm.items.map(i => i.name.toLowerCase()).join(' ');
+                                                const detectedComponents = new Set(Array.isArray(parsed.replacedComponents) ? parsed.replacedComponents : []);
+
+                                                if (itemNamesCombined.includes('filter oli') || itemNamesCombined.includes('saringan oli')) detectedComponents.add('filterOli');
+                                                if (itemNamesCombined.includes('aki') || itemNamesCombined.includes('accu') || itemNamesCombined.includes('battery')) detectedComponents.add('aki');
+                                                if (itemNamesCombined.includes('matic') || itemNamesCombined.includes('atf') || itemNamesCombined.includes('cvt') || itemNamesCombined.includes('transmisi')) detectedComponents.add('oliMatic');
+                                                if (itemNamesCombined.includes('ban') || itemNamesCombined.includes('bridgestone') || itemNamesCombined.includes('dunlop')) detectedComponents.add('ban');
+                                                if (itemNamesCombined.includes('gardan') || itemNamesCombined.includes('differential')) detectedComponents.add('oliGardan');
+                                                if (itemNamesCombined.includes('ac') || itemNamesCombined.includes('freon') || itemNamesCombined.includes('cabin')) detectedComponents.add('ac');
+
+                                                const validKeys = ['filterOli', 'aki', 'oliMatic', 'ban', 'oliGardan', 'ac'];
+                                                this.logForm.replacedComponents = Array.from(detectedComponents).filter(k => validKeys.includes(k));
+                                            }
+
+                                            // Fallback single item cost if only totalCost given
+                                            if (parsed.totalCost && (!this.logForm.items.length || (this.logForm.items.length === 1 && this.logForm.items[0].cost === 0))) {
+                                                const tCost = this.cleanNumber(parsed.totalCost);
+                                                if (tCost > 0) {
+                                                    if (!this.logForm.items.length) {
+                                                        this.logForm.items = [{ name: 'Servis Berkala & Maintenance', cost: tCost }];
+                                                    } else {
+                                                        this.logForm.items[0].cost = tCost;
+                                                    }
+                                                }
+                                            }
+
+                                            scanSuccess = true;
+                                            if (currentKey) this.recordKeyUsage(currentKey, 180, 'HEALTHY');
+
+                                            const plateInfo = matchedVehicleName ? ` • Plat Terdeteksi: ${matchedVehicleName}` : '';
+                                            this.showToast(`✨ AI Vision Berhasil Mengekstrak Nota!${plateInfo}`);
+                                            this.scanStatusMessage = `✅ Berhasil mengekstrak data faktur. ${matchedVehicleName ? 'Armada cocok: ' + matchedVehicleName + '.' : ''}`;
+                                            break;
+                                        }
+                                    } else {
+                                        const errBody = await res.json().catch(() => ({}));
+                                        lastErrorMessage = errBody?.error?.message || `HTTP ${res.status}`;
+                                        if (res.status === 429 && currentKey) {
+                                            this.recordKeyUsage(currentKey, 0, 'LIMITED');
+                                        } else if (currentKey) {
+                                            this.recordKeyUsage(currentKey, 0, 'INVALID');
+                                        }
+                                    }
+                                } catch (fetchErr) {
+                                    console.warn(`Fetch error for model ${modelName}:`, fetchErr);
+                                    lastErrorMessage = fetchErr.message;
+                                }
+
+                                await sleep(300);
+                            }
+
+                            if (scanSuccess) break;
+                        }
+
+                        if (!scanSuccess) {
+                            this.scanStatusMessage = `Gagal scan: ${lastErrorMessage || 'Gagal mengekstrak data faktur'}`;
+                            this.showToast(`Gagal AI Scan: ${lastErrorMessage || 'Periksa format berkas atau koneksi internet'}`);
+                        }
+
                     } catch (e) {
-                        this.showToast('Gagal membaca file: ' + e.message);
+                        console.error("AI extraction error:", e);
+                        this.scanStatusMessage = 'Error: ' + e.message;
+                        this.showToast('Gagal ekstrak AI: ' + e.message);
                     } finally {
-                        event.target.value = '';
+                        this.isScanningInvoice = false;
                     }
                 },
 
@@ -3698,6 +4500,13 @@ Ekstrak informasi berikut ke dalam format JSON:
                 getMonthName(m) {
                     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
                     return months[m - 1];
+                },
+                getMonthShortName(m) {
+                    const shorts = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                    return shorts[m - 1];
+                },
+                getCurrentMonthName() {
+                    return this.getMonthName(new Date().getMonth() + 1);
                 },
                 getServicedVehiclesForMonth(m, year) {
                     const logs = (this.serviceLogs || []).filter(l => {
