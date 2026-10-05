@@ -179,15 +179,12 @@
                         <i v-else class="fa-solid fa-shield-halved"></i>
                         <span>{{ isLoggingIn ? 'Memproses Login...' : 'Masuk Pusat Kendali Admin' }}</span>
                     </button>
+                    <div v-if="loginErrorMessage" class="text-xs text-rose-300 bg-rose-950/60 border border-rose-800 rounded-xl px-3 py-2 leading-relaxed">{{ loginErrorMessage }}</div>
 
-                    <button type="button" @click="enterEmergencyAdminSession" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition border border-slate-700 flex items-center justify-center gap-2 active:scale-95 min-h-[42px]">
-                        <i class="fa-solid fa-key text-amber-400"></i>
-                        <span>Masuk Sesi Admin Darurat (Bypass Auth)</span>
-                    </button>
                 </form>
 
                 <div class="pt-3 border-t border-slate-800 text-center text-xs text-slate-500 space-y-1">
-                    <p class="text-[10px]">Otentikasi Resmi Firebase Email & Password Active</p>
+                    <p class="text-[10px]">Otentikasi resmi Firebase Email & Password • akses database dibatasi Security Rules admin</p>
                 </div>
             </div>
         </div>
@@ -206,11 +203,19 @@
                     <span v-if="pendingApprovalsCount > 0" class="bg-rose-500 text-white font-bold px-1.5 py-0.5 rounded-full text-[10px] animate-pulse">
                         {{ pendingApprovalsCount }}
                     </span>
+                    <span v-if="urgentDamageNotesCount > 0" class="bg-rose-950 text-rose-300 border border-rose-700 font-bold px-1.5 py-0.5 rounded-full text-[10px]" title="Keluhan mendesak aktif">
+                        ⚠ {{ urgentDamageNotesCount }}
+                    </span>
                 </button>
 
                 <button @click="currentTab = 'vehicles'" :class="currentTab === 'vehicles' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-car text-xs"></i>
                     <span>Armada ({{ vehicles.length }})</span>
+                </button>
+
+                <button @click="currentTab = 'drivers'" :class="currentTab === 'drivers' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
+                    <i class="fa-solid fa-id-card text-xs"></i>
+                    <span>Driver ({{ drivers.length }})</span>
                 </button>
 
                 <button @click="currentTab = 'logs'" :class="currentTab === 'logs' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
@@ -226,6 +231,11 @@
                 <button @click="currentTab = 'spj'" :class="currentTab === 'spj' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
                     <i class="fa-solid fa-file-invoice-dollar text-xs"></i>
                     <span>SPJ Bulanan</span>
+                </button>
+
+                <button @click="currentTab = 'monitor'" :class="currentTab === 'monitor' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 snap-start active:scale-95 min-h-[40px]">
+                    <i class="fa-solid fa-gauge-high text-xs"></i>
+                    <span>Monitor Kuota</span>
                 </button>
 
                 <button @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3.5 sm:px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-2 whitespace-nowrap shrink-0 sm:ml-auto snap-start active:scale-95 min-h-[40px]">
@@ -647,9 +657,17 @@
                             </h2>
                             <p class="text-xs text-slate-400">Verifikasi dan input invoice resmi untuk menyelesaikan proses pengajuan servis</p>
                         </div>
-                        <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 border border-amber-800 px-3 py-1.5 rounded-xl self-start sm:self-auto">
-                            {{ inServiceVehicles.length }} Antrean Aktif
-                        </span>
+                        <div class="flex flex-wrap gap-2 self-start sm:self-auto">
+                            <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 border border-amber-800 px-3 py-1.5 rounded-xl">
+                                {{ inServiceVehicles.length }} Antrean Aktif
+                            </span>
+                            <span class="text-xs font-mono font-bold bg-slate-950 text-sky-300 border border-slate-700 px-3 py-1.5 rounded-xl">
+                                {{ activeDamageNotesCount }} Keluhan Aktif
+                            </span>
+                            <span v-if="urgentDamageNotesCount > 0" class="text-xs font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800 px-3 py-1.5 rounded-xl">
+                                ⚠ {{ urgentDamageNotesCount }} Mendesak
+                            </span>
+                        </div>
                     </div>
 
                     <div v-if="inServiceVehicles.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -710,6 +728,95 @@
                         <p class="text-sm font-bold text-slate-300">Tidak ada pengajuan servis dalam antrean.</p>
                         <p class="text-xs">Pengajuan baru dari aplikasi pengemudi akan otomatis muncul di sini secara real-time.</p>
                     </div>
+                    <!-- CATATAN KERUSAKAN / KELUHAN -->
+                    <section class="space-y-3 pt-2">
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-lg">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+                                        <span>Keluhan & Kerusakan Kendaraan</span>
+                                    </h3>
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        Keluhan dari aplikasi pengemudi tampil di sini. Admin dapat menandai prioritas mendesak dan menutup keluhan setelah ditangani.
+                                    </p>
+                                </div>
+                                <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+                                    <span class="px-2 py-1 rounded-lg bg-amber-950 text-amber-300 border border-amber-800">
+                                        {{ activeDamageNotesCount }} AKTIF
+                                    </span>
+                                    <span class="px-2 py-1 rounded-lg bg-rose-950 text-rose-300 border border-rose-800">
+                                        ⚠ {{ urgentDamageNotesCount }} MENDESAK
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="activeDamageVehicles.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div v-for="item in activeDamageVehicles" :key="item.vehicle._fbKey || item.vehicle.id"
+                                 class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
+                                <div class="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                                    <div>
+                                        <span class="px-2.5 py-1 bg-amber-950 border border-amber-800 text-amber-400 font-mono font-bold text-xs rounded-lg">
+                                            {{ item.vehicle.plate || item.vehicle.id }}
+                                        </span>
+                                        <h4 class="font-bold text-white mt-1.5">{{ item.vehicle.model || 'Mobil Dinas' }}</h4>
+                                        <p class="text-xs text-slate-400">
+                                            Pengemudi: {{ item.vehicle.driver || 'Pengemudi UNS' }}
+                                            <span v-if="item.vehicle.isUnderService" class="text-sky-400 font-bold"> • SEDANG DIAJUKAN SERVIS</span>
+                                        </p>
+                                    </div>
+                                    <span class="text-[10px] font-bold px-2 py-1 rounded-full border"
+                                          :class="item.urgentCount > 0 ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-amber-950 text-amber-300 border-amber-800'">
+                                        {{ item.urgentCount > 0 ? '⚠ MENDESAK' : 'PERLU DITINJAU' }}
+                                    </span>
+                                </div>
+
+                                <div v-for="note in item.notes" :key="note.id"
+                                     class="rounded-xl border p-3 space-y-2"
+                                     :class="isDamageNoteUrgent(note) ? 'bg-rose-950/40 border-rose-800/70' : 'bg-slate-950 border-slate-800'">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-[10px] font-mono text-slate-400">
+                                                {{ formatDateDisplay(note.date) }} • {{ note.reporter || 'Driver' }}
+                                            </span>
+                                            <span v-if="isDamageNoteUrgent(note)" class="px-1.5 py-0.5 rounded border bg-rose-950 text-rose-300 border-rose-800 text-[9px] font-bold">
+                                                MENDESAK
+                                            </span>
+                                            <span v-else class="px-1.5 py-0.5 rounded border bg-slate-900 text-slate-400 border-slate-700 text-[9px] font-bold">
+                                                NORMAL
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-xs leading-relaxed whitespace-pre-line"
+                                       :class="getDamageNoteText(note) ? 'text-slate-200' : 'text-amber-300 italic'">
+                                        {{ getDamageNoteText(note) || '⚠ Uraian belum diisi oleh pelapor.' }}
+                                    </p>
+
+                                    <div class="flex flex-wrap gap-2 pt-1">
+                                        <button @click="toggleDamageNoteUrgent(item.vehicle, note)"
+                                                class="px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition"
+                                                :class="isDamageNoteUrgent(note) ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-slate-900 text-amber-300 border-slate-700 hover:border-amber-700'">
+                                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                                            {{ isDamageNoteUrgent(note) ? 'Batalkan Mendesak' : 'Tandai Mendesak' }}
+                                        </button>
+                                        <button @click="resolveDamageNote(item.vehicle, note)"
+                                                class="px-2.5 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-bold hover:bg-emerald-900 transition">
+                                            <i class="fa-solid fa-check mr-1"></i>
+                                            Tandai Selesai
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center text-slate-500 shadow-lg">
+                            <i class="fa-solid fa-circle-check text-2xl text-emerald-500/60"></i>
+                            <p class="text-sm font-bold text-slate-300 mt-2">Tidak ada keluhan/kerusakan aktif.</p>
+                            <p class="text-xs mt-1">Keluhan baru dari aplikasi pengemudi akan muncul otomatis di tab Pengajuan Servis.</p>
+                        </div>
+                    </section>
                 </section>
 
                 <!-- VEHICLES TAB -->
@@ -732,7 +839,7 @@
                             </button>
                             <input type="file" ref="vehicleExcelInput" accept=".xlsx, .xls" @change="importVehiclesExcel" class="hidden">
 
-                            <button @click="openAddVehicleModal" class="col-span-2 sm:col-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[42px]">
+                            <button type="button" @click.stop="openAddVehicleModal" class="col-span-2 sm:col-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5 active:scale-95 min-h-[42px]">
                                 <i class="fa-solid fa-plus"></i>
                                 <span>Tambah Armada</span>
                             </button>
@@ -788,7 +895,7 @@
                                                 <button @click="editVehicle(car)" class="p-2 text-amber-400 hover:text-amber-300 active:scale-95 min-w-[36px] min-h-[36px]" title="Edit">
                                                     <i class="fa-solid fa-pen-to-square"></i>
                                                 </button>
-                                                <button @click="confirmDeleteVehicleModal(car)" class="p-2 text-rose-400 hover:text-rose-300 active:scale-95 min-w-[36px] min-h-[36px]" title="Hapus">
+                                                <button type="button" @click="deleteVehicleDirect(car)" class="p-2 text-rose-400 hover:text-rose-300 active:scale-95 min-w-[44px] min-h-[44px] touch-manipulation" title="Hapus Armada" aria-label="Hapus Armada">
                                                     <i class="fa-solid fa-trash-can"></i>
                                                 </button>
                                             </div>
@@ -805,6 +912,26 @@
                             </table>
                         </div>
                     </div>
+                </section>
+
+                <!-- DRIVERS TAB -->
+                <section v-if="currentTab === 'drivers'" class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-lg space-y-4">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                            <div><h2 class="text-lg font-black text-white flex items-center gap-2"><i class="fa-solid fa-id-card text-amber-400"></i> Master Driver</h2><p class="text-xs text-slate-400 mt-1">Data driver tersimpan di Firebase dan dibaca realtime oleh semua perangkat.</p></div>
+                            <div class="flex flex-wrap gap-2"><button @click="syncDriversFromVehicles" class="px-3 py-2.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 font-bold rounded-xl text-xs flex items-center gap-2 min-h-[42px]"><i class="fa-solid fa-arrows-rotate"></i> Sinkronkan dari Armada</button><button @click="openAddDriverModal" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 min-h-[42px]"><i class="fa-solid fa-plus"></i> Tambah Driver</button></div>
+                        </div>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><div class="text-[10px] text-slate-500 uppercase font-bold">Total Driver</div><div class="text-xl font-black text-white">{{ drivers.length }}</div></div>
+                            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><div class="text-[10px] text-slate-500 uppercase font-bold">Operasional</div><div class="text-xl font-black text-sky-400">{{ drivers.filter(d => d.type === 'Operasional').length }}</div></div>
+                            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><div class="text-[10px] text-slate-500 uppercase font-bold">Pimpinan</div><div class="text-xl font-black text-amber-400">{{ drivers.filter(d => d.type === 'Pimpinan').length }}</div></div>
+                            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><div class="text-[10px] text-slate-500 uppercase font-bold">Kendaraan Ditugaskan</div><div class="text-xl font-black text-emerald-400">{{ drivers.reduce((n,d) => n + assignedVehicleCount(d.id), 0) }}</div></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg"><div class="overflow-x-auto"><table class="w-full text-xs min-w-[920px]"><thead class="bg-slate-950/80 border-b border-slate-800"><tr class="text-left text-slate-400 uppercase text-[10px] tracking-wider"><th class="p-3">Nama Driver</th><th class="p-3">Jenis</th><th class="p-3">No. HP</th><th class="p-3">Status</th><th class="p-3">Jumlah Armada</th><th class="p-3">Armada Ditugaskan</th><th class="p-3 text-right">Aksi</th></tr></thead><tbody class="divide-y divide-slate-800">
+                        <tr v-for="driver in drivers" :key="driver._fbKey || driver.id" class="hover:bg-slate-800/40"><td class="p-3"><div class="font-bold text-white">{{ driver.name || '-' }}</div><div v-if="driver.notes" class="text-[10px] text-slate-500 mt-1">{{ driver.notes }}</div></td><td class="p-3"><span :class="driver.type === 'Pimpinan' ? 'text-amber-300 bg-amber-950 border-amber-800' : 'text-sky-300 bg-sky-950 border-sky-800'" class="px-2 py-1 rounded-lg border font-bold">{{ driver.type || 'Operasional' }}</span></td><td class="p-3 text-slate-300 font-mono">{{ driver.phone || '-' }}</td><td class="p-3"><span :class="driver.status === 'AKTIF' ? 'text-emerald-300 bg-emerald-950 border-emerald-800' : 'text-slate-400 bg-slate-950 border-slate-800'" class="px-2 py-1 rounded-lg border font-bold">{{ driver.status || 'AKTIF' }}</span></td><td class="p-3"><button @click="openDriverAssignment(driver)" class="font-black text-emerald-400 hover:text-emerald-300">{{ assignedVehicleCount(driver.id) }} kendaraan</button></td><td class="p-3"><div class="flex flex-wrap gap-1 max-w-[420px]"><span v-for="car in assignedVehicles(driver.id)" :key="car._fbKey || car.id" class="px-2 py-1 bg-slate-950 border border-slate-700 rounded-lg text-slate-300 font-mono">{{ car.plate || car.id }}</span><span v-if="assignedVehicleCount(driver.id) === 0" class="text-slate-600">Belum ada</span></div></td><td class="p-3"><div class="flex justify-end gap-1"><button @click="editDriver(driver)" class="p-2 text-sky-400 hover:bg-sky-950 rounded-lg" title="Edit Driver"><i class="fa-solid fa-pen"></i></button><button @click="openDriverAssignment(driver)" class="p-2 text-emerald-400 hover:bg-emerald-950 rounded-lg" title="Tugaskan/Pindah Armada"><i class="fa-solid fa-car-side"></i></button><button @click="deleteDriver(driver)" class="p-2 text-rose-400 hover:bg-rose-950 rounded-lg" title="Hapus Driver"><i class="fa-solid fa-trash"></i></button></div></td></tr>
+                        <tr v-if="drivers.length === 0"><td colspan="7" class="p-10 text-center text-slate-500">Belum ada master driver. Gunakan <strong>Sinkronkan dari Armada</strong> untuk membuat master dari data driver lama.</td></tr>
+                    </tbody></table></div></div>
                 </section>
 
                 <!-- LOGS TAB -->
@@ -1215,8 +1342,155 @@
                     </div>
                 </section>
 
+                <!-- RESOURCE MONITOR TAB -->
+                <section v-if="currentTab === 'monitor'" class="space-y-4 sm:space-y-6 max-w-5xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4">
+                        <div class="flex items-start justify-between gap-3 flex-wrap border-b border-slate-800 pb-4">
+                            <div>
+                                <h2 class="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-gauge-high text-emerald-400"></i>
+                                    Monitor Kuota & Resource
+                                </h2>
+                                <p class="text-xs text-slate-400 mt-1">
+                                    Memantau status aplikasi, ukuran payload lokal, statistik pemakaian Gemini yang dicatat aplikasi,
+                                    serta batas resmi provider.
+                                </p>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border"
+                                  :class="cloudStatus === 'connected' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'">
+                                <i class="fa-solid fa-circle text-[7px] mr-1"></i>
+                                {{ cloudStatus === 'connected' ? 'FIREBASE CONNECTED' : 'FIREBASE OFFLINE' }}
+                            </span>
+                        </div>
+
+                        <!-- Firebase -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-database text-orange-400"></i>
+                                    Firebase Realtime Database
+                                </h3>
+                                <a href="https://console.firebase.google.com/" target="_blank"
+                                   class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-sky-300 border border-slate-700 text-[10px] font-bold hover:bg-slate-700">
+                                    <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Firebase Console
+                                </a>
+                            </div>
+
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <p class="text-[10px] text-slate-500 font-bold">DATABASE AKTIF</p>
+                                    <p class="text-sm font-extrabold text-emerald-400 mt-1">
+                                        {{ activeDataVersion === 'v2' ? '/data_v2' : '/data' }}
+                                    </p>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <p class="text-[10px] text-slate-500 font-bold">PAYLOAD LOKAL</p>
+                                    <p class="text-sm font-extrabold text-sky-400 mt-1">{{ formatBytes(monitorPayloadBytes) }}</p>
+                                    <p class="text-[9px] text-slate-600 mt-1">bukan angka billing</p>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <p class="text-[10px] text-slate-500 font-bold">ARMADA / LOG</p>
+                                    <p class="text-sm font-extrabold text-white mt-1">{{ vehicles.length }} / {{ serviceLogs.length }}</p>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <p class="text-[10px] text-slate-500 font-bold">KONEKSI</p>
+                                    <p class="text-sm font-extrabold text-white mt-1">Live SDK</p>
+                                    <p class="text-[9px] text-slate-600 mt-1">jumlah koneksi server tidak tersedia dari browser app</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-amber-950/30 border border-amber-800/50 rounded-xl p-3 text-[11px] text-amber-200 leading-relaxed">
+                                <i class="fa-solid fa-circle-info mr-1"></i>
+                                <strong>Penting:</strong> angka bandwidth/download Firebase yang benar-benar ditagihkan
+                                tidak dapat dibaca langsung oleh halaman web ini. Firebase menampilkan Downloads, Storage,
+                                Connections, dan Load di Usage/Cloud Monitoring. Kartu di atas hanya menunjukkan payload data
+                                yang sedang berada di memori aplikasi.
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <p class="text-[10px] text-slate-500 font-bold">SPARK • DOWNLOAD</p>
+                                    <p class="text-base font-extrabold text-white mt-1">10 GB / bulan</p>
+                                    <p class="text-[9px] text-slate-500">batas no-cost resmi</p>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <p class="text-[10px] text-slate-500 font-bold">SPARK • STORAGE</p>
+                                    <p class="text-base font-extrabold text-white mt-1">1 GB</p>
+                                    <p class="text-[9px] text-slate-500">batas no-cost resmi</p>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <p class="text-[10px] text-slate-500 font-bold">SPARK • CONNECTION</p>
+                                    <p class="text-base font-extrabold text-white mt-1">100</p>
+                                    <p class="text-[9px] text-slate-500">simultaneous connections</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gemini -->
+                        <div class="space-y-3 pt-2 border-t border-slate-800">
+                            <div class="flex items-center justify-between gap-2 flex-wrap">
+                                <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-sky-400"></i>
+                                    Gemini API
+                                </h3>
+                                <div class="flex gap-2">
+                                    <button @click="refreshMonitorData"
+                                            class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold hover:bg-slate-700">
+                                        <i class="fa-solid fa-rotate mr-1"></i> Refresh
+                                    </button>
+                                    <a href="https://aistudio.google.com/usage" target="_blank"
+                                       class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-sky-300 border border-slate-700 text-[10px] font-bold hover:bg-slate-700">
+                                        <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> AI Studio Usage
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="getGeminiKeys().length > 0" class="space-y-2">
+                                <div v-for="(k, idx) in getGeminiKeys()" :key="idx"
+                                     class="bg-slate-950 border border-slate-800 rounded-xl p-3">
+                                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                                        <div>
+                                            <span class="font-mono text-xs text-white font-bold">KEY #{{ idx + 1 }}</span>
+                                            <span class="font-mono text-[10px] text-slate-500 ml-2">{{ maskApiKey(k) }}</span>
+                                        </div>
+                                        <span class="px-2 py-1 rounded-full text-[9px] font-bold border"
+                                              :class="getKeyHealthBadgeClass(k)">
+                                            {{ getKeyHealthText(k) }}
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 mt-3">
+                                        <div>
+                                            <p class="text-[9px] text-slate-500">PANGGILAN TERCATAT</p>
+                                            <p class="text-sm font-extrabold text-white">{{ keyUsageStats[k]?.callsToday || 0 }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] text-slate-500">TOKEN TERCATAT</p>
+                                            <p class="text-sm font-extrabold text-sky-400">{{ (keyUsageStats[k]?.totalTokens || 0).toLocaleString('id-ID') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-else class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center text-xs text-slate-500">
+                                Belum ada Gemini API Key tambahan. Aplikasi dapat memakai AI bawaan Canvas jika tersedia.
+                            </div>
+
+                            <div class="bg-sky-950/30 border border-sky-800/50 rounded-xl p-3 text-[11px] text-sky-200 leading-relaxed">
+                                <i class="fa-solid fa-circle-info mr-1"></i>
+                                <strong>Catatan kuota Gemini:</strong> Gemini API menerapkan rate limit seperti RPM,
+                                TPM input, dan RPD pada level <strong>project</strong>, bukan per API key.
+                                Halaman ini dapat menghitung pemakaian yang dicatat aplikasi per key, tetapi tidak dapat
+                                mengklaim angka “sisa kuota per key” dari API provider. Angka kuota/rate limit aktif
+                                harus dilihat di Google AI Studio.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- SETTINGS TAB -->
                 <section v-if="currentTab === 'settings'" class="space-y-4 sm:space-y-6 max-w-3xl">
+                    
+
                     <!-- Gemini Vision Keys & Health Monitor -->
                     <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4 sm:space-y-5">
                         <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
@@ -1271,7 +1545,7 @@
                                                 </span>
                                             </div>
                                             <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
-                                                <span>Panggilan: <strong class="text-white">{{ (keyUsageStats[k]?.callsToday || 0) }} / 1.500</strong></span>
+                                                <span>Panggilan: <strong class="text-white">{{ (keyUsageStats[k]?.callsToday || 0) }}</strong></span>
                                                 <span>•</span>
                                                 <span>Tokens: <strong class="text-sky-400">{{ (keyUsageStats[k]?.totalTokens || 0).toLocaleString('id-ID') }}</strong></span>
                                             </div>
@@ -1295,6 +1569,44 @@
                                 <i class="fa-solid fa-floppy-disk"></i>
                                 <span>Simpan Konfigurasi Gemini</span>
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Telegram Integration: Admin Save Only -->
+                    <div class="bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+                            <div>
+                                <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+                                    <i class="fa-brands fa-telegram text-sky-400"></i>
+                                    <span>Notifikasi Telegram Terpusat</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">Konfigurasi disimpan Admin ke Firebase. Semua perangkat Automan hanya membaca konfigurasi ini.</p>
+                            </div>
+                            <span class="text-[9px] bg-sky-950 text-sky-400 border border-sky-800 px-2.5 py-1 rounded-full font-mono font-bold">ADMIN SAVE</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-slate-300 mb-1">Bot Token</label>
+                                <input type="password" v-model="settings.telegramBotToken" placeholder="Token Bot Telegram" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-300 mb-1">Chat ID</label>
+                                <input type="text" v-model="settings.telegramChatId" placeholder="Contoh: -1001234567890" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono text-xs focus:outline-none focus:border-sky-500">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+                            <div>
+                                <span class="font-bold text-slate-200 block">Aktifkan Notifikasi Telegram</span>
+                                <span class="text-[10px] text-slate-400">Semua perangkat yang terhubung dapat mengirim notifikasi.</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" v-model="settings.enableTelegramNotification" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-sky-600"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button @click="saveIntegrations" class="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl transition active:scale-95">Simpan Bot Telegram</button>
+                            <button @click="testTelegramNotification" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 font-bold rounded-xl transition active:scale-95">Tes Telegram</button>
                         </div>
                     </div>
 
@@ -1361,6 +1673,11 @@
             </main>
         </div>
 
+        <!-- MODAL DRIVER -->
+        <div v-if="modals.driver" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"><div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"><div class="flex justify-between items-center border-b border-slate-800 pb-3"><h3 class="font-bold text-white text-base">{{ driverForm.id ? 'Edit Driver' : 'Tambah Driver' }}</h3><button @click="modals.driver=false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button></div><div class="space-y-3 text-xs"><div><label class="block font-bold text-slate-300 mb-1">Nama Driver *</label><input v-model="driverForm.name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white" placeholder="Nama lengkap driver"></div><div><label class="block font-bold text-slate-300 mb-1">Driver Operasional / Pimpinan *</label><select v-model="driverForm.type" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold"><option value="Operasional">Operasional</option><option value="Pimpinan">Pimpinan</option></select></div><div><label class="block font-bold text-slate-300 mb-1">Nomor HP</label><input v-model="driverForm.phone" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white" placeholder="08xxxxxxxxxx"></div><div><label class="block font-bold text-slate-300 mb-1">Status</label><select v-model="driverForm.status" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-bold"><option value="AKTIF">AKTIF</option><option value="NONAKTIF">NONAKTIF</option></select></div><div><label class="block font-bold text-slate-300 mb-1">Catatan</label><textarea v-model="driverForm.notes" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white" placeholder="Catatan driver"></textarea></div><div class="flex justify-end gap-2 pt-2 border-t border-slate-800"><button @click="modals.driver=false" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button><button @click="saveDriver" :disabled="isSavingDriver" class="px-5 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-bold"><i v-if="isSavingDriver" class="fa-solid fa-spinner fa-spin mr-1"></i>Simpan Driver</button></div></div></div></div>
+        <!-- MODAL PENUGASAN DRIVER -->
+        <div v-if="modals.driverAssignment" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"><div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 space-y-4"><div class="flex justify-between items-center border-b border-slate-800 pb-3"><div><h3 class="font-bold text-white text-base">Penugasan Armada</h3><p class="text-xs text-slate-400 mt-1">{{ driverAssignment.driverName || '-' }}</p></div><button @click="modals.driverAssignment=false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button></div><div class="space-y-3 text-xs"><div><label class="block font-bold text-slate-300 mb-1">Pilih Armada</label><select v-model="driverAssignment.vehicleId" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white"><option value="">-- Pilih Armada --</option><option v-for="car in vehicles" :key="car._fbKey || car.id" :value="car._fbKey || car.id">{{ car.plate || car.id }} — {{ car.model || '-' }} ({{ car.driver || 'Belum ada driver' }})</option></select></div><p v-if="driverAssignment.vehicleId" class="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-900 rounded-xl p-3">Jika armada sedang ditugaskan ke driver lain, penugasan akan otomatis dipindahkan ke driver ini.</p><div class="flex justify-between gap-2 pt-2 border-t border-slate-800"><button @click="unassignSelectedVehicle" :disabled="!driverAssignment.vehicleId" class="px-4 py-2.5 bg-rose-950 border border-rose-800 text-rose-300 rounded-xl font-bold disabled:opacity-40">Lepas Driver</button><div class="flex gap-2"><button @click="modals.driverAssignment=false" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold">Batal</button><button @click="assignSelectedVehicle" :disabled="!driverAssignment.vehicleId || isAssigningDriver" class="px-5 py-2.5 bg-emerald-500 text-slate-950 rounded-xl font-bold">Simpan Penugasan</button></div></div></div></div></div>
+
         <!-- MODAL VEHICLE -->
         <div v-if="modals.vehicle" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
             <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto touch-scroll">
@@ -1368,7 +1685,7 @@
                     <h3 class="font-bold text-white text-base">{{ vehicleForm.id ? 'Edit Armada' : 'Tambah Armada Baru' }}</h3>
                     <button @click="modals.vehicle = false" class="text-slate-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                <form @submit.prevent="saveVehicle" class="space-y-3 text-xs">
+                <form @submit.prevent.stop="saveVehicle" class="space-y-3 text-xs">
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Plat Nomor *</label>
                         <input type="text" v-model="vehicleForm.plate" required placeholder="Contoh: AD 1001 ZA" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white font-mono uppercase">
@@ -1378,8 +1695,8 @@
                         <input type="text" v-model="vehicleForm.model" required placeholder="Contoh: Toyota Innova Zenix" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">Pengemudi / Penanggung Jawab</label>
-                        <input type="text" v-model="vehicleForm.driver" placeholder="Contoh: Pak Bambang" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
+                        <label class="block font-bold text-slate-300 mb-1">Driver / Penanggung Jawab</label>
+                        <select v-model="vehicleForm.driverId" @change="vehicleForm.driver = ((drivers.find(d => String(d.id || d._fbKey) === String(vehicleForm.driverId || '')) || {}).name || vehicleForm.driver)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white"><option value="">-- Pilih Driver Master --</option><option v-for="d in drivers.filter(x => x.status !== 'NONAKTIF')" :key="d._fbKey || d.id" :value="d.id || d._fbKey">{{ d.name }} — {{ d.type }}</option></select><input type="text" v-model="vehicleForm.driver" placeholder="Nama driver lama/manual (opsional)" class="w-full mt-2 bg-slate-950 border border-slate-800 rounded-xl p-3 text-white">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">Kategori Operational</label>
@@ -1396,7 +1713,7 @@
                     </div>
                     <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-800">
                         <button type="button" @click="modals.vehicle = false" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold min-h-[44px]">Batal</button>
-                        <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl min-h-[44px]">Simpan Armada</button>
+                        <button type="button" @click.stop.prevent="saveVehicle" :disabled="isSavingVehicle" class="w-full sm:w-auto px-5 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 font-bold rounded-xl min-h-[44px] touch-manipulation"><i v-if="isSavingVehicle" class="fa-solid fa-spinner fa-spin mr-1"></i>{{ isSavingVehicle ? 'Menyimpan...' : 'Simpan Armada' }}</button>
                     </div>
                 </form>
             </div>
@@ -1886,7 +2203,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kasubdit RT, TU dan Logistik</label>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kasubdit RT, TU dan Umum</label>
                             <input type="text" v-model="officialSignees.kasubdit.name" placeholder="Nama Kasubdit..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-white font-semibold">
                             <input type="text" v-model="officialSignees.kasubdit.nip" placeholder="NIP Kasubdit..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-mono mt-1">
                         </div>
@@ -2007,11 +2324,11 @@
                             </div>
                         </div>
 
-                        <!-- Tanda Tangan Seksi 1: Kasubdit RT, TU dan Logistik & Penerima -->
+                        <!-- Tanda Tangan Seksi 1: Kasubdit RT, TU dan Umum & Penerima -->
                         <div class="border-t border-black p-4 sm:p-6 py-3.5 grid grid-cols-2 gap-4 text-[11px] leading-tight">
                             <div class="flex flex-col justify-between h-36 pt-3.5">
                                 <div>
-                                    <p class="font-normal">Kasubdit RT, TU dan Logistik</p>
+                                    <p class="font-normal">Kasubdit RT, TU dan Umum</p>
                                 </div>
                                 <div>
                                     <p class="font-bold uppercase underline">{{ officialSignees.kasubdit.name }}</p>
@@ -2200,13 +2517,13 @@
                     <p class="text-xs text-slate-300 leading-relaxed whitespace-pre-line text-left bg-slate-950 p-3 rounded-xl border border-slate-800">{{ confirmModal.message }}</p>
                 </div>
                 <div class="flex flex-col sm:flex-row items-center gap-2 pt-2">
-                    <button @click="closeConfirmModal(false)" class="w-full sm:flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">
+                    <button @click.stop.prevent="closeConfirmModal(false)" class="w-full sm:flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition min-h-[42px]">
                         {{ confirmModal.cancelText || 'Batal' }}
                     </button>
-                    <button v-if="confirmModal.onExtra" @click="triggerExtraConfirmAction" class="w-full sm:flex-1 py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition min-h-[42px]">
+                    <button v-if="confirmModal.onExtra" @click.stop.prevent="triggerExtraConfirmAction" class="w-full sm:flex-1 py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl text-xs transition min-h-[42px]">
                         {{ confirmModal.extraText || 'Perbaiki Otomatis' }}
                     </button>
-                    <button @click="closeConfirmModal(true)" class="w-full sm:flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition min-h-[42px]">
+                    <button @click.stop.prevent="closeConfirmModal(true)" class="w-full sm:flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition min-h-[42px]">
                         {{ confirmModal.confirmText || 'Ya, Lanjutkan' }}
                     </button>
                 </div>
@@ -2225,37 +2542,64 @@
     <script type="module">
         import { createApp } from "https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.esm-browser.prod.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getDatabase, ref, child, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { initializeAuth, getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getDatabase, ref, child, set, update, remove, get, onValue, onChildAdded, onChildChanged, onChildRemoved } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-        const rawAppId = typeof __app_id !== 'undefined' ? __app_id : 'uns-fleet-service';
-        const appId = String(rawAppId).replace(/[\/\.\#\$\[\]]/g, '_');
+        // Fleet production target: the dedicated uns-fleet-service Firebase project.
+        // Keep the data root aligned with the Firebase project even if an external launcher
+        // injects an old __app_id value.
+        const appId = 'uns-fleet-service';
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "AIzaSyDKnUCUnDoPnhX9sW4QPJ6v4nQ2ZyMYo1k",
-                authDomain: "uns-fleet-management.firebaseapp.com",
-                databaseURL: "https://uns-fleet-management-default-rtdb.asia-southeast1.firebasedatabase.app",
-                projectId: "uns-fleet-management",
-                storageBucket: "uns-fleet-management.firebasestorage.app",
-                messagingSenderId: "962442933742",
-                appId: "1:962442933742:web:b71d585ad4b13d8fb7caff"
-            };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAi0Ucng_tl7jSC9gZtr0JItCBUtkt-vvU",
+            authDomain: "uns-fleet-service.firebaseapp.com",
+            databaseURL: "https://uns-fleet-service-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "uns-fleet-service",
+            storageBucket: "uns-fleet-service.firebasestorage.app",
+            messagingSenderId: "881806830475",
+            appId: "1:881806830475:web:8dcf991ec95ae93b625d8e",
+            measurementId: "G-REWR64QLNH"
+        };
+        const TELEGRAM_RELAY_URL = 'https://script.google.com/macros/s/AKfycby_yqy5-1xKhExGRx2tkMu2xQRg0FY21EPupZtn753otG02XIntdsf7xTf4-Qr73IC17Q/exec';
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const auth = getAuth(app);
+        // Struktur lama dipertahankan sebagai arsip/migrasi. Struktur v2 menjadi database aktif setelah diverifikasi.
+        const LEGACY_DATA_ROOT = `artifacts/${appId}/public/data`;
+        const HYBRID_DATA_ROOT = `artifacts/${appId}/public/data_v2`;
 
+        // IMPORTANT: File/content:// launcher Android tidak selalu menyediakan
+        // storage persistence yang kompatibel. Jangan memanggil setPersistence()
+        // setelah getAuth(), karena proses tersebut dapat menggantung sebelum login.
+        // Inisialisasikan Auth langsung dengan persistence in-memory.
+        let auth;
+        try {
+            auth = initializeAuth(app, { persistence: inMemoryPersistence });
+        } catch (authInitError) {
+            // initializeAuth dapat dipanggil ulang jika modul sudah membuat Auth instance.
+            auth = getAuth(app);
+            console.warn("Firebase initializeAuth fallback:", authInitError);
+        }
+
+        const authReady = Promise.resolve(auth);
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         const vueApp = createApp({
             data() {
                 return {
+                    _realtimeUnsubs: [],
+                    _syncInitializing: false,
+                    activeDataVersion: 'legacy',
+                    hybridMigration: { status: 'Memeriksa...', migratedAt: '', counts: null },
+                    _deletingVehicleKey: '',
+                    isSavingVehicle: false,
+                    isSavingDriver: false,
+                    isAssigningDriver: false,
                     isAuthenticated: false,
                     emailInput: '',
                     passwordInput: '',
                     isLoggingIn: false,
+                    loginErrorMessage: '',
                     isSavingLog: false,
                     currentTab: 'overview',
                     cloudStatus: 'loading',
@@ -2310,6 +2654,7 @@
                         { name: 'Filter AC / Cabin Filter', cost: 150000 }
                     ],
                     vehicles: [],
+                    drivers: [],
                     serviceLogs: [],
                     selectedLog: null,
                     selectedWorkshopDetail: null,
@@ -2317,6 +2662,7 @@
                         geminiApiKey: '',
                         telegramBotToken: '',
                         telegramChatId: '',
+                        enableTelegramNotification: true,
                         sheetsWebhookUrl: '',
                         autoSyncSheets: false
                     },
@@ -2333,20 +2679,17 @@
                     },
                     modals: {
                         vehicle: false,
+                        driver: false,
+                        driverAssignment: false,
                         updateKm: false,
                         log: false,
                         invoice: false,
                         workshopDetail: false,
                         zainiDoc: false
                     },
-                    vehicleForm: {
-                        id: null,
-                        plate: '',
-                        model: '',
-                        driver: '',
-                        category: 'Operasional',
-                        currentKm: 0
-                    },
+                    vehicleForm: { _fbKey: '', id: null, plate: '', model: '', driver: '', driverId: '', category: 'Operasional', currentKm: 0 },
+                    driverForm: { _fbKey: '', id: '', name: '', type: 'Operasional', phone: '', status: 'AKTIF', notes: '' },
+                    driverAssignment: { driverId: '', driverName: '', vehicleId: '' },
                     updateKmForm: {
                         vehicleId: '',
                         newKm: 0
@@ -2450,8 +2793,37 @@
                 pendingApprovalsCount() {
                     return (this.vehicles || []).filter(v => v.isUnderService).length;
                 },
+                monitorPayloadBytes() {
+                    try {
+                        const payload = {
+                            vehicles: this.vehicles || [],
+                            logs: this.serviceLogs || [],
+                            settings: this.settings || {}
+                        };
+                        return new Blob([JSON.stringify(payload)]).size;
+                    } catch (e) {
+                        return 0;
+                    }
+                },
                 inServiceVehicles() {
                     return (this.vehicles || []).filter(v => v.isUnderService);
+                },
+                activeDamageVehicles() {
+                    return (this.vehicles || []).map(vehicle => {
+                        const notes = this.normalizeDamageNotes(vehicle.damageNotes)
+                            .filter(note => !Boolean(note.isResolved));
+                        return {
+                            vehicle,
+                            notes,
+                            urgentCount: notes.filter(note => this.isDamageNoteUrgent(note)).length
+                        };
+                    }).filter(item => item.notes.length > 0);
+                },
+                activeDamageNotesCount() {
+                    return this.activeDamageVehicles.reduce((sum, item) => sum + item.notes.length, 0);
+                },
+                urgentDamageNotesCount() {
+                    return this.activeDamageVehicles.reduce((sum, item) => sum + item.urgentCount, 0);
                 },
                 expiredCount() {
                     return (this.vehicles || []).filter(v => {
@@ -2772,22 +3144,16 @@
                     window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/3.11.174/pdf.worker.min.js';
                 }
 
-                if (sessionStorage.getItem('automan_admin_session') === 'true') {
-                    this.isAuthenticated = true;
-                    this.initRealtimeSync();
-                }
-
-                // Listen Auth State via Firebase Auth
+                // SECURITY: status admin hanya boleh berasal dari Firebase Authentication.
+                // SessionStorage tidak lagi dapat membuka aplikasi tanpa user Firebase yang valid.
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        this.isAuthenticated = true;
-                        this.initRealtimeSync();
-                    } else if (sessionStorage.getItem('automan_admin_session') === 'true') {
                         this.isAuthenticated = true;
                         this.initRealtimeSync();
                     } else {
                         this.isAuthenticated = false;
                         this.cloudStatus = 'offline';
+                        this.stopRealtimeSync();
                     }
                 });
             },
@@ -2805,9 +3171,33 @@
                         return;
                     }
                     this.isLoggingIn = true;
+                    this.loginErrorMessage = '';
+                    let timeoutId = null;
                     try {
-                        await signInWithEmailAndPassword(auth, this.emailInput, this.passwordInput);
-                        sessionStorage.setItem('automan_admin_session', 'true');
+                        // Pastikan persistence Auth selesai sebelum request login.
+                        await Promise.race([
+                            authReady,
+                            new Promise((_, reject) => setTimeout(() => {
+                                const e = new Error('Firebase Auth initialization timeout');
+                                e.code = 'automan/auth-init-timeout';
+                                reject(e);
+                            }, 5000))
+                        ]);
+
+                        const loginPromise = signInWithEmailAndPassword(
+                            auth,
+                            String(this.emailInput).trim(),
+                            this.passwordInput
+                        );
+                        const timeoutPromise = new Promise((_, reject) => {
+                            timeoutId = setTimeout(() => {
+                                const timeoutError = new Error('Firebase Authentication timeout');
+                                timeoutError.code = 'automan/auth-timeout';
+                                reject(timeoutError);
+                            }, 8000);
+                        });
+
+                        await Promise.race([loginPromise, timeoutPromise]);
                         this.showToast('Selamat Datang di Portal Admin Master!');
                         this.emailInput = '';
                         this.passwordInput = '';
@@ -2815,40 +3205,40 @@
                         console.error("Firebase Login Error:", error);
                         let msg = 'Gagal login. Periksa email dan password Anda.';
                         if (error.code === 'auth/operation-not-allowed') {
-                            this.askConfirmation(
-                                '⚠️ Email/Password Belum Aktif di Firebase Console',
-                                'Error Firebase: auth/operation-not-allowed.\n\nProvider Email/Password belum diaktifkan pada Firebase Console proyek ini.\n\nLangkah Mengaktifkan (Hanya 1 Menit):\n1. Buka https://console.firebase.google.com/\n2. Pilih proyek "uns-fleet-management"\n3. Buka menu Authentication > Sign-in method\n4. Klik "Email/Password" > centang Enable > klik Save.\n\nAnda dapat langsung masuk sekarang menggunakan Mode Sesi Admin Darurat agar tidak terhambat.',
-                                () => {
-                                    this.enterEmergencyAdminSession();
-                                },
-                                'Masuk Sesi Admin Darurat',
-                                'Tutup'
-                            );
-                            return;
+                            msg = 'Login Email/Password belum diaktifkan di Firebase Authentication. Aktifkan provider Email/Password di Firebase Console.';
                         } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                             msg = 'Email atau password salah!';
                         } else if (error.code === 'auth/invalid-email') {
                             msg = 'Format alamat email tidak valid!';
                         } else if (error.code === 'auth/too-many-requests') {
                             msg = 'Terlalu banyak percobaan. Silakan coba lagi nanti.';
+                        } else if (error.code === 'automan/auth-init-timeout') {
+                            this.cloudStatus = 'offline';
+                            msg = 'Firebase Auth gagal diinisialisasi. Periksa konfigurasi Firebase Authentication atau buka aplikasi melalui HTTPS/localhost.';
+                        } else if (error.code === 'automan/auth-timeout') {
+                            this.cloudStatus = 'offline';
+                            msg = 'Firebase Auth tidak merespons setelah 8 detik. Periksa koneksi internet, Firebase Authentication, dan Authorized Domains.';
+                        } else if (error.code === 'auth/network-request-failed') {
+                            this.cloudStatus = 'offline';
+                            msg = 'Koneksi ke Firebase gagal. Internet terdeteksi, tetapi layanan Auth Firebase tidak dapat dihubungi.';
+                        } else if (error.code === 'auth/api-key-not-valid') {
+                            msg = 'Firebase API Key tidak valid untuk proyek ini.';
+                        } else if (error.code === 'auth/project-not-found') {
+                            msg = 'Proyek Firebase tidak ditemukan atau konfigurasi proyek salah.';
+                        } else if (error.code === 'auth/unauthorized-domain') {
+                            msg = 'Domain/file aplikasi belum diizinkan oleh Firebase Authentication.';
+                        } else if (error.code === 'auth/internal-error') {
+                            msg = 'Firebase mengalami error internal. Periksa konfigurasi Authentication.';
                         }
+                        this.loginErrorMessage = msg;
                         this.showToast(msg);
                     } finally {
+                        if (timeoutId) clearTimeout(timeoutId);
                         this.isLoggingIn = false;
                     }
                 },
-                enterEmergencyAdminSession() {
-                    sessionStorage.setItem('automan_admin_session', 'true');
-                    this.isAuthenticated = true;
-                    try {
-                        signInAnonymously(auth).catch(() => {});
-                    } catch (e) {}
-                    this.initRealtimeSync();
-                    this.showToast('🔓 Berhasil masuk menggunakan Sesi Admin Darurat!');
-                },
                 async logout() {
                     try {
-                        sessionStorage.removeItem('automan_admin_session');
                         await signOut(auth);
                     } catch (error) {
                         console.error("Logout error:", error);
@@ -2913,17 +3303,33 @@
                 askConfirmation(title, message, onConfirm, confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', onExtra = null, extraText = '') {
                     this.confirmModal = { show: true, title, message, confirmText, cancelText, extraText, onConfirm, onExtra };
                 },
-                closeConfirmModal(isConfirmed) {
-                    if (isConfirmed && typeof this.confirmModal.onConfirm === 'function') {
-                        this.confirmModal.onConfirm();
+                async closeConfirmModal(isConfirmed) {
+                    const action = this.confirmModal.onConfirm;
+                    const reset = () => {
+                        this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', extraText: '', onConfirm: null, onExtra: null };
+                    };
+                    if (!isConfirmed || typeof action !== 'function') {
+                        reset();
+                        return;
                     }
-                    this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', extraText: '', onConfirm: null, onExtra: null };
+                    // Jangan reset modal sebelum callback async selesai.
+                    // Ini penting pada Android/content:// agar callback hapus tidak terputus.
+                    try {
+                        await action();
+                    } finally {
+                        reset();
+                    }
                 },
-                triggerExtraConfirmAction() {
-                    if (typeof this.confirmModal.onExtra === 'function') {
-                        this.confirmModal.onExtra();
+                async triggerExtraConfirmAction() {
+                    const action = this.confirmModal.onExtra;
+                    const reset = () => {
+                        this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', extraText: '', onConfirm: null, onExtra: null };
+                    };
+                    try {
+                        if (typeof action === 'function') await action();
+                    } finally {
+                        reset();
                     }
-                    this.confirmModal = { show: false, title: '', message: '', confirmText: 'Ya, Lanjutkan', cancelText: 'Batal', extraText: '', onConfirm: null, onExtra: null };
                 },
                 formatDateDisplay(dateStr) {
                     const d = this.parseLocalDate(dateStr);
@@ -3009,141 +3415,474 @@
                     return isNaN(d.getTime()) ? null : d;
                 },
 
-                initRealtimeSync() {
-                    const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
-                    const lRef = ref(db, `artifacts/${appId}/public/data/logs`);
-                    const sRef = ref(db, `artifacts/${appId}/public/data/settings`);
+                activeDataRoot() {
+                    return this.activeDataVersion === 'v2' ? HYBRID_DATA_ROOT : LEGACY_DATA_ROOT;
+                },
+                async detectHybridDatabase() {
+                    try {
+                        const snap = await get(ref(db, `${HYBRID_DATA_ROOT}/meta`));
+                        const meta = snap.val();
+                        if (meta && Number(meta.schemaVersion) >= 3 && meta.status === 'ready') {
+                            this.activeDataVersion = 'v2';
+                            this.hybridMigration = {
+                                status: 'HYBRID AKTIF • TARGET 15 TAHUN',
+                                migratedAt: meta.migratedAt || '',
+                                counts: meta.counts || null
+                            };
+                            return true;
+                        }
+                    } catch (e) {
+                        console.warn('Pemeriksaan database hybrid gagal, tetap gunakan database lama:', e);
+                    }
+                    this.activeDataVersion = 'legacy';
+                    this.hybridMigration.status = 'DATABASE LAMA AKTIF';
+                    return false;
+                },
+                stopRealtimeSync() {
+                    if (Array.isArray(this._realtimeUnsubs)) {
+                        this._realtimeUnsubs.forEach(unsub => {
+                            try { if (typeof unsub === 'function') unsub(); } catch (e) {}
+                        });
+                    }
+                    this._realtimeUnsubs = [];
+                },
+                upsertVehicleFromSnapshot(key, val) {
+                    const k = String(key || '');
+                    let item;
+                    if (typeof val === 'object' && val !== null) {
+                        const detectedPlate = (val.plate && String(val.plate).trim()) ||
+                            (val.id && !String(val.id).startsWith('-') && !String(val.id).startsWith('LOG') && String(val.id).trim()) ||
+                            (k && !k.startsWith('-') && !k.startsWith('LOG') && k.trim()) || '';
+                        item = {
+                            ...val,
+                            id: val.id || k,
+                            _fbKey: k,
+                            plate: detectedPlate ? String(detectedPlate).toUpperCase().trim() : '',
+                            model: val.model || (detectedPlate ? 'Mobil Dinas Operasional' : '')
+                        };
+                    } else {
+                        const cleanKey = String(val || k).toUpperCase().trim();
+                        item = { id: k, _fbKey: k, plate: cleanKey, model: 'Mobil Dinas Operasional' };
+                    }
+                    const idx = (this.vehicles || []).findIndex(v => String(v._fbKey || '') === k);
+                    const next = [...(this.vehicles || [])];
+                    if (idx >= 0) next.splice(idx, 1, item); else next.push(item);
+                    this.vehicles = next;
+                },
+                upsertLogFromSnapshot(key, val) {
+                    const k = String(key || '');
+                    const item = (typeof val === 'object' && val !== null)
+                        ? { ...val, id: val.id || k, _fbKey: k }
+                        : { id: k, _fbKey: k };
+                    const idx = (this.serviceLogs || []).findIndex(l => String(l._fbKey || l.id || '') === k);
+                    const next = [...(this.serviceLogs || [])];
+                    if (idx >= 0) next.splice(idx, 1, item); else next.push(item);
+                    this.serviceLogs = next;
+                },
+                removeByFbKey(list, key) {
+                    const k = String(key || '');
+                    return (list || []).filter(item => String(item._fbKey || item.id || '') !== k);
+                },
+                async initRealtimeSync() {
+                    // Jangan memasang listener ganda. Child listener jauh lebih hemat untuk koleksi logs/vehicles:
+                    // callback awal hanya mengirim satu child per item, lalu perubahan hanya mengirim child yang berubah.
+                    if (this._syncInitializing || (Array.isArray(this._realtimeUnsubs) && this._realtimeUnsubs.length > 0)) return;
+                    this._syncInitializing = true;
+                    try {
+                        await this.detectHybridDatabase();
+                        const root = this.activeDataRoot();
+                        const vRef = ref(db, `${root}/vehicles`);
+                        const lRef = ref(db, `${root}/logs`);
+                        const sRef = ref(db, `${root}/settings`);
+                        const kRef = ref(db, `${root}/keyStats`);
+                        const dRef = ref(db, `${root}/drivers`);
 
-                    onValue(vRef, (snap) => {
+                        this.vehicles = [];
+                        this.drivers = [];
+                        this.serviceLogs = [];
                         this.cloudStatus = 'connected';
-                        const data = snap.val();
-                        if (!data) {
-                            this.vehicles = [];
-                            return;
-                        }
-                        this.vehicles = Object.entries(data).map(([key, val]) => {
-                            if (typeof val === 'object' && val !== null) {
-                                let detectedPlate = (val.plate && String(val.plate).trim()) || 
-                                                    (val.id && !String(val.id).startsWith('-') && !String(val.id).startsWith('LOG') && String(val.id).trim()) || 
-                                                    (key && !String(key).startsWith('-') && !String(key).startsWith('LOG') && String(key).trim()) || 
-                                                    '';
 
-                                return {
-                                    ...val,
-                                    id: val.id || key,
-                                    _fbKey: key,
-                                    plate: detectedPlate ? String(detectedPlate).toUpperCase().trim() : '',
-                                    model: val.model || (detectedPlate ? 'Mobil Dinas Operasional' : '')
-                                };
-                            }
-                            const cleanKey = String(val || key).toUpperCase().trim();
-                            return { id: key, _fbKey: key, plate: cleanKey, model: 'Mobil Dinas Operasional' };
-                        });
-                    });
+                        this._realtimeUnsubs.push(onChildAdded(vRef, snap => this.upsertVehicleFromSnapshot(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildChanged(vRef, snap => this.upsertVehicleFromSnapshot(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildRemoved(vRef, snap => {
+                            this.vehicles = this.removeByFbKey(this.vehicles, snap.key);
+                        }));
 
-                    onValue(lRef, (snap) => {
-                        const data = snap.val();
-                        if (!data) {
-                            this.serviceLogs = [];
-                            return;
-                        }
-                        this.serviceLogs = Object.entries(data).map(([key, val]) => {
-                            if (typeof val === 'object' && val !== null) {
-                                return {
-                                    ...val,
-                                    id: val.id || key,
-                                    _fbKey: key
-                                };
-                            }
-                            return { id: key, _fbKey: key };
-                        });
-                    });
+                        this._realtimeUnsubs.push(onChildAdded(dRef, snap => this.upsertDriverFromSnapshot(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildChanged(dRef, snap => this.upsertDriverFromSnapshot(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildRemoved(dRef, snap => { this.drivers = this.removeByFbKey(this.drivers, snap.key); }));
 
-                    onValue(sRef, (snap) => {
-                        const data = snap.val();
-                        if (data) {
-                            if (data.geminiApiKey) this.settings.geminiApiKey = data.geminiApiKey;
-                            if (data.telegramBotToken) this.settings.telegramBotToken = data.telegramBotToken;
-                            if (data.telegramChatId) this.settings.telegramChatId = data.telegramChatId;
-                            if (data.sheetsWebhookUrl !== undefined) this.settings.sheetsWebhookUrl = data.sheetsWebhookUrl;
-                            if (typeof data.autoSyncSheets === 'boolean') this.settings.autoSyncSheets = data.autoSyncSheets;
-                        }
+                        this._realtimeUnsubs.push(onChildAdded(lRef, snap => this.upsertLogFromSnapshot(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildChanged(lRef, snap => this.upsertLogFromSnapshot(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildRemoved(lRef, snap => {
+                            this.serviceLogs = this.removeByFbKey(this.serviceLogs, snap.key);
+                        }));
+
+                        // Settings kecil: tetap realtime, tetapi per-field sehingga tidak membaca ulang seluruh object.
+                        this._realtimeUnsubs.push(onChildAdded(sRef, snap => this.applySettingChild(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildChanged(sRef, snap => this.applySettingChild(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildRemoved(sRef, snap => this.applySettingChild(snap.key, null)));
+
+                        // Konfigurasi Telegram boleh dibaca semua perangkat yang sudah Auth.
+                        // Hanya tombol Simpan di Admin yang memiliki izin write melalui Rules.
+                        const tRef = ref(db, `${root}/telegramConfig`);
+                        this._realtimeUnsubs.push(onValue(tRef, snap => {
+                            const cfg = snap.val() || {};
+                            if (cfg.botToken !== undefined) this.settings.telegramBotToken = String(cfg.botToken || '');
+                            if (cfg.chatId !== undefined) this.settings.telegramChatId = String(cfg.chatId || '');
+                            if (cfg.enabled !== undefined) this.settings.enableTelegramNotification = Boolean(cfg.enabled);
+                        }, err => console.warn('Telegram config listener:', err)));
+
+                        // Statistik Gemini ikut realtime agar Monitor Kuota tidak kembali 0
+                        // setelah refresh/perangkat lain. Hanya metadata pemakaian yang disimpan.
+                        this._realtimeUnsubs.push(onChildAdded(kRef, snap => this.applyKeyStatChild(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildChanged(kRef, snap => this.applyKeyStatChild(snap.key, snap.val())));
+                        this._realtimeUnsubs.push(onChildRemoved(kRef, snap => this.removeKeyStatChild(snap.key)));
+                    } catch (e) {
+                        this.cloudStatus = 'offline';
+                        console.error('Gagal mengaktifkan sinkronisasi hybrid:', e);
+                    } finally {
+                        this._syncInitializing = false;
+                    }
+                },
+                applyKeyStatChild(key, value) {
+                    this._keyStatsByFirebaseId = this._keyStatsByFirebaseId || {};
+                    if (!value || typeof value !== 'object') {
+                        delete this._keyStatsByFirebaseId[key];
+                        this.removeKeyStatChild(key);
+                        return;
+                    }
+                    const today = new Date().toISOString().slice(0, 10);
+                    const stat = { ...value };
+                    if (stat.dateKey !== today) {
+                        stat.callsToday = 0;
+                        stat.totalTokens = 0;
+                        stat.dateKey = today;
+                    }
+                    this._keyStatsByFirebaseId[key] = stat;
+                    const matchingKey = this.getGeminiKeys().find(k => k.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 16) === key);
+                    if (matchingKey) this.keyUsageStats[matchingKey] = stat;
+                },
+                removeKeyStatChild(key) {
+                    const old = this._keyStatsByFirebaseId && this._keyStatsByFirebaseId[key];
+                    if (old) {
+                        const matchingKey = this.getGeminiKeys().find(k => k.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 16) === key);
+                        if (matchingKey) delete this.keyUsageStats[matchingKey];
+                    }
+                    if (this._keyStatsByFirebaseId) delete this._keyStatsByFirebaseId[key];
+                },
+                hydrateKeyStatsForConfiguredKeys() {
+                    const source = this._keyStatsByFirebaseId || {};
+                    this.getGeminiKeys().forEach(k => {
+                        const id = k.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 16);
+                        if (source[id]) this.keyUsageStats[k] = source[id];
                     });
                 },
+                extractGeminiTokenCount(result, fallback = 0) {
+                    const usage = result?.usageMetadata || result?.usage_metadata || {};
+                    const total = Number(usage.totalTokenCount ?? usage.total_token_count);
+                    if (Number.isFinite(total) && total >= 0) return Math.round(total);
+                    const input = Number(usage.promptTokenCount ?? usage.prompt_token_count) || 0;
+                    const output = Number(usage.candidatesTokenCount ?? usage.candidates_token_count) || 0;
+                    const sum = input + output;
+                    return sum > 0 ? Math.round(sum) : Math.max(0, Number(fallback) || 0);
+                },
+                applySettingChild(key, value) {
+                    if (key === 'geminiApiKey') {
+                        this.settings.geminiApiKey = value || '';
+                        this.hydrateKeyStatsForConfiguredKeys();
+                    }
+                    if (key === 'telegramBotToken') this.settings.telegramBotToken = value || '';
+                    if (key === 'telegramChatId') this.settings.telegramChatId = value || '';
+                    if (key === 'enableTelegramNotification') this.settings.enableTelegramNotification = Boolean(value);
+                    if (key === 'sheetsWebhookUrl') this.settings.sheetsWebhookUrl = value || '';
+                    if (key === 'autoSyncSheets') this.settings.autoSyncSheets = Boolean(value);
+                },
+                async backupLegacyDatabase() {
+                    try {
+                        this.requireFirebaseUser();
+                        const snap = await this.firebaseWriteWithTimeout(() => get(ref(db, LEGACY_DATA_ROOT)), 'Backup database lama');
+                        const data = snap.val() || {};
+                        const payload = {
+                            backupType: 'AUTOMAN Firebase RTDB legacy',
+                            exportedAt: new Date().toISOString(),
+                            source: LEGACY_DATA_ROOT,
+                            data
+                        };
+                        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `AUTOMAN_FIREBASE_BACKUP_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        setTimeout(() => URL.revokeObjectURL(url), 1500);
+                        this.showToast('✅ Backup JSON database lama berhasil dibuat.');
+                        return data;
+                    } catch (e) {
+                        console.error('Backup database gagal:', e);
+                        this.showToast(`❌ Backup gagal: ${e.message}`);
+                        throw e;
+                    }
+                },
+                countDataCollections(data) {
+                    const count = obj => obj && typeof obj === 'object' ? Object.keys(obj).length : 0;
+                    return {
+                        vehicles: count(data?.vehicles),
+                        logs: count(data?.logs),
+                        keyStats: count(data?.keyStats),
+                        settings: data?.settings ? 1 : 0
+                    };
+                },
+                async migrateToHybridDatabase() {
+                    const confirmed = window.confirm(
+                        'MIGRASI KE DATABASE HYBRID\n\n' +
+                        '1. Database lama /data TIDAK akan dihapus.\n' +
+                        '2. Data lama akan dibaca sekali dan disalin ke /data_v2.\n' +
+                        '3. Setelah diverifikasi, aplikasi akan memakai /data_v2.\n\n' +
+                        'Lanjutkan migrasi sekarang?'
+                    );
+                    if (!confirmed) return;
+                    try {
+                        this.requireFirebaseUser();
+                        this.hybridMigration.status = 'MEMBACA DATABASE LAMA...';
+                        const snap = await this.firebaseWriteWithTimeout(() => get(ref(db, LEGACY_DATA_ROOT)), 'Pembacaan database lama');
+                        const legacy = snap.val() || {};
+                        const sourceCounts = this.countDataCollections(legacy);
+                        if (!sourceCounts.vehicles && !sourceCounts.logs && !sourceCounts.settings && !sourceCounts.keyStats) {
+                            throw new Error('Database lama terlihat kosong. Migrasi dibatalkan agar tidak menimpa database hybrid.');
+                        }
+
+                        // Backup lokal sebelum penulisan v2.
+                        const payload = {
+                            backupType: 'AUTOMAN Firebase RTDB legacy before hybrid migration',
+                            exportedAt: new Date().toISOString(),
+                            source: LEGACY_DATA_ROOT,
+                            data: legacy
+                        };
+                        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `AUTOMAN_PRE_MIGRATION_BACKUP_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+                        this.hybridMigration.status = 'MENYALIN DATA KE V2...';
+                        const migrated = {
+                            vehicles: legacy.vehicles || {},
+                            logs: legacy.logs || {},
+                            settings: legacy.settings || {},
+                            keyStats: legacy.keyStats || {},
+                            meta: {
+                                schemaVersion: 3,
+                                status: 'staging',
+                                architecture: 'hybrid-15y',
+                                retentionYears: 15,
+                                migratedAt: new Date().toISOString(),
+                                sourceRoot: LEGACY_DATA_ROOT,
+                                counts: sourceCounts
+                            }
+                        };
+                        await this.firebaseWriteWithTimeout(() => set(ref(db, HYBRID_DATA_ROOT), migrated), 'Penulisan database hybrid');
+
+                        this.hybridMigration.status = 'MEMVERIFIKASI V2...';
+                        const verify = await this.firebaseWriteWithTimeout(() => get(ref(db, HYBRID_DATA_ROOT)), 'Verifikasi database hybrid');
+                        const verified = verify.val() || {};
+                        const targetCounts = this.countDataCollections(verified);
+                        const same = ['vehicles','logs','settings','keyStats'].every(k => Number(targetCounts[k]) === Number(sourceCounts[k]));
+                        if (!same) throw new Error(`Verifikasi gagal. Lama=${JSON.stringify(sourceCounts)}, V2=${JSON.stringify(targetCounts)}`);
+
+                        // Hanya setelah seluruh isi V2 terbukti sama, tandai READY.
+                        await this.firebaseWriteWithTimeout(() => set(ref(db, `${HYBRID_DATA_ROOT}/meta`), {
+                            ...migrated.meta,
+                            schemaVersion: 3,
+                            status: 'ready',
+                            verifiedAt: new Date().toISOString(),
+                            retentionYears: 15,
+                            architecture: 'hybrid-15y'
+                        }), 'Finalisasi database hybrid');
+
+                        this.hybridMigration.status = 'HYBRID AKTIF • TARGET 15 TAHUN';
+                        this.hybridMigration.migratedAt = migrated.meta.migratedAt;
+                        this.hybridMigration.counts = targetCounts;
+                        this.activeDataVersion = 'v2';
+                        this.stopRealtimeSync();
+                        await this.initRealtimeSync();
+                        this.showToast(`✅ Migrasi aman selesai. Armada ${targetCounts.vehicles}, log ${targetCounts.logs}. Database lama tetap disimpan.`);
+                    } catch (e) {
+                        console.error('Migrasi hybrid gagal:', e);
+                        this.hybridMigration.status = 'GAGAL / DATABASE LAMA TETAP AKTIF';
+                        this.activeDataVersion = 'legacy';
+                        this.showToast(`❌ Migrasi gagal: ${e.message}`);
+                    }
+                },
                 openAddVehicleModal() {
-                    this.vehicleForm = { id: null, plate: '', model: '', driver: '', category: 'Operasional', currentKm: 0 };
+                    this.vehicleForm = { _fbKey: '', id: null, plate: '', model: '', driver: '', driverId: '', category: 'Operasional', currentKm: 0 };
                     this.modals.vehicle = true;
                 },
                 editVehicle(car) {
-                    this.vehicleForm = { id: car.id, plate: car.plate || '', model: car.model || '', driver: car.driver || '', category: car.category || 'Operasional', currentKm: Number(car.currentKm) || 0 };
+                    if (!car) return false;
+                    this.vehicleForm = {
+                        _fbKey: String(car._fbKey || ''),
+                        id: car.id || car.plate || '',
+                        plate: car.plate || '',
+                        model: car.model || '',
+                        driver: car.driver || '',
+                        driverId: car.driverId || '',
+                        category: car.category || 'Operasional',
+                        currentKm: Number(car.currentKm) || 0
+                    };
                     this.modals.vehicle = true;
                 },
+                vehicleFirebaseKey(value) {
+                    // Firebase Realtime Database melarang . # $ [ ] / pada key.
+                    // Spasi dan huruf/angka tetap dipertahankan agar key mudah dilacak.
+                    const key = String(value || '').trim().toUpperCase();
+                    return key.replace(/[.#$\[\]\/]/g, '_') || `VEHICLE_${Date.now()}`;
+                },
+                async firebaseWriteWithTimeout(operation, label = 'Operasi Firebase', timeoutMs = 10000) {
+                    const timeout = new Promise((_, reject) => {
+                        setTimeout(() => {
+                            const e = new Error(`${label} timeout setelah ${Math.round(timeoutMs / 1000)} detik.`);
+                            e.code = 'automan/firebase-write-timeout';
+                            reject(e);
+                        }, timeoutMs);
+                    });
+                    return Promise.race([Promise.resolve().then(operation), timeout]);
+                },
+                requireFirebaseUser() {
+                    const user = auth && auth.currentUser;
+                    if (!user) {
+                        const e = new Error('Sesi Firebase tidak aktif. Silakan login kembali.');
+                        e.code = 'automan/auth-required-for-write';
+                        throw e;
+                    }
+                    return user;
+                },
+                upsertDriverFromSnapshot(key, value) { const k=String(key||''); const item=value&&typeof value==='object'?{...value,id:value.id||k,_fbKey:k}:{id:k,_fbKey:k}; const idx=(this.drivers||[]).findIndex(d=>String(d._fbKey||d.id||'')===k); const next=[...(this.drivers||[])]; if(idx>=0) next.splice(idx,1,item); else next.push(item); this.drivers=next.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'id')); },
+                assignedVehicles(driverId) { const id=String(driverId||''); return (this.vehicles||[]).filter(v=>String(v.driverId||'')===id); },
+                assignedVehicleCount(driverId) { return this.assignedVehicles(driverId).length; },
+                driverFirebaseKey(name) { const base=String(name||'').trim().toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,''); return base||`DRIVER_${Date.now()}`; },
+                openAddDriverModal() { this.driverForm={_fbKey:'',id:'',name:'',type:'Operasional',phone:'',status:'AKTIF',notes:''}; this.modals.driver=true; },
+                editDriver(driver) { this.driverForm={_fbKey:String(driver._fbKey||''),id:String(driver.id||''),name:driver.name||'',type:driver.type||'Operasional',phone:driver.phone||'',status:driver.status||'AKTIF',notes:driver.notes||''}; this.modals.driver=true; },
+                async saveDriver() { const name=String(this.driverForm.name||'').trim(); if(!name)return this.showToast('Nama driver wajib diisi.'); const key=String(this.driverForm._fbKey||'').trim()||this.driverFirebaseKey(name); const id=String(this.driverForm.id||key).trim(); const data={id,name,type:this.driverForm.type==='Pimpinan'?'Pimpinan':'Operasional',phone:String(this.driverForm.phone||'').trim(),status:this.driverForm.status==='NONAKTIF'?'NONAKTIF':'AKTIF',notes:String(this.driverForm.notes||'').trim(),updatedAt:new Date().toISOString()}; this.isSavingDriver=true; try{this.requireFirebaseUser(); await this.firebaseWriteWithTimeout(()=>set(ref(db,`${this.activeDataRoot()}/drivers/${key}`),data),'Penyimpanan driver'); const assigned=[...this.assignedVehicles(id),...this.assignedVehicles(key)].filter((v,i,a)=>a.findIndex(x=>(x._fbKey||x.id)===(v._fbKey||v.id))===i); for(const car of assigned) await update(ref(db,`${this.activeDataRoot()}/vehicles/${car._fbKey}`),{driverId:id,driver:name}); this.modals.driver=false; this.showToast('Driver berhasil disimpan dan penugasan diperbarui.');}catch(e){this.showToast(`Gagal menyimpan driver: ${e.message||'Firebase menolak operasi.'}`);}finally{this.isSavingDriver=false;} },
+                async deleteDriver(driver) { const count=this.assignedVehicleCount(driver.id); if(count>0)return this.showToast(`Driver masih memiliki ${count} kendaraan. Pindahkan/lepas kendaraan terlebih dahulu.`); if(!window.confirm(`Hapus master driver ${driver.name||driver.id}?`))return; try{this.requireFirebaseUser(); await this.firebaseWriteWithTimeout(()=>remove(ref(db,`${this.activeDataRoot()}/drivers/${driver._fbKey||driver.id}`)),'Penghapusan driver'); this.showToast('Driver berhasil dihapus.');}catch(e){this.showToast(`Gagal menghapus driver: ${e.message||'Firebase menolak operasi.'}`);} },
+                openDriverAssignment(driver) { this.driverAssignment={driverId:String(driver.id||driver._fbKey||''),driverName:driver.name||'',vehicleId:''}; this.modals.driverAssignment=true; },
+                async assignSelectedVehicle() { const driver=(this.drivers||[]).find(d=>String(d.id||d._fbKey)===String(this.driverAssignment.driverId)); const car=(this.vehicles||[]).find(v=>String(v._fbKey||v.id)===String(this.driverAssignment.vehicleId)); if(!driver||!car)return; this.isAssigningDriver=true; try{this.requireFirebaseUser(); await this.firebaseWriteWithTimeout(()=>update(ref(db,`${this.activeDataRoot()}/vehicles/${car._fbKey}`),{driverId:driver.id,driver:driver.name}),'Pemindahan penugasan driver'); this.modals.driverAssignment=false; this.showToast(`${car.plate||car.id} sekarang ditugaskan kepada ${driver.name}.`);}catch(e){this.showToast(`Gagal memindahkan penugasan: ${e.message||'Firebase menolak operasi.'}`);}finally{this.isAssigningDriver=false;} },
+                async unassignSelectedVehicle() { const car=(this.vehicles||[]).find(v=>String(v._fbKey||v.id)===String(this.driverAssignment.vehicleId)); if(!car)return; try{this.requireFirebaseUser(); await this.firebaseWriteWithTimeout(()=>update(ref(db,`${this.activeDataRoot()}/vehicles/${car._fbKey}`),{driverId:'',driver:'-'}),'Pelepasan driver'); this.modals.driverAssignment=false; this.showToast(`${car.plate||car.id} sudah dilepas dari driver.`);}catch(e){this.showToast(`Gagal melepas driver: ${e.message||'Firebase menolak operasi.'}`);} },
+                async syncDriversFromVehicles() { const map=new Map(); (this.vehicles||[]).forEach(car=>{const name=String(car.driver||'').trim();if(!name||name==='-')return;const key=this.driverFirebaseKey(name);if(!map.has(key))map.set(key,{id:key,name,type:car.category==='Pimpinan'?'Pimpinan':'Operasional',phone:'',status:'AKTIF',notes:'',updatedAt:new Date().toISOString()});}); if(!map.size)return this.showToast('Tidak ditemukan nama driver pada data armada.'); try{this.requireFirebaseUser(); for(const [key,data] of map) await set(ref(db,`${this.activeDataRoot()}/drivers/${key}`),data); for(const car of this.vehicles||[]){const name=String(car.driver||'').trim();if(!name||name==='-')continue;await update(ref(db,`${this.activeDataRoot()}/vehicles/${car._fbKey}`),{driverId:this.driverFirebaseKey(name)});} this.showToast(`Berhasil membuat ${map.size} master driver dari data armada.`);}catch(e){this.showToast(`Sinkronisasi driver gagal: ${e.message||'Firebase menolak operasi.'}`);} },
                 async saveVehicle() {
-                    const plateUpper = String(this.vehicleForm.plate).toUpperCase().trim();
+                    if (this.isSavingVehicle) return;
+                    const plateUpper = String(this.vehicleForm.plate || '').toUpperCase().trim();
+                    const model = String(this.vehicleForm.model || '').trim();
                     if (!plateUpper) {
                         this.showToast('Plat nomor wajib diisi!');
                         return;
                     }
-                    const vehicleId = this.vehicleForm.id || plateUpper;
+                    if (!model) {
+                        this.showToast('Model / tipe kendaraan wajib diisi!');
+                        return;
+                    }
+
+                    const oldFbKey = String(this.vehicleForm._fbKey || '').trim();
+                    const vehicleId = String(this.vehicleForm.id || plateUpper).trim();
+                    const existing = (this.vehicles || []).find(v =>
+                        (oldFbKey && String(v._fbKey || '') === oldFbKey) ||
+                        v.id === vehicleId ||
+                        String(v.plate || '').toUpperCase().trim() === plateUpper
+                    );
+                    const firebaseKey = oldFbKey || (existing && existing._fbKey) || this.vehicleFirebaseKey(plateUpper);
+
+                    const selectedDriver = (this.drivers || []).find(d => String(d.id || d._fbKey) === String(this.vehicleForm.driverId || ''));
                     const vehicleData = {
                         id: vehicleId,
                         plate: plateUpper,
-                        model: this.vehicleForm.model || 'Mobil Dinas',
-                        driver: this.vehicleForm.driver || '-',
+                        model,
+                        driverId: selectedDriver ? String(selectedDriver.id || selectedDriver._fbKey) : String(this.vehicleForm.driverId || ''),
+                        driver: selectedDriver ? selectedDriver.name : (String(this.vehicleForm.driver || '').trim() || '-'),
                         category: this.vehicleForm.category || 'Operasional',
-                        currentKm: Number(this.vehicleForm.currentKm) || 0,
-                        isUnderService: false
+                        currentKm: Math.max(0, Number(this.vehicleForm.currentKm) || 0),
+                        isUnderService: existing ? Boolean(existing.isUnderService) : false,
+                        lastServiceKm: existing ? Number(existing.lastServiceKm) || 0 : 0,
+                        lastServiceDate: existing ? (existing.lastServiceDate || '') : '',
+                        targetWorkshop: existing ? (existing.targetWorkshop || '') : '',
+                        inServiceDate: existing ? (existing.inServiceDate || '') : '',
+                        inServiceNotes: existing ? (existing.inServiceNotes || '') : '',
+                        damageNotes: existing ? this.normalizeDamageNotes(existing.damageNotes) : []
                     };
-                    const existing = (this.vehicles || []).find(v => v.id === vehicleId || v.plate === plateUpper);
-                    if (existing) {
-                        vehicleData.lastServiceKm = existing.lastServiceKm || 0;
-                        vehicleData.lastServiceDate = existing.lastServiceDate || '';
-                        vehicleData.isUnderService = existing.isUnderService || false;
-                        vehicleData.targetWorkshop = existing.targetWorkshop || '';
-                        vehicleData.inServiceDate = existing.inServiceDate || '';
-                        vehicleData.inServiceNotes = existing.inServiceNotes || '';
-                    }
-                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${vehicleId}`), vehicleData);
-                    this.modals.vehicle = false;
-                    this.showToast('Data armada berhasil disimpan!');
 
-                    if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
-                        this.syncToGoogleSheets();
+                    this.isSavingVehicle = true;
+                    try {
+                        this.requireFirebaseUser();
+                        const vehicleRef = ref(db, `${this.activeDataRoot()}/vehicles/${firebaseKey}`);
+                        await this.firebaseWriteWithTimeout(() => set(vehicleRef, vehicleData), 'Penyimpanan armada');
+
+                        this.vehicleForm._fbKey = firebaseKey;
+                        this.modals.vehicle = false;
+                        this.showToast(existing ? 'Data armada berhasil diperbarui!' : 'Armada baru berhasil ditambahkan!');
+
+                        if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                            this.syncToGoogleSheets().catch(err => console.warn('Sync Sheets setelah simpan armada gagal:', err));
+                        }
+                    } catch (err) {
+                        console.error('Gagal menyimpan armada:', err);
+                        const code = err && err.code ? ` [${err.code}]` : '';
+                        let msg = err && err.message ? err.message : 'Operasi Firebase ditolak.';
+                        if (err && err.code === 'PERMISSION_DENIED') msg = 'Firebase menolak penulisan. Periksa Realtime Database Rules dan pastikan akun admin masih login.';
+                        if (err && err.code === 'automan/auth-required-for-write') msg = 'Sesi Firebase tidak aktif. Silakan login kembali, lalu coba tambah/edit armada.';
+                        if (err && err.code === 'automan/firebase-write-timeout') msg = 'Firebase tidak merespons penulisan. Periksa koneksi dan Realtime Database.';
+                        this.showToast(`Gagal menyimpan${code}: ${msg}`);
+                    } finally {
+                        this.isSavingVehicle = false;
                     }
                 },
-                confirmDeleteVehicleModal(car) {
-                    const keyToDelete = car._fbKey || car.id || car.plate;
-                    const displayName = (car.plate && car.plate.trim()) 
-                        ? `${car.plate} (${car.model || 'Tanpa Model'})` 
-                        : `Data Kosong (Kunci: ${keyToDelete})`;
+                async deleteVehicleDirect(car) {
+                    if (!car || this._deletingVehicleKey) return;
+                    const firebaseKey = String(car._fbKey || '').trim();
+                    if (!firebaseKey) {
+                        this.showToast('Kunci Firebase armada tidak ditemukan. Muat ulang data lalu coba lagi.');
+                        return;
+                    }
 
-                    this.askConfirmation(
-                        'Hapus Data Armada',
-                        `Apakah Anda yakin ingin menghapus armada: ${displayName}?`,
-                        async () => {
-                            try {
-                                const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
-                                const keysToTry = [...new Set([car._fbKey, car.id, car.plate])].filter(Boolean);
-                                for (const k of keysToTry) {
-                                    try {
-                                        await remove(child(vRef, String(k)));
-                                        await set(child(vRef, String(k)), null);
-                                    } catch(e) {
-                                        console.warn(`Remove attempt on ${k}:`, e);
-                                    }
-                                }
-                                // Optimistic local state update
-                                this.vehicles = this.vehicles.filter(v => v !== car && v._fbKey !== car._fbKey && v.id !== car.id);
-                                this.showToast(`Data armada ${displayName} berhasil dihapus.`);
-                                if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
-                                    this.syncToGoogleSheets().catch(() => {});
-                                }
-                            } catch (err) {
-                                console.error("Gagal hapus armada:", err);
-                                this.showToast(`Gagal menghapus: ${err.message}`);
-                            }
+                    const plate = String(car.plate || '').trim();
+                    const model = String(car.model || 'Tanpa Model').trim();
+                    const displayName = plate ? `${plate} (${model})` : `Data Armada (${firebaseKey})`;
+
+                    // Konfirmasi native agar pasti menerima tap pada Android/content://.
+                    const confirmed = window.confirm(`Hapus armada?\n\n${displayName}\n\nData akan dihapus permanen dari Firebase.`);
+                    if (!confirmed) return;
+
+                    this._deletingVehicleKey = firebaseKey;
+                    try {
+                        this.requireFirebaseUser();
+                        const vehicleRef = ref(db, `${this.activeDataRoot()}/vehicles/${firebaseKey}`);
+                        await this.firebaseWriteWithTimeout(() => remove(vehicleRef), 'Penghapusan armada');
+
+                        this.vehicles = (this.vehicles || []).filter(v => String(v._fbKey || '') !== firebaseKey);
+                        this.showToast(`Armada ${displayName} berhasil dihapus.`);
+
+                        if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
+                            this.syncToGoogleSheets().catch(err => console.warn('Sync Sheets setelah hapus gagal:', err));
                         }
-                    );
+                    } catch (err) {
+                        console.error('Gagal hapus armada:', err);
+                        const code = err && err.code ? ` [${err.code}]` : '';
+                        let msg = err && err.message ? err.message : 'Operasi Firebase ditolak.';
+                        if (err && err.code === 'PERMISSION_DENIED') msg = 'Firebase menolak penghapusan. Periksa Realtime Database Rules dan pastikan akun admin masih login.';
+                        if (err && err.code === 'automan/auth-required-for-write') msg = 'Sesi Firebase tidak aktif. Silakan login kembali, lalu coba hapus armada.';
+                        if (err && err.code === 'automan/firebase-write-timeout') msg = 'Firebase tidak merespons penghapusan. Periksa koneksi dan Realtime Database.';
+                        this.showToast(`Gagal menghapus${code}: ${msg}`);
+                    } finally {
+                        this._deletingVehicleKey = '';
+                    }
+                },
+                // Dipertahankan untuk kompatibilitas pemanggilan lama.
+                async confirmDeleteVehicleModal(car) {
+                    return this.deleteVehicleDirect(car);
                 },
                 async cleanupEmptyVehicles() {
                     const emptyList = (this.vehicles || []).filter(v => !v.plate || !String(v.plate).trim() || v.plate === 'undefined' || v.plate === 'null' || !v.model);
@@ -3160,17 +3899,14 @@
                         async () => {
                             // Hapus Permanen
                             try {
-                                const vRef = ref(db, `artifacts/${appId}/public/data/vehicles`);
+                                const vRef = ref(db, `${this.activeDataRoot()}/vehicles`);
                                 let deleted = 0;
                                 for (const item of emptyList) {
-                                    const keys = [...new Set([item._fbKey, item.id, item.plate])].filter(Boolean);
-                                    for (const k of keys) {
-                                        try {
-                                            await remove(child(vRef, String(k)));
-                                            await set(child(vRef, String(k)), null);
-                                        } catch(e) {}
+                                    const key = item._fbKey || item.id || item.plate;
+                                    if (key) {
+                                        await remove(child(vRef, String(key)));
+                                        deleted++;
                                     }
-                                    deleted++;
                                 }
                                 this.vehicles = this.vehicles.filter(v => v.plate && String(v.plate).trim() && v.plate !== 'undefined' && v.plate !== 'null');
                                 this.showToast(`Berhasil membersihkan ${deleted} data armada.`);
@@ -3203,7 +3939,12 @@
                                             lastServiceDate: v.lastServiceDate || '',
                                             isUnderService: Boolean(v.isUnderService)
                                         };
-                                        await set(ref(db, `artifacts/${appId}/public/data/vehicles/${plateUpper}`), repairedCar);
+                                        const oldKey = v._fbKey || v.id;
+                                        const newRef = ref(db, `${this.activeDataRoot()}/vehicles/${plateUpper}`);
+                                        await set(newRef, repairedCar);
+                                        if (oldKey && String(oldKey) !== plateUpper) {
+                                            await remove(ref(db, `${this.activeDataRoot()}/vehicles/${oldKey}`));
+                                        }
                                         repaired++;
                                     }
                                 }
@@ -3238,11 +3979,19 @@
                 async saveUpdateKm() {
                     const car = (this.vehicles || []).find(v => v.id === this.updateKmForm.vehicleId);
                     if (car) {
+                        const oldKm = Number(car.currentKm) || 0;
                         car.currentKm = Number(this.updateKmForm.newKm) || 0;
-                        await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
-                        this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM.`);
-                        if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
-                            this.syncToGoogleSheets();
+                        const firebaseKey = car._fbKey || car.id || car.plate;
+                        try {
+                            await set(ref(db, `${this.activeDataRoot()}/vehicles/${firebaseKey}`), car);
+                            if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) this.syncToGoogleSheets();
+                            const detail = `Plat: ${car.plate} (${car.model})\nSopir: ${car.driver || 'Sopir UNS'}\nOdometer Lama: ${oldKm.toLocaleString('id-ID')} KM\nOdometer Baru: ${car.currentKm.toLocaleString('id-ID')} KM`;
+                            await this.dispatchSystemNotification('UPDATE ODOMETER KENDARAAN', detail);
+                            this.showToast(`Odometer ${car.plate} diperbarui ke ${car.currentKm.toLocaleString('id-ID')} KM.`);
+                        } catch (e) {
+                            console.error('Gagal simpan odometer:', e);
+                            this.showToast('Gagal menyimpan odometer ke Firebase: ' + (e.message || 'Error'), 'error');
+                            return;
                         }
                     }
                     this.modals.updateKm = false;
@@ -3533,18 +4282,28 @@
                     if (stat.status === 'INVALID') return 'fa-circle-xmark';
                     return 'fa-circle-question';
                 },
-                recordKeyUsage(key, tokens = 180, status = 'HEALTHY') {
+                recordKeyUsage(key, tokens = 0, status = 'HEALTHY') {
                     if (!key) return;
-                    if (!this.keyUsageStats[key]) {
-                        this.keyUsageStats[key] = { callsToday: 0, totalTokens: 0, status: 'UNTESTED' };
+                    const today = new Date().toISOString().slice(0, 10);
+                    const existing = this.keyUsageStats[key] || {};
+                    if (existing.dateKey !== today) {
+                        existing.callsToday = 0;
+                        existing.totalTokens = 0;
                     }
+                    if (!Number.isFinite(Number(existing.callsToday))) existing.callsToday = 0;
+                    if (!Number.isFinite(Number(existing.totalTokens))) existing.totalTokens = 0;
                     if (status === 'HEALTHY') {
-                        this.keyUsageStats[key].callsToday += 1;
-                        this.keyUsageStats[key].totalTokens += tokens;
+                        existing.callsToday += 1;
+                        existing.totalTokens += Math.max(0, Number(tokens) || 0);
                     }
-                    this.keyUsageStats[key].status = status;
+                    existing.status = status;
+                    existing.dateKey = today;
+                    existing.updatedAt = new Date().toISOString();
+                    this.keyUsageStats[key] = existing;
                     const safeKeyId = key.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 16);
-                    set(ref(db, `artifacts/${appId}/public/data/keyStats/${safeKeyId}`), this.keyUsageStats[key]);
+                    set(ref(db, `${this.activeDataRoot()}/keyStats/${safeKeyId}`), existing).catch(e => {
+                        console.warn('Gagal menyimpan statistik Gemini:', e);
+                    });
                 },
 
                 async testGeminiKey(key, index) {
@@ -3573,7 +4332,9 @@
                                 });
 
                                 if (res.ok) {
-                                    this.recordKeyUsage(cleanKey, 1, 'HEALTHY');
+                                    let result = null;
+                                    try { result = await res.json(); } catch (e) {}
+                                    this.recordKeyUsage(cleanKey, this.extractGeminiTokenCount(result, 1), 'HEALTHY');
                                     this.showToast(`Key #${index + 1} (${modelName}) Aktif & Normal!`);
                                     testedOk = true;
                                     break;
@@ -3924,6 +4685,7 @@ PENTING:
 
                                     if (res.ok) {
                                         const result = await res.json();
+                                        this.recordKeyUsage(currentKey, this.extractGeminiTokenCount(result, 0), 'HEALTHY');
                                         let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (jsonText) {
                                             let cleaned = jsonText.trim();
@@ -4015,7 +4777,6 @@ PENTING:
                                             }
 
                                             scanSuccess = true;
-                                            if (currentKey) this.recordKeyUsage(currentKey, 180, 'HEALTHY');
 
                                             const plateInfo = matchedVehicleName ? ` • Plat Terdeteksi: ${matchedVehicleName}` : '';
                                             this.showToast(`✨ AI Vision Berhasil Mengekstrak Nota!${plateInfo}`);
@@ -4181,6 +4942,7 @@ Ekstrak informasi berikut ke dalam format JSON:
 
                                     if (res.ok) {
                                         const result = await res.json();
+                                        this.recordKeyUsage(currentKey, this.extractGeminiTokenCount(result, 0), 'HEALTHY');
                                         let jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                                         if (jsonText) {
                                             jsonText = jsonText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
@@ -4237,7 +4999,6 @@ Ekstrak informasi berikut ke dalam format JSON:
                                             }
 
                                             scanSuccess = true;
-                                            if (currentKey) this.recordKeyUsage(currentKey, 180, 'HEALTHY');
                                             const plateInfo = matchedVehicleName ? ` • Plat Armada Terdeteksi: ${matchedVehicleName}` : '';
                                             this.showToast(`✨ AI OCR Scan Berhasil!${plateInfo}`);
                                             this.scanStatusMessage = `✅ Terestrak. ${matchedVehicleName ? 'Armada cocok: ' + matchedVehicleName + '.' : ''}`;
@@ -4397,10 +5158,15 @@ Ekstrak informasi berikut ke dalam format JSON:
                         };
 
                         // Simpan ke Firebase Realtime Database
-                        await set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), newLog);
+                        await set(ref(db, `${this.activeDataRoot()}/logs/${logId}`), newLog);
                         
-                        // Perbarui status armada
-                        await this.recalculateVehicleServiceStats(newLog.vehicleId);
+                        // Jangan menunggu onValue(logs). Gunakan snapshot lokal yang sudah memuat log baru,
+                        // sehingga statistik servis langsung konsisten setelah Save/Edit.
+                        const logsForCalculation = [
+                            ...(this.serviceLogs || []).filter(l => l.id !== newLog.id),
+                            newLog
+                        ];
+                        const vehicleSaved = await this.recalculateVehicleServiceStats(newLog.vehicleId, null, logsForCalculation);
 
                         if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
                             this.syncToGoogleSheets().catch(err => console.warn(err));
@@ -4409,6 +5175,10 @@ Ekstrak informasi berikut ke dalam format JSON:
                         this.pendingUploadFile = null;
                         this.detectedPlateMatch = '';
                         this.modals.log = false;
+                        const notifDetail = `Plat: ${newLog.vehicleId}\nBengkel: ${newLog.workshop}\nNo Invoice: ${newLog.invoiceNo || '-'}\nTotal Biaya: Rp ${Number(newLog.totalCost || 0).toLocaleString('id-ID')}\nOdometer: ${Number(newLog.km || 0).toLocaleString('id-ID')} KM`;
+                        if (vehicleSaved) {
+                            await this.dispatchSystemNotification('PENYELESAIAN SERVIS / NOTA DITERBITKAN', notifDetail);
+                        }
                         this.showToast('✅ Log transaksi invoice berhasil disimpan!');
                     } catch (error) {
                         console.error("Gagal simpan log:", error);
@@ -4418,8 +5188,8 @@ Ekstrak informasi berikut ke dalam format JSON:
                     }
                 },
 
-                async recalculateVehicleServiceStats(vehicleId, excludeLogId = null) {
-                    if (!vehicleId) return;
+                async recalculateVehicleServiceStats(vehicleId, excludeLogId = null, logsSnapshot = null) {
+                    if (!vehicleId) return false;
                     const car = (this.vehicles || []).find(v => v.id === vehicleId || v.plate === vehicleId);
                     if (!car) return;
 
@@ -4427,7 +5197,8 @@ Ekstrak informasi berikut ke dalam format JSON:
                     car.targetWorkshop = '';
                     car.inServiceNotes = '';
 
-                    const vLogs = (this.serviceLogs || []).filter(l => (l.vehicleId === car.id || l.vehicleId === car.plate) && l.id !== excludeLogId);
+                    const sourceLogs = Array.isArray(logsSnapshot) ? logsSnapshot : (this.serviceLogs || []);
+                    const vLogs = sourceLogs.filter(l => (l.vehicleId === car.id || l.vehicleId === car.plate) && l.id !== excludeLogId);
                     
                     const maxKm = vLogs.reduce((max, l) => Math.max(max, Number(l.km) || 0), 0);
                     if (maxKm > Number(car.currentKm) || maxKm > 0) {
@@ -4446,7 +5217,12 @@ Ekstrak informasi berikut ke dalam format JSON:
                             const m = String(latestDate.getMonth() + 1).padStart(2, '0');
                             const d = String(latestDate.getDate()).padStart(2, '0');
                             car.lastServiceDate = `${y}-${m}-${d}`;
+                        } else {
+                            car.lastServiceDate = '';
                         }
+                    } else {
+                        car.lastServiceKm = 0;
+                        car.lastServiceDate = '';
                     }
 
                     const sanitizedCar = {
@@ -4460,12 +5236,139 @@ Ekstrak informasi berikut ke dalam format JSON:
                         lastServiceDate: String(car.lastServiceDate || ''),
                         isUnderService: Boolean(car.isUnderService),
                         targetWorkshop: String(car.targetWorkshop || ''),
-                        inServiceNotes: String(car.inServiceNotes || '')
+                        inServiceDate: String(car.inServiceDate || ''),
+                        inServiceNotes: String(car.inServiceNotes || ''),
+                        damageNotes: this.normalizeDamageNotes(car.damageNotes)
                     };
 
-                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${sanitizedCar.id}`), sanitizedCar);
+                    const firebaseKey = car._fbKey || car.id || car.plate;
+                    if (!firebaseKey) return false;
+                    await set(ref(db, `${this.activeDataRoot()}/vehicles/${firebaseKey}`), sanitizedCar);
+                    return true;
                 },
 
+                getDamageNoteText(note) {
+                    if (!note || typeof note !== 'object') return '';
+
+                    // Format utama aplikasi pengguna saat ini.
+                    const candidates = [
+                        note.text,
+                        note.description,
+                        note.complaint,
+                        note.issue,
+                        note.problem,
+                        note.note,
+                        note.notes,
+                        note.damage,
+                        note.keluhan,
+                        note.uraian,
+                        note.detail
+                    ];
+
+                    for (const value of candidates) {
+                        if (value === null || value === undefined) continue;
+                        if (typeof value === 'string' && value.trim()) return value.trim();
+                        if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+                    }
+
+                    // Beberapa format lama dapat menyimpan uraian dalam nested object.
+                    const nestedCandidates = [
+                        note.data,
+                        note.form,
+                        note.payload
+                    ];
+
+                    for (const nested of nestedCandidates) {
+                        if (!nested || typeof nested !== 'object') continue;
+                        const nestedText = this.getDamageNoteText(nested);
+                        if (nestedText) return nestedText;
+                    }
+
+                    return '';
+                },
+                formatBytes(bytes) {
+                    const n = Number(bytes) || 0;
+                    if (n < 1024) return `${n} B`;
+                    if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+                    if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+                    return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+                },
+                maskApiKey(key) {
+                    const s = String(key || '');
+                    if (s.length <= 10) return '••••••••';
+                    return `${s.slice(0, 5)}••••${s.slice(-5)}`;
+                },
+                refreshMonitorData() {
+                    this.showToast('Monitor diperbarui dari data aplikasi. Kuota provider tetap dilihat di dashboard resmi.');
+                },
+                normalizeDamageNotes(notes) {
+                    if (Array.isArray(notes)) return notes.filter(Boolean).map(n => ({ ...n }));
+                    if (notes && typeof notes === 'object') return Object.values(notes).filter(Boolean).map(n => ({ ...n }));
+                    return [];
+                },
+                isDamageNoteUrgent(note) {
+                    return Boolean(note && (note.urgent === true || note.isUrgent === true || note.priority === 'URGENT' || note.priority === 'MENDESAK'));
+                },
+                async saveDamageNotesForAdmin(vehicle, notes) {
+                    if (!vehicle || !vehicle.id) return;
+                    const firebaseKey = String(vehicle._fbKey || vehicle.id || vehicle.plate || '').trim();
+                    if (!firebaseKey) return;
+                    const payload = {
+                        id: String(vehicle.id || vehicle.plate),
+                        plate: String(vehicle.plate || vehicle.id),
+                        model: String(vehicle.model || 'Mobil Dinas'),
+                        driver: String(vehicle.driver || '-'),
+                        category: String(vehicle.category || 'Operasional'),
+                        currentKm: Number(vehicle.currentKm) || 0,
+                        lastServiceKm: Number(vehicle.lastServiceKm) || 0,
+                        lastServiceDate: String(vehicle.lastServiceDate || ''),
+                        isUnderService: Boolean(vehicle.isUnderService),
+                        targetWorkshop: String(vehicle.targetWorkshop || ''),
+                        inServiceDate: String(vehicle.inServiceDate || ''),
+                        inServiceNotes: String(vehicle.inServiceNotes || ''),
+                        damageNotes: this.normalizeDamageNotes(notes)
+                    };
+                    this.requireFirebaseUser();
+                    await this.firebaseWriteWithTimeout(
+                        () => set(ref(db, `${this.activeDataRoot()}/vehicles/${firebaseKey}`), payload),
+                        'Pembaruan catatan kerusakan'
+                    );
+                },
+                async toggleDamageNoteUrgent(vehicle, note) {
+                    if (!vehicle || !note) return;
+                    const notes = this.normalizeDamageNotes(vehicle.damageNotes);
+                    const target = notes.find(n => String(n.id || '') === String(note.id || ''));
+                    if (!target) return;
+                    target.urgent = !this.isDamageNoteUrgent(target);
+                    target.isUrgent = target.urgent;
+                    target.priority = target.urgent ? 'MENDESAK' : 'NORMAL';
+                    try {
+                        await this.saveDamageNotesForAdmin(vehicle, notes);
+                        vehicle.damageNotes = notes;
+                        this.showToast(target.urgent
+                            ? `Keluhan ${vehicle.plate} ditandai MENDESAK.`
+                            : `Prioritas keluhan ${vehicle.plate} dikembalikan NORMAL.`);
+                    } catch (err) {
+                        console.error('Gagal mengubah prioritas keluhan:', err);
+                        this.showToast('Gagal menyimpan prioritas keluhan: ' + (err.message || 'Firebase menolak perubahan.'));
+                    }
+                },
+                async resolveDamageNote(vehicle, note) {
+                    if (!vehicle || !note) return;
+                    const notes = this.normalizeDamageNotes(vehicle.damageNotes);
+                    const target = notes.find(n => String(n.id || '') === String(note.id || ''));
+                    if (!target) return;
+                    target.isResolved = true;
+                    target.resolvedAt = new Date().toISOString();
+                    try {
+                        await this.saveDamageNotesForAdmin(vehicle, notes);
+                        vehicle.damageNotes = notes;
+                        this.showToast(`Keluhan ${vehicle.plate} ditandai selesai.`);
+                    } catch (err) {
+                        console.error('Gagal menyelesaikan keluhan:', err);
+                        this.showToast('Gagal menyimpan status keluhan: ' + (err.message || 'Firebase menolak perubahan.'));
+                    }
+                },
                 openInvoiceModal(log) {
                     this.selectedLog = log;
                     this.modals.invoice = true;
@@ -4474,7 +5377,7 @@ Ekstrak informasi berikut ke dalam format JSON:
                     car.isUnderService = false;
                     car.targetWorkshop = '';
                     car.inServiceNotes = '';
-                    await set(ref(db, `artifacts/${appId}/public/data/vehicles/${car.id}`), car);
+                    await set(ref(db, `${this.activeDataRoot()}/vehicles/${car.id}`), car);
                     this.showToast(`Pengajuan servis ${car.plate} dibatalkan.`);
                 },
                 confirmDeleteLogModal(logId) {
@@ -4485,9 +5388,10 @@ Ekstrak informasi berikut ke dalam format JSON:
                         'Hapus Log Transaksi',
                         'Apakah Anda yakin ingin menghapus catatan transaksi servis ini?',
                         async () => {
-                            await remove(ref(db, `artifacts/${appId}/public/data/logs/${logId}`));
+                            await remove(ref(db, `${this.activeDataRoot()}/logs/${logId}`));
                             if (vehicleId) {
-                                await this.recalculateVehicleServiceStats(vehicleId, logId);
+                                const logsAfterDelete = (this.serviceLogs || []).filter(l => l.id !== logId);
+                                await this.recalculateVehicleServiceStats(vehicleId, null, logsAfterDelete);
                             }
                             this.showToast('Transaksi berhasil dihapus.');
                             if (this.settings.autoSyncSheets && this.settings.sheetsWebhookUrl) {
@@ -4565,13 +5469,85 @@ Ekstrak informasi berikut ke dalam format JSON:
                     XLSX.writeFile(wb, `Laporan_SPJ_Bulanan_${monthName}_${this.spjYear}.xlsx`);
                     this.showToast(`Excel SPJ ${monthName} ${this.spjYear} Berhasil Di-export!`);
                 },
+                async dispatchSystemNotification(eventTitle, detailText) {
+                    if (!this.settings.enableTelegramNotification) return false;
+                    const fullText = `AUTOMAN UNS NOTIFICATION\n\n${eventTitle}\n${detailText}\n\n${new Date().toLocaleString('id-ID')}`;
+                    return await this.sendTelegramMessage(fullText);
+                },
+                async sendTelegramMessage(text) {
+                    const botToken = String(this.settings.telegramBotToken || '').trim();
+                    const chatId = String(this.settings.telegramChatId || '').trim();
+                    const message = String(text || '').trim();
+                    if (!botToken || !chatId) {
+                        this.showToast('Bot Token & Chat ID Telegram belum diatur.', 'error');
+                        return false;
+                    }
+                    if (!message) return false;
+
+                    try {
+                        // Direct form POST: tidak terkena CORS dan tetap berjalan
+                        // bila Admin dibuka sebagai HTML lokal.
+                        const frameName = 'telegram_admin_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+                        const iframe = document.createElement('iframe');
+                        iframe.name = frameName;
+                        iframe.style.display = 'none';
+                        document.body.appendChild(iframe);
+
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = 'https://api.telegram.org/bot' + encodeURIComponent(botToken) + '/sendMessage';
+                        form.target = frameName;
+                        form.style.display = 'none';
+
+                        const addField = (name, value) => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = name;
+                            input.value = value;
+                            form.appendChild(input);
+                        };
+                        addField('chat_id', chatId);
+                        addField('text', message.replace(/\*/g, ''));
+                        addField('disable_web_page_preview', 'true');
+
+                        document.body.appendChild(form);
+                        form.submit();
+
+                        setTimeout(() => {
+                            try { form.remove(); } catch (_) {}
+                            try { iframe.remove(); } catch (_) {}
+                        }, 8000);
+
+                        return true;
+                    } catch (e) {
+                        console.warn('Gagal mengirim Telegram langsung:', e);
+                        this.showToast('Telegram gagal dikirim: ' + (e.message || 'Network error'), 'error');
+                        return false;
+                    }
+                },
+                async testTelegramNotification() {
+                    const ok = await this.dispatchSystemNotification('TES NOTIFIKASI TELEGRAM', 'Tes dari AUT0MAN ADMIN. Bot dan Chat ID berhasil dibaca dari Firebase.');
+                    this.showToast(ok ? 'Tes Telegram berhasil dikirim.' : 'Tes Telegram gagal dikirim.', ok ? 'success' : 'error');
+                },
                 async saveIntegrations() {
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/geminiApiKey`), this.settings.geminiApiKey || '');
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/telegramBotToken`), this.settings.telegramBotToken || '');
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/telegramChatId`), this.settings.telegramChatId || '');
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/sheetsWebhookUrl`), this.settings.sheetsWebhookUrl || '');
-                    await set(ref(db, `artifacts/${appId}/public/data/settings/autoSyncSheets`), Boolean(this.settings.autoSyncSheets));
-                    this.showToast('Pengaturan integrasi & API Keys berhasil disimpan!');
+                    const settingsPayload = {
+                        geminiApiKey: this.settings.geminiApiKey || '',
+                        telegramBotToken: this.settings.telegramBotToken || '',
+                        telegramChatId: this.settings.telegramChatId || '',
+                        enableTelegramNotification: Boolean(this.settings.enableTelegramNotification !== false),
+                        sheetsWebhookUrl: this.settings.sheetsWebhookUrl || '',
+                        autoSyncSheets: Boolean(this.settings.autoSyncSheets)
+                    };
+                    await Promise.all([
+                        update(ref(db, `${this.activeDataRoot()}/settings`), settingsPayload),
+                        update(ref(db, `${this.activeDataRoot()}/telegramConfig`), {
+                            botToken: settingsPayload.telegramBotToken,
+                            chatId: settingsPayload.telegramChatId,
+                            enabled: Boolean(this.settings.enableTelegramNotification !== false),
+                            updatedAt: new Date().toISOString()
+                        })
+                    ]);
+                    this.showToast('Pengaturan integrasi & Telegram berhasil disimpan!');
                 },
                 copyAppsScriptCode() {
                     const scriptCode = `function doGet(e) {
@@ -4807,7 +5783,7 @@ function doPost(e) {
                                         currentKm: Number(r['Odometer']) || 0,
                                         isUnderService: false
                                     };
-                                    set(ref(db, `artifacts/${appId}/public/data/vehicles/${plate}`), car);
+                                    set(ref(db, `${this.activeDataRoot()}/vehicles/${plate}`), car);
                                 }
                             });
                             this.showToast('Import Excel Armada Selesai!');
@@ -4824,7 +5800,7 @@ function doPost(e) {
                     const file = e.target.files[0];
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (evt) => {
+                    reader.onload = async (evt) => {
                         try {
                             const data = new Uint8Array(evt.target.result);
                             const workbook = XLSX.read(data, { type: 'array', cellDates: true });
@@ -4832,7 +5808,7 @@ function doPost(e) {
                             let importedCount = 0;
                             let updatedCount = 0;
 
-                            rows.forEach((r, idx) => {
+                            for (const [idx, r] of rows.entries()) {
                                 const plate = (r['Plat Nomor'] || r['Plat'] || '').toUpperCase().trim();
                                 if (plate) {
                                     const rawInv = r['No Invoice'] || r['Invoice'] || '';
@@ -4862,13 +5838,17 @@ function doPost(e) {
                                         totalCost: cost
                                     };
 
-                                    set(ref(db, `artifacts/${appId}/public/data/logs/${logId}`), log);
-                                    this.recalculateVehicleServiceStats(plate);
+                                    await set(ref(db, `${this.activeDataRoot()}/logs/${logId}`), log);
+                                    const logsForCalculation = [
+                                        ...(this.serviceLogs || []).filter(l => l.id !== log.id),
+                                        log
+                                    ];
+                                    await this.recalculateVehicleServiceStats(plate, null, logsForCalculation);
 
                                     if (existingLog) updatedCount++;
                                     else importedCount++;
                                 }
-                            });
+                            }
                             this.showToast(`Import Excel Selesai! (${importedCount} baru, ${updatedCount} diperbarui)`);
                         } catch(err) {
                             this.showToast('Gagal impor Excel transaksi: ' + err.message);
